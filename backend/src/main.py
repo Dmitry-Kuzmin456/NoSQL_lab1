@@ -1,6 +1,5 @@
 import httpx
 from fastapi import FastAPI
-
 from settings import settings
 
 app = FastAPI(title="Our site")

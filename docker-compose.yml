@@ -1,0 +1,35 @@
+services:
+  riak:
+    image: basho/riak-kv:ubuntu-2.2.3
+    platform: linux/amd64
+    environment:
+      CLUSTER_NAME: riakkv
+    labels:
+      com.basho.riak.cluster.name: riakkv
+    ports:
+      - "8087:8087"
+      - "8098:8098"
+    volumes:
+      - riak-data:/var/lib/riak
+      - riak-schemas:/etc/riak/schemas
+    healthcheck:
+      test: ["CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    env_file:
+      - ./backend/.env
+    ports:
+      - "8000:8000"
+    depends_on:
+      riak:
+        condition: service_healthy
+
+volumes:
+  riak-data:
+  riak-schemas:

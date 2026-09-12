@@ -1,7 +1,6 @@
 import httpx
 from fastapi import FastAPI
-
-from backend.src.infrastructure.environment.settings import settings
+from infrastructure.environment.settings import settings
 
 app = FastAPI(title="Our site")
 

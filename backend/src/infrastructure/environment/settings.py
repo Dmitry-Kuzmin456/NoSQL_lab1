@@ -1,4 +1,5 @@
 from pathlib import Path
+from typing import Literal
 
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
@@ -16,7 +17,8 @@ class AuthSettings(BaseModel):
     access_token_expire_minutes: int = 15
     refresh_token_expire_days: int = 30
     cookie_secure: bool = False
-    cookie_samesite: str = "lax"
+    cookie_httponly: bool = True
+    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
 
 class Settings(BaseSettings):

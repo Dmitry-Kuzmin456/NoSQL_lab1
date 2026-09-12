@@ -11,9 +11,8 @@ class ITokenService(ABC):
         self,
         user_id: UUID,
         role: UserRole,
-        email: str,
     ) -> str:
-        """Create a signed access token (e.g. JWT) containing user claims."""
+        """Create a signed access token (JWT) containing user_id and role."""
         ...
 
     @abstractmethod

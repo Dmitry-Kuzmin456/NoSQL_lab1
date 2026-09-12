@@ -23,23 +23,22 @@ class JwtTokenService(ITokenService):
         self,
         user_id: UUID,
         role: UserRole,
-        email: str,
     ) -> str:
         now = datetime.now(UTC)
         expire = now + timedelta(minutes=self._expire_minutes)
         payload: dict[str, Any] = {
             "sub": str(user_id),
-            "email": email,
+            "user_id": str(user_id),
             "role": str(role.value),
             "iat": int(now.timestamp()),
             "exp": int(expire.timestamp()),
         }
         return jwt.encode(payload, self._secret_key, algorithm=self._algorithm)
 
-    def verify_access_token(self, token: str) -> dict[Any, Any] | dict[str, Any] | dict[str, str] | dict[bytes, bytes]:
-        payload = jwt.decode(
+    def verify_access_token(self, token: str) -> dict[str, Any]:
+        payload: dict[str, Any] = jwt.decode(
             token,
             self._secret_key,
             algorithms=[self._algorithm],
         )
-        return dict(payload)
+        return payload

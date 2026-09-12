@@ -1,3 +1,18 @@
+from .auth import (
+    AuthResponseDto,
+    AuthService,
+    ITokenService,
+    LoginDto,
+)
+from .session import (
+    ISessionRepository,
+    SessionException,
+    SessionExpiredException,
+    SessionNotFoundException,
+    SessionResponseDto,
+    SessionRevokedException,
+    SessionService,
+)
 from .user import (
     ChangePasswordDto,
     InvalidCredentialsException,
@@ -11,15 +26,27 @@ from .user import (
     UserResponseDto,
     UserService,
     UserUpdateDto,
+    UserWithPasswordDto,
     WeakNewPasswordException,
     WeakPasswordException,
 )
 
 __all__ = [
+    "AuthResponseDto",
+    "AuthService",
     "ChangePasswordDto",
     "IPasswordHasher",
+    "ISessionRepository",
+    "ITokenService",
     "IUserRepository",
     "InvalidCredentialsException",
+    "LoginDto",
+    "SessionException",
+    "SessionExpiredException",
+    "SessionNotFoundException",
+    "SessionResponseDto",
+    "SessionRevokedException",
+    "SessionService",
     "UserAlreadyExistsException",
     "UserException",
     "UserLoginDto",
@@ -28,6 +55,7 @@ __all__ = [
     "UserResponseDto",
     "UserService",
     "UserUpdateDto",
+    "UserWithPasswordDto",
     "WeakNewPasswordException",
     "WeakPasswordException",
 ]

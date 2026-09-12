@@ -45,3 +45,30 @@ class UserResponseDto:
             email=user.email,
             role=user.role,
         )
+
+
+@dataclass(frozen=True)
+class UserWithPasswordDto:
+    id: UUID
+    name: str
+    email: str
+    password_hash: str
+    role: UserRole
+
+    @classmethod
+    def from_domain(cls, user: User) -> "UserWithPasswordDto":
+        return cls(
+            id=user.id,
+            name=user.name,
+            email=user.email,
+            password_hash=user.password_hash,
+            role=user.role,
+        )
+
+    def to_response_dto(self) -> UserResponseDto:
+        return UserResponseDto(
+            id=self.id,
+            name=self.name,
+            email=self.email,
+            role=self.role,
+        )

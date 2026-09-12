@@ -7,6 +7,7 @@ from .dto import (
     UserRegisterDto,
     UserResponseDto,
     UserUpdateDto,
+    UserWithPasswordDto,
 )
 from .exceptions import (
     InvalidCredentialsException,
@@ -56,12 +57,12 @@ class UserService:
             raise UserNotFoundException(user_id)
         return UserResponseDto.from_domain(user)
 
-    def get_by_email(self, email: str) -> UserResponseDto:
+    def get_by_email(self, email: str) -> UserWithPasswordDto:
         normalized_email = email.strip().lower()
         user = self._user_repository.get_by_email(normalized_email)
         if user is None:
             raise UserNotFoundException(normalized_email)
-        return UserResponseDto.from_domain(user)
+        return UserWithPasswordDto.from_domain(user)
 
     def update_profile(self, user_id: UUID, dto: UserUpdateDto) -> UserResponseDto:
         user = self._user_repository.get_by_id(user_id)

@@ -21,3 +21,10 @@ class Session:
 
     def revoke(self) -> None:
         self.is_revoked = True
+
+    def rotate_refresh_token(
+        self, new_token: str, new_expires_at: datetime | None = None
+    ) -> None:
+        self.refresh_token = new_token
+        if new_expires_at is not None:
+            self.expires_at = new_expires_at

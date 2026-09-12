@@ -42,7 +42,6 @@ class AuthService:
         access_token = self._token_service.create_access_token(
             user_id=user.id,
             role=user.role,
-            email=user.email,
         )
 
         return AuthResponseDto(
@@ -60,7 +59,6 @@ class AuthService:
         access_token = self._token_service.create_access_token(
             user_id=user_dto.id,
             role=user_dto.role,
-            email=user_dto.email,
         )
 
         return AuthResponseDto(

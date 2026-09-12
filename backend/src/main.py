@@ -1,8 +1,10 @@
 import httpx
 from fastapi import FastAPI
 from infrastructure.environment.settings import settings
+from infrastructure.http import user_router
 
 app = FastAPI(title="Our site")
+app.include_router(user_router, prefix="/api")
 
 RIAK_HTTP_URL = settings.riak.base_url
 

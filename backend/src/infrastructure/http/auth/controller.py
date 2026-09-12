@@ -14,10 +14,10 @@ from application.user.exceptions import (
     UserNotFoundException,
 )
 from infrastructure.environment.settings import settings
+from infrastructure.http.user.schemas import UserResponse
 
 from .dependencies import AuthServiceDep
 from .schemas import (
-    AuthResponse,
     LoginRequest,
     RefreshTokenRequest,
 )
@@ -57,15 +57,15 @@ def _clear_auth_cookies(response: Response) -> None:
 
 @router.post(
     "/login",
-    response_model=AuthResponse,
+    response_model=UserResponse,
     status_code=status.HTTP_200_OK,
-    summary="Аутентификация пользователя, выпуск токенов и установка cookie",
+    summary="Аутентификация пользователя и установка auth-cookie",
 )
 def login(
     request: LoginRequest,
     response: Response,
     service: AuthServiceDep,
-) -> AuthResponse:
+) -> UserResponse:
     try:
         dto = request.to_dto()
         auth_dto = service.login(dto)
@@ -74,7 +74,7 @@ def login(
             access_token=auth_dto.access_token,
             refresh_token=auth_dto.session.refresh_token,
         )
-        return AuthResponse.from_dto(auth_dto)
+        return UserResponse.from_dto(auth_dto.user)
     except InvalidCredentialsException as e:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -84,16 +84,16 @@ def login(
 
 @router.post(
     "/refresh",
-    response_model=AuthResponse,
+    response_model=UserResponse,
     status_code=status.HTTP_200_OK,
-    summary="Обновление токенов через cookie или тело запроса",
+    summary="Обновление токенов в cookie",
 )
 def refresh(
     response: Response,
     service: AuthServiceDep,
     cookie_refresh_token: Annotated[str | None, Cookie(alias="refresh_token")] = None,
     request: RefreshTokenRequest | None = None,
-) -> AuthResponse:
+) -> UserResponse:
     token = cookie_refresh_token or (request.refresh_token if request else None)
     if not token:
         raise HTTPException(
@@ -108,7 +108,7 @@ def refresh(
             access_token=auth_dto.access_token,
             refresh_token=auth_dto.session.refresh_token,
         )
-        return AuthResponse.from_dto(auth_dto)
+        return UserResponse.from_dto(auth_dto.user)
     except (SessionNotFoundException, UserNotFoundException) as e:
         _clear_auth_cookies(response)
         raise HTTPException(
@@ -142,30 +142,9 @@ def logout(
 
 
 @router.post(
-    "/logout/{session_id}",
-    status_code=status.HTTP_204_NO_CONTENT,
-    summary="Завершение конкретной сессии по ID и очистка cookie",
-)
-def logout_by_id(
-    session_id: UUID,
-    response: Response,
-    service: AuthServiceDep,
-) -> None:
-    try:
-        service.logout(session_id)
-    except SessionNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    finally:
-        _clear_auth_cookies(response)
-
-
-@router.post(
     "/logout-all/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Завершение всех активных сессий пользователя",
+    summary="Завершение всех активных сессий пользователя и очистка cookie",
 )
 def logout_all(
     user_id: UUID,

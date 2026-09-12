@@ -14,3 +14,4 @@ class LoginDto:
 class AuthResponseDto:
     user: UserResponseDto
     session: SessionResponseDto
+    access_token: str

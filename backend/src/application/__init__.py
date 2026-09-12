@@ -1,6 +1,7 @@
 from .auth import (
     AuthResponseDto,
     AuthService,
+    ITokenService,
     LoginDto,
 )
 from .session import (
@@ -36,6 +37,7 @@ __all__ = [
     "ChangePasswordDto",
     "IPasswordHasher",
     "ISessionRepository",
+    "ITokenService",
     "IUserRepository",
     "InvalidCredentialsException",
     "LoginDto",

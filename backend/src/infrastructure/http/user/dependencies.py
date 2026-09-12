@@ -1,7 +1,8 @@
 from typing import Annotated
 
-from application.user import IPasswordHasher, IUserRepository, UserService
 from fastapi import Depends
+
+from application.user import IPasswordHasher, IUserRepository, UserService
 from infrastructure.security import BcryptPasswordHasher
 
 _password_hasher: IPasswordHasher = BcryptPasswordHasher(rounds=12)
@@ -30,4 +31,3 @@ def get_user_service(
 
 
 UserServiceDep = Annotated[UserService, Depends(get_user_service)]
-

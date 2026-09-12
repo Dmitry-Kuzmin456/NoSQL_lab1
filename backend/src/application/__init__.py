@@ -1,8 +1,8 @@
 from .user import (
     ChangePasswordDto,
+    InvalidCredentialsException,
     IPasswordHasher,
     IUserRepository,
-    InvalidCredentialsException,
     UserAlreadyExistsException,
     UserException,
     UserLoginDto,
@@ -31,5 +31,3 @@ __all__ = [
     "WeakNewPasswordException",
     "WeakPasswordException",
 ]
-
-

@@ -4,6 +4,7 @@ from uuid import UUID
 class UserException(Exception):
     """Базовое исключение для операций с пользователями."""
 
+
 class UserNotFoundException(UserException):
     def __init__(self, identifier: str | UUID):
         super().__init__(f"Пользователь '{identifier}' не найден.")
@@ -27,6 +28,8 @@ class WeakPasswordException(UserException):
 
 
 class WeakNewPasswordException(UserException):
-    def __init__(self, reason: str = "Новый пароль должен содержать как минимум 6 символов."):
+    def __init__(
+        self,
+        reason: str = "Новый пароль должен содержать как минимум 6 символов.",
+    ):
         super().__init__(reason)
-

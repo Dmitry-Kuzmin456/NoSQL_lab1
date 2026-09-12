@@ -5,4 +5,3 @@ __all__ = [
     "health_router",
     "user_router",
 ]
-

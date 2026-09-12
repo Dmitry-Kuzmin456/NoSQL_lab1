@@ -16,5 +16,3 @@ class User:
     password_hash: str
     role: UserRole
     id: UUID = field(default_factory=uuid4)
-
-

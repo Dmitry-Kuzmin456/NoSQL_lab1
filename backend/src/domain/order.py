@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
 from uuid import UUID, uuid4
@@ -21,7 +21,7 @@ class Order:
     id: UUID = field(default_factory=uuid4)
     status: OrderStatus = OrderStatus.CREATED
     total_amount: Decimal = field(default=Decimal("0.00"))
-    created_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    created_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
     def __post_init__(self) -> None:
         if self.quantity <= 0:
@@ -45,4 +45,3 @@ class Order:
         if self.status != OrderStatus.CREATED:
             raise ValueError(f"Cannot reject order with status {self.status}")
         self.status = OrderStatus.REJECTED
-

@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from pydantic import BaseModel, EmailStr, Field
+
 from application.user.dto import (
     ChangePasswordDto,
     UserRegisterDto,
@@ -7,13 +9,14 @@ from application.user.dto import (
     UserUpdateDto,
 )
 from domain.user import UserRole
-from pydantic import BaseModel, EmailStr, Field
 
 
 class RegisterUserRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100, examples=["Иван Иванов"])
     email: EmailStr = Field(..., examples=["ivan@edu.ru"])
-    password: str = Field(..., min_length=6, max_length=128, examples=["secretPassword123"])
+    password: str = Field(
+        ..., min_length=6, max_length=128, examples=["secretPassword123"]
+    )
     role: UserRole = Field(default=UserRole.STUDENT, examples=[UserRole.STUDENT])
 
     def to_dto(self) -> UserRegisterDto:

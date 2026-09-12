@@ -15,16 +15,15 @@ from .schemas import (
 )
 
 __all__ = [
-    "user_router",
-    "get_user_service",
-    "get_user_repository",
-    "get_password_hasher",
-    "UserServiceDep",
-    "UserRepositoryDep",
-    "PasswordHasherDep",
     "ChangePasswordRequest",
+    "PasswordHasherDep",
     "RegisterUserRequest",
     "UpdateUserRequest",
+    "UserRepositoryDep",
     "UserResponse",
+    "UserServiceDep",
+    "get_password_hasher",
+    "get_user_repository",
+    "get_user_service",
+    "user_router",
 ]
-

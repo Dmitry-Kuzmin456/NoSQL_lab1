@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 
@@ -7,7 +7,7 @@ from uuid import UUID
 class CartProduct:
     product_id: UUID
     quantity: int
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
 
 
 @dataclass
@@ -21,7 +21,7 @@ class Cart:
         for item in self.cart_products:
             if item.product_id == product_id:
                 item.quantity += quantity
-                item.updated_at = datetime.now(timezone.utc)
+                item.updated_at = datetime.now(UTC)
                 return
         self.cart_products.append(CartProduct(product_id=product_id, quantity=quantity))
 
@@ -32,12 +32,14 @@ class Cart:
         for item in self.cart_products:
             if item.product_id == product_id:
                 item.quantity = quantity
-                item.updated_at = datetime.now(timezone.utc)
+                item.updated_at = datetime.now(UTC)
                 return
         self.cart_products.append(CartProduct(product_id=product_id, quantity=quantity))
 
     def remove_product(self, product_id: UUID) -> None:
-        self.cart_products = [p for p in self.cart_products if p.product_id != product_id]
+        self.cart_products = [
+            p for p in self.cart_products if p.product_id != product_id
+        ]
 
     def clear(self) -> None:
         self.cart_products.clear()

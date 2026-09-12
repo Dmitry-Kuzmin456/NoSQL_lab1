@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 from uuid import UUID
 
 
@@ -7,7 +7,7 @@ from uuid import UUID
 class FavouriteProduct:
     product_id: UUID
     added_user_id: UUID
-    updated_at: datetime = field(default_factory=lambda: datetime.now(timezone.utc))
+    updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     note: str | None = None
 
 
@@ -16,14 +16,18 @@ class Favourites:
     user_id: UUID
     products: list[FavouriteProduct] = field(default_factory=list)
 
-    def add_product(self, product_id: UUID, added_user_id: UUID, note: str | None = None) -> None:
+    def add_product(
+        self, product_id: UUID, added_user_id: UUID, note: str | None = None
+    ) -> None:
         for item in self.products:
             if item.product_id == product_id:
                 item.note = note
-                item.updated_at = datetime.now(timezone.utc)
+                item.updated_at = datetime.now(UTC)
                 return
         self.products.append(
-            FavouriteProduct(product_id=product_id, added_user_id=added_user_id, note=note)
+            FavouriteProduct(
+                product_id=product_id, added_user_id=added_user_id, note=note
+            )
         )
 
     def remove_product(self, product_id: UUID) -> None:

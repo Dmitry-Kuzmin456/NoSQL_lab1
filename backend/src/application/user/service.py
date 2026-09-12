@@ -1,6 +1,6 @@
 from uuid import UUID
 
-from domain.user import User, UserRole
+from domain.user import User
 
 from .dto import (
     ChangePasswordDto,

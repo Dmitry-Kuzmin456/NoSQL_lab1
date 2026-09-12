@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from fastapi import APIRouter, HTTPException, status
+
 from application.user import (
     InvalidCredentialsException,
     UserAlreadyExistsException,
@@ -7,7 +9,6 @@ from application.user import (
     WeakNewPasswordException,
     WeakPasswordException,
 )
-from fastapi import APIRouter, HTTPException, status
 
 from .dependencies import UserServiceDep
 from .schemas import (
@@ -159,4 +160,3 @@ def delete_user(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=str(e),
         )
-

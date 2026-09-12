@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from domain.user import User, UserRole
+from domain.user import User
 
 
 class IUserRepository(ABC):

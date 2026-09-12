@@ -67,26 +67,6 @@ def get_by_id(
         )
 
 
-@router.get(
-    "/by-email/{email}",
-    response_model=UserResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Получить пользователя по email",
-)
-def get_by_email(
-    email: str,
-    service: UserServiceDep,
-) -> UserResponse:
-    try:
-        user_dto = service.get_by_email(email)
-        return UserResponse.from_dto(user_dto)
-    except UserNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-
-
 @router.patch(
     "/{user_id}",
     response_model=UserResponse,

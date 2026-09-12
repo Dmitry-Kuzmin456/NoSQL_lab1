@@ -1,3 +1,8 @@
+from .auth import (
+    AuthResponseDto,
+    AuthService,
+    LoginDto,
+)
 from .session import (
     ISessionRepository,
     SessionException,
@@ -20,16 +25,20 @@ from .user import (
     UserResponseDto,
     UserService,
     UserUpdateDto,
+    UserWithPasswordDto,
     WeakNewPasswordException,
     WeakPasswordException,
 )
 
 __all__ = [
+    "AuthResponseDto",
+    "AuthService",
     "ChangePasswordDto",
     "IPasswordHasher",
     "ISessionRepository",
     "IUserRepository",
     "InvalidCredentialsException",
+    "LoginDto",
     "SessionException",
     "SessionExpiredException",
     "SessionNotFoundException",
@@ -44,6 +53,7 @@ __all__ = [
     "UserResponseDto",
     "UserService",
     "UserUpdateDto",
+    "UserWithPasswordDto",
     "WeakNewPasswordException",
     "WeakPasswordException",
 ]

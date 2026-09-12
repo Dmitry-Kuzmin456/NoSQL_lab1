@@ -1,0 +1,55 @@
+from uuid import UUID
+
+from application.session.dto import SessionResponseDto
+from application.session.service import SessionService
+from application.user.exceptions import (
+    InvalidCredentialsException,
+    UserNotFoundException,
+)
+from application.user.hasher import IPasswordHasher
+from application.user.service import UserService
+
+from .dto import AuthResponseDto, LoginDto
+
+
+class AuthService:
+    def __init__(
+        self,
+        user_service: UserService,
+        session_service: SessionService,
+        password_hasher: IPasswordHasher,
+    ):
+        self._user_service = user_service
+        self._session_service = session_service
+        self._password_hasher = password_hasher
+
+    def login(self, dto: LoginDto, ttl_days: int = 30) -> AuthResponseDto:
+        try:
+            user = self._user_service.get_by_email(dto.email)
+        except UserNotFoundException:
+            raise InvalidCredentialsException()
+
+        if not self._password_hasher.verify(dto.password, user.password_hash):
+            raise InvalidCredentialsException()
+
+        session_dto = self._session_service.create_session(
+            user_id=user.id,
+            ttl_days=ttl_days,
+        )
+
+        return AuthResponseDto(
+            user=user.to_response_dto(),
+            session=session_dto,
+        )
+
+    def refresh(self, refresh_token: str, ttl_days: int = 30) -> SessionResponseDto:
+        return self._session_service.refresh_session(
+            refresh_token=refresh_token,
+            ttl_days=ttl_days,
+        )
+
+    def logout(self, session_id: UUID) -> None:
+        self._session_service.revoke_session(session_id)
+
+    def logout_all(self, user_id: UUID) -> int:
+        return self._session_service.revoke_all_user_sessions(user_id)

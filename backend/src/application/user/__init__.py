@@ -4,6 +4,7 @@ from .dto import (
     UserRegisterDto,
     UserResponseDto,
     UserUpdateDto,
+    UserWithPasswordDto,
 )
 from .exceptions import (
     InvalidCredentialsException,
@@ -30,6 +31,7 @@ __all__ = [
     "UserResponseDto",
     "UserService",
     "UserUpdateDto",
+    "UserWithPasswordDto",
     "WeakNewPasswordException",
     "WeakPasswordException",
 ]

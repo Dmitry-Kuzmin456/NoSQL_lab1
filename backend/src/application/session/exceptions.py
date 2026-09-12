@@ -5,7 +5,6 @@ class SessionException(Exception):
     """Базовое исключение для операций с сессиями."""
 
 
-
 class SessionNotFoundException(SessionException):
     def __init__(self, identifier: str | UUID = "Unknown"):
         super().__init__(f"Сессия '{identifier}' не найдена.")

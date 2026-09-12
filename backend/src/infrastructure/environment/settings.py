@@ -3,7 +3,7 @@ from pathlib import Path
 from pydantic import BaseModel
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
-_ENV_FILE = Path(__file__).resolve().parent.parent / ".env"
+_ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
 
 
 class RiakSettings(BaseModel):
@@ -19,4 +19,5 @@ class Settings(BaseSettings):
     )
 
 
+# noinspection PyArgumentList
 settings = Settings()

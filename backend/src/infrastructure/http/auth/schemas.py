@@ -12,7 +12,3 @@ class LoginRequest(BaseModel):
             email=str(self.email),
             password=self.password,
         )
-
-
-class RefreshTokenRequest(BaseModel):
-    refresh_token: str = Field(..., min_length=1)

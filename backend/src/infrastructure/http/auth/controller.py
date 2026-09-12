@@ -17,10 +17,7 @@ from infrastructure.environment.settings import settings
 from infrastructure.http.user.schemas import UserResponse
 
 from .dependencies import AuthServiceDep
-from .schemas import (
-    LoginRequest,
-    RefreshTokenRequest,
-)
+from .schemas import LoginRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
 
@@ -86,23 +83,15 @@ def login(
     "/refresh",
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
-    summary="Обновление токенов в cookie",
+    summary="Обновление токенов через обязательный cookie",
 )
 def refresh(
     response: Response,
     service: AuthServiceDep,
-    cookie_refresh_token: Annotated[str | None, Cookie(alias="refresh_token")] = None,
-    request: RefreshTokenRequest | None = None,
+    refresh_token: Annotated[str, Cookie(alias="refresh_token")],
 ) -> UserResponse:
-    token = cookie_refresh_token or (request.refresh_token if request else None)
-    if not token:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Refresh token отсутствует в cookie или теле запроса.",
-        )
-
     try:
-        auth_dto = service.refresh(token)
+        auth_dto = service.refresh(refresh_token)
         _set_auth_cookies(
             response=response,
             access_token=auth_dto.access_token,
@@ -131,11 +120,11 @@ def refresh(
 def logout(
     response: Response,
     service: AuthServiceDep,
-    cookie_refresh_token: Annotated[str | None, Cookie(alias="refresh_token")] = None,
+    refresh_token: Annotated[str | None, Cookie(alias="refresh_token")] = None,
 ) -> None:
-    if cookie_refresh_token:
+    if refresh_token:
         try:
-            service.logout_by_refresh_token(cookie_refresh_token)
+            service.logout_by_refresh_token(refresh_token)
         except SessionException:
             pass
     _clear_auth_cookies(response)

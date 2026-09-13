@@ -15,9 +15,7 @@ from infrastructure.http.middleware.authorization_middleware import (
     authorization_middleware,
 )
 from infrastructure.http.product.controller import router as product_router
-from infrastructure.http.recovery.controller import (
-    router as recovery_token_router,
-)
+from infrastructure.http.recovery.controller import router as recovery_router
 from infrastructure.http.teacher.controller import router as teacher_router
 from infrastructure.http.user.controller import router as user_router
 
@@ -50,7 +48,7 @@ app.include_router(auth_router, prefix="/api")
 app.include_router(product_router, prefix="/api")
 app.include_router(favourites_router, prefix="/api")
 app.include_router(teacher_router, prefix="/api")
-app.include_router(recovery_token_router, prefix="/api")
+app.include_router(recovery_router, prefix="/api")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

@@ -2,15 +2,17 @@ import uvicorn
 from fastapi import FastAPI
 
 from domain.user import UserRole
-from infrastructure.http import (
-    RouteAuthRule,
-    auth_router,
+from infrastructure.http.auth.controller import router as auth_router
+from infrastructure.http.health.controller import router as health_router
+from infrastructure.http.middleware.authentication_middleware import (
     authentication_middleware,
-    authorization_middleware,
-    health_router,
-    product_router,
-    user_router,
 )
+from infrastructure.http.middleware.authorization_middleware import (
+    RouteAuthRule,
+    authorization_middleware,
+)
+from infrastructure.http.product.controller import router as product_router
+from infrastructure.http.user.controller import router as user_router
 from infrastructure.http.auth.dependencies import get_token_service
 
 auth_rules: list[RouteAuthRule] = [

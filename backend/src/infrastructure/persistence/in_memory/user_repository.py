@@ -1,7 +1,7 @@
 import threading
 from uuid import UUID
 
-from application.user import IUserRepository
+from application.user.repository import IUserRepository
 from domain.user import User
 
 

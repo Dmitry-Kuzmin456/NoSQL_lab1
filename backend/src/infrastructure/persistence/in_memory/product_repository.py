@@ -2,7 +2,8 @@ import copy
 import threading
 from uuid import UUID
 
-from application.product import IProductRepository, ProductFilterDto
+from application.product.dto import ProductFilterDto
+from application.product.repository import IProductRepository
 from domain.product import Product
 
 

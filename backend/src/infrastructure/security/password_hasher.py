@@ -1,6 +1,6 @@
 import bcrypt
 
-from application.user import IPasswordHasher
+from application.user.hasher import IPasswordHasher
 
 
 class BcryptPasswordHasher(IPasswordHasher):

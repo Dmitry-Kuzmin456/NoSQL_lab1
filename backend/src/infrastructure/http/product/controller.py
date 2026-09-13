@@ -4,10 +4,10 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, Query, status
 
-from application.product import (
+from application.product.dto import ProductFilterDto
+from application.product.exceptions import (
     InsufficientStockException,
     InvalidProductDataException,
-    ProductFilterDto,
     ProductNotFoundException,
 )
 

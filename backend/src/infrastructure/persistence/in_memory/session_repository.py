@@ -1,7 +1,7 @@
 import threading
 from uuid import UUID
 
-from application.session import ISessionRepository
+from application.session.repository import ISessionRepository
 from domain.session import Session
 
 

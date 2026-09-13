@@ -2,9 +2,13 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from application.user import IPasswordHasher, IUserRepository, UserService
-from infrastructure.persistence import InMemoryUserRepository
-from infrastructure.security import BcryptPasswordHasher
+from application.user.hasher import IPasswordHasher
+from application.user.repository import IUserRepository
+from application.user.service import UserService
+from infrastructure.persistence.in_memory.user_repository import (
+    InMemoryUserRepository,
+)
+from infrastructure.security.password_hasher import BcryptPasswordHasher
 
 _password_hasher: IPasswordHasher = BcryptPasswordHasher(rounds=12)
 _user_repository: IUserRepository = InMemoryUserRepository()

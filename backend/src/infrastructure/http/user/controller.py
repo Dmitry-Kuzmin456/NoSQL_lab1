@@ -2,7 +2,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, HTTPException, status
 
-from application.user import (
+from application.user.exceptions import (
     InvalidCredentialsException,
     UserAlreadyExistsException,
     UserNotFoundException,

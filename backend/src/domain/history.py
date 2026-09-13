@@ -31,7 +31,6 @@ class UserHistory:
 
     def add_event(self, event: OperationEvent, max_size: int = 20) -> None:
         self.events.insert(0, event)
-        # Поддерживаем обратный хронологический порядок и ограничение размера кэша
         self.events = sorted(self.events, key=lambda e: e.timestamp, reverse=True)[
             :max_size
         ]

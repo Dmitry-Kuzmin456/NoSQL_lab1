@@ -97,6 +97,17 @@ class UserService:
         user.password_hash = self._password_hasher.hash(dto.new_password)
         self._user_repository.save(user)
 
+    def reset_password(self, user_id: UUID, new_password: str) -> None:
+        user = self._user_repository.get_by_id(user_id)
+        if user is None:
+            raise UserNotFoundException(user_id)
+
+        if len(new_password) < 6:
+            raise WeakNewPasswordException()
+
+        user.password_hash = self._password_hasher.hash(new_password)
+        self._user_repository.save(user)
+
     def delete_user(self, user_id: UUID) -> bool:
         if self._user_repository.get_by_id(user_id) is None:
             raise UserNotFoundException(user_id)

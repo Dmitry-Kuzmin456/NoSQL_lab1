@@ -10,7 +10,9 @@ class Teacher(User):
 
     def add_student(self, student_id: UUID) -> None:
         if student_id == self.id:
-            raise ValueError("Учитель не может добавить сам себя в список своих учеников.")
+            raise ValueError(
+                "Учитель не может добавить сам себя в список своих учеников."
+            )
         self.student_ids.add(student_id)
 
     def remove_student(self, student_id: UUID) -> None:

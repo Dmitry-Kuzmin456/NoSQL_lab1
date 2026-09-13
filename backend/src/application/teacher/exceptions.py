@@ -21,7 +21,9 @@ class CannotAddSelfAsStudentException(TeacherException):
     status_code: int = 400
 
     def __init__(self):
-        super().__init__("Преподаватель не может добавить сам себя в список своих учеников.")
+        super().__init__(
+            "Преподаватель не может добавить сам себя в список своих учеников."
+        )
 
 
 class StudentAlreadyAssignedException(TeacherException):
@@ -36,7 +38,9 @@ class StudentNotAssignedException(TeacherException):
     status_code: int = 404
 
     def __init__(self, student_id: UUID):
-        super().__init__(f"Ученик '{student_id}' не найден в списке учеников преподавателя.")
+        super().__init__(
+            f"Ученик '{student_id}' не найден в списке учеников преподавателя."
+        )
         self.student_id = student_id
 
 
@@ -44,5 +48,7 @@ class InvalidStudentRoleException(TeacherException):
     status_code: int = 400
 
     def __init__(self, user_id: UUID):
-        super().__init__(f"Пользователь '{user_id}' не является учеником (роль должна быть STUDENT).")
+        super().__init__(
+            f"Пользователь '{user_id}' не является учеником (роль должна быть STUDENT)."
+        )
         self.user_id = user_id

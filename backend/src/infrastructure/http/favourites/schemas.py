@@ -12,7 +12,9 @@ from application.favourites.dto import (
 
 class AddFavouriteRequest(BaseModel):
     product_id: UUID = Field(..., description="ID добавляемого товара")
-    note: str | None = Field(default=None, max_length=500, description="Заметка к товару в избранном")
+    note: str | None = Field(
+        default=None, max_length=500, description="Заметка к товару в избранном"
+    )
 
     def to_dto(self) -> AddFavouriteDto:
         return AddFavouriteDto(

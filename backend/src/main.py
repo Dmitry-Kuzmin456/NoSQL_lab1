@@ -5,6 +5,7 @@ from domain.user import UserRole
 from infrastructure.http.auth.controller import router as auth_router
 from infrastructure.http.auth.dependencies import get_token_service
 from infrastructure.http.exception_handlers import setup_exception_handlers
+from infrastructure.http.favourites.controller import router as favourites_router
 from infrastructure.http.health.controller import router as health_router
 from infrastructure.http.middleware.authentication_middleware import (
     authentication_middleware,
@@ -22,6 +23,10 @@ auth_rules: list[RouteAuthRule] = [
         methods={"POST", "PATCH", "DELETE"},
         allowed_roles={UserRole.TEACHER, UserRole.ADMIN},
     ),
+    RouteAuthRule.create(
+        path="/api/favourites",
+        allowed_roles=set(UserRole),
+    ),
 ]
 
 app = FastAPI(title="Our site")
@@ -35,6 +40,7 @@ app.include_router(health_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(product_router, prefix="/api")
+app.include_router(favourites_router, prefix="/api")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)

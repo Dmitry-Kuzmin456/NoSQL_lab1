@@ -2,23 +2,18 @@ from decimal import Decimal
 from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, Query, status
+from fastapi import APIRouter, Query, status
 
 from application.product.dto import ProductFilterDto
-from application.product.exceptions import (
-    InsufficientStockException,
-    InvalidProductDataException,
-    ProductNotFoundException,
-)
-
-from .dependencies import ProductServiceDep
-from .schemas import (
+from infrastructure.http.product.schemas import (
     CreateProductRequest,
     ProductListResponse,
     ProductResponse,
     StockOperationRequest,
     UpdateProductRequest,
 )
+
+from .dependencies import ProductServiceDep
 
 router = APIRouter(prefix="/products", tags=["Products"])
 
@@ -78,15 +73,8 @@ def create_product(
     request: CreateProductRequest,
     service: ProductServiceDep,
 ) -> ProductResponse:
-    try:
-        dto = request.to_dto()
-        product_dto = service.create(dto)
-        return ProductResponse.from_dto(product_dto)
-    except InvalidProductDataException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+    product_dto = service.create(request.to_dto())
+    return ProductResponse.from_dto(product_dto)
 
 
 @router.get(
@@ -99,14 +87,8 @@ def get_product_by_id(
     product_id: UUID,
     service: ProductServiceDep,
 ) -> ProductResponse:
-    try:
-        product_dto = service.get_by_id(product_id)
-        return ProductResponse.from_dto(product_dto)
-    except ProductNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+    product_dto = service.get_by_id(product_id)
+    return ProductResponse.from_dto(product_dto)
 
 
 @router.patch(
@@ -120,20 +102,8 @@ def update_product(
     request: UpdateProductRequest,
     service: ProductServiceDep,
 ) -> ProductResponse:
-    try:
-        dto = request.to_dto()
-        product_dto = service.update(product_id, dto)
-        return ProductResponse.from_dto(product_dto)
-    except ProductNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    except InvalidProductDataException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+    product_dto = service.update(product_id, request.to_dto())
+    return ProductResponse.from_dto(product_dto)
 
 
 @router.delete(
@@ -145,13 +115,7 @@ def delete_product(
     product_id: UUID,
     service: ProductServiceDep,
 ) -> None:
-    try:
-        service.delete(product_id)
-    except ProductNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+    service.delete(product_id)
 
 
 @router.post(
@@ -165,19 +129,8 @@ def reserve_stock(
     request: StockOperationRequest,
     service: ProductServiceDep,
 ) -> ProductResponse:
-    try:
-        product_dto = service.reserve_stock(product_id, request.amount)
-        return ProductResponse.from_dto(product_dto)
-    except ProductNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    except (InsufficientStockException, InvalidProductDataException) as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+    product_dto = service.reserve_stock(product_id, request.amount)
+    return ProductResponse.from_dto(product_dto)
 
 
 @router.post(
@@ -191,16 +144,5 @@ def restore_stock(
     request: StockOperationRequest,
     service: ProductServiceDep,
 ) -> ProductResponse:
-    try:
-        product_dto = service.restore_stock(product_id, request.amount)
-        return ProductResponse.from_dto(product_dto)
-    except ProductNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    except InvalidProductDataException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+    product_dto = service.restore_stock(product_id, request.amount)
+    return ProductResponse.from_dto(product_dto)

@@ -1,17 +1,25 @@
 from uuid import UUID
 
+from application.exceptions import ApplicationException
 
-class ProductException(Exception):
+
+class ProductException(ApplicationException):
     """Базовое исключение для операций с товарами."""
+
+    status_code: int = 400
 
 
 class ProductNotFoundException(ProductException):
+    status_code: int = 404
+
     def __init__(self, identifier: str | UUID):
         super().__init__(f"Товар '{identifier}' не найден.")
         self.identifier = identifier
 
 
 class InsufficientStockException(ProductException):
+    status_code: int = 400
+
     def __init__(self, product_id: UUID, requested: int, available: int):
         super().__init__(
             f"Недостаточно товара на складе (ID: {product_id}): запрошено {requested}, доступно {available}."
@@ -23,6 +31,8 @@ class InsufficientStockException(ProductException):
 
 class InvalidProductDataException(ProductException):
     """Базовое исключение для некорректных данных товара."""
+
+    status_code: int = 400
 
     def __init__(self, message: str = "Некорректные данные товара."):
         super().__init__(message)

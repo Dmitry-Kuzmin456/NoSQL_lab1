@@ -3,13 +3,15 @@ from typing import Annotated
 from fastapi import Depends
 
 from application.user import IPasswordHasher, IUserRepository, UserService
+from infrastructure.persistence import InMemoryUserRepository
 from infrastructure.security import BcryptPasswordHasher
 
 _password_hasher: IPasswordHasher = BcryptPasswordHasher(rounds=12)
+_user_repository: IUserRepository = InMemoryUserRepository()
 
 
 def get_user_repository() -> IUserRepository:
-    raise NotImplementedError("IUserRepository adapter is not registered yet.")
+    return _user_repository
 
 
 def get_password_hasher() -> IPasswordHasher:

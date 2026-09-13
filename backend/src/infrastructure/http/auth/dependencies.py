@@ -9,6 +9,7 @@ from infrastructure.http.user.dependencies import (
     PasswordHasherDep,
     UserServiceDep,
 )
+from infrastructure.persistence import InMemorySessionRepository
 from infrastructure.security import JwtTokenService
 
 _token_service: ITokenService = JwtTokenService(
@@ -16,6 +17,7 @@ _token_service: ITokenService = JwtTokenService(
     algorithm=settings.auth.jwt_algorithm,
     expire_minutes=settings.auth.access_token_expire_minutes,
 )
+_session_repository: ISessionRepository = InMemorySessionRepository()
 
 
 def get_token_service() -> ITokenService:
@@ -26,7 +28,7 @@ TokenServiceDep = Annotated[ITokenService, Depends(get_token_service)]
 
 
 def get_session_repository() -> ISessionRepository:
-    raise NotImplementedError("ISessionRepository adapter is not registered yet.")
+    return _session_repository
 
 
 SessionRepositoryDep = Annotated[ISessionRepository, Depends(get_session_repository)]

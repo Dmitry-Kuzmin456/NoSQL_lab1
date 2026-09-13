@@ -1,9 +1,11 @@
 from .auth import auth_router
 from .health import health_router
+from .product import product_router
 from .user import user_router
 
 __all__ = [
     "auth_router",
     "health_router",
+    "product_router",
     "user_router",
 ]

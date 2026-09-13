@@ -1,0 +1,55 @@
+@baseUrl = http://localhost:8000/api
+
+### 1. Регистрация пользователя
+POST {{baseUrl}}/users/register
+Content-Type: application/json
+
+{
+  "name": "Иван Иванов",
+  "email": "ivan@example.com",
+  "password": "password123",
+  "role": "STUDENT"
+}
+
+> {% client.global.set("userId", response.body.id); %}
+
+### 2. Получение пользователя
+GET {{baseUrl}}/users/{{userId}}
+
+### 3. Обновление пользователя
+PATCH {{baseUrl}}/users/{{userId}}
+Content-Type: application/json
+
+{
+  "name": "Иван Петров"
+}
+
+### 4. Вход (Login)
+POST {{baseUrl}}/auth/login
+Content-Type: application/json
+
+{
+  "email": "ivan@example.com",
+  "password": "password123"
+}
+
+### 5. Обновление токенов (Refresh)
+POST {{baseUrl}}/auth/refresh
+
+### 6. Смена пароля
+POST {{baseUrl}}/users/{{userId}}/change-password
+Content-Type: application/json
+
+{
+  "old_password": "password123",
+  "new_password": "newpassword123"
+}
+
+### 7. Выход из системы (Logout)
+POST {{baseUrl}}/auth/logout
+
+### 8. Завершение всех сессий
+POST {{baseUrl}}/auth/logout-all/{{userId}}
+
+### 9. Удаление пользователя
+DELETE {{baseUrl}}/users/{{userId}}

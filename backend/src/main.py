@@ -1,9 +1,30 @@
 import uvicorn
 from fastapi import FastAPI
 
-from infrastructure.http import auth_router, health_router, product_router, user_router
+from domain.user import UserRole
+from infrastructure.http import (
+    RouteAuthRule,
+    auth_router,
+    authentication_middleware,
+    authorization_middleware,
+    health_router,
+    product_router,
+    user_router,
+)
+from infrastructure.http.auth.dependencies import get_token_service
+
+auth_rules: list[RouteAuthRule] = [
+    RouteAuthRule.create(
+        path="/api/products",
+        methods={"POST", "PATCH", "DELETE"},
+        allowed_roles={UserRole.TEACHER, UserRole.ADMIN},
+    ),
+]
 
 app = FastAPI(title="Our site")
+
+app.add_middleware(authorization_middleware(rules=auth_rules))
+app.add_middleware(authentication_middleware(token_service=get_token_service()))
 
 app.include_router(health_router, prefix="/api")
 app.include_router(user_router, prefix="/api")

@@ -11,7 +11,9 @@ Content-Type: application/json
   "role": "STUDENT"
 }
 
-> {% client.global.set("userId", response.body.id); %}
+> {%
+    client.global.set("userId", response.body.id);
+%}
 
 ### 2. Получение пользователя
 GET {{baseUrl}}/users/{{userId}}
@@ -51,5 +53,29 @@ POST {{baseUrl}}/auth/logout
 ### 8. Завершение всех сессий
 POST {{baseUrl}}/auth/logout-all/{{userId}}
 
-### 9. Удаление пользователя
+### 9. Запрос токена восстановления пароля
+POST {{baseUrl}}/recovery
+Content-Type: application/json
+
+{
+  "email": "ivan@example.com"
+}
+
+> {%
+    client.global.set("recoveryToken", response.body.token);
+%}
+
+### 10. Проверка токена восстановления
+GET {{baseUrl}}/recovery/{{recoveryToken}}
+
+### 11. Сброс пароля по токену восстановления
+POST {{baseUrl}}/recovery/reset-password
+Content-Type: application/json
+
+{
+  "token": "{{recoveryToken}}",
+  "new_password": "newSecurePassword456"
+}
+
+### 12. Удаление пользователя
 DELETE {{baseUrl}}/users/{{userId}}

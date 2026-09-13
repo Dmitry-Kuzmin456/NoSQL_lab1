@@ -1,6 +1,11 @@
-from .in_memory import InMemorySessionRepository, InMemoryUserRepository
+from .in_memory import (
+    InMemoryProductRepository,
+    InMemorySessionRepository,
+    InMemoryUserRepository,
+)
 
 __all__ = [
+    "InMemoryProductRepository",
     "InMemorySessionRepository",
     "InMemoryUserRepository",
 ]

@@ -2,15 +2,19 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from application.auth import AuthService, ITokenService
-from application.session import ISessionRepository, SessionService
+from application.auth.service import AuthService
+from application.auth.token import ITokenService
+from application.session.repository import ISessionRepository
+from application.session.service import SessionService
 from infrastructure.environment.settings import settings
 from infrastructure.http.user.dependencies import (
     PasswordHasherDep,
     UserServiceDep,
 )
-from infrastructure.persistence import InMemorySessionRepository
-from infrastructure.security import JwtTokenService
+from infrastructure.persistence.in_memory.session_repository import (
+    InMemorySessionRepository,
+)
+from infrastructure.security.jwt_service import JwtTokenService
 
 _token_service: ITokenService = JwtTokenService(
     secret_key=settings.auth.jwt_secret_key,

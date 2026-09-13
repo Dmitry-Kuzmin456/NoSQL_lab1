@@ -2,8 +2,11 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from application.product import IProductRepository, ProductService
-from infrastructure.persistence import InMemoryProductRepository
+from application.product.repository import IProductRepository
+from application.product.service import ProductService
+from infrastructure.persistence.in_memory.product_repository import (
+    InMemoryProductRepository,
+)
 
 _product_repository: IProductRepository = InMemoryProductRepository()
 

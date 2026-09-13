@@ -1,22 +1,15 @@
 from uuid import UUID
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, status
 
-from application.user import (
-    InvalidCredentialsException,
-    UserAlreadyExistsException,
-    UserNotFoundException,
-    WeakNewPasswordException,
-    WeakPasswordException,
-)
-
-from .dependencies import UserServiceDep
-from .schemas import (
+from infrastructure.http.user.schemas import (
     ChangePasswordRequest,
     RegisterUserRequest,
     UpdateUserRequest,
     UserResponse,
 )
+
+from .dependencies import UserServiceDep
 
 router = APIRouter(prefix="/users", tags=["Users"])
 
@@ -31,20 +24,8 @@ def register(
     request: RegisterUserRequest,
     service: UserServiceDep,
 ) -> UserResponse:
-    try:
-        dto = request.to_dto()
-        user_dto = service.register(dto)
-        return UserResponse.from_dto(user_dto)
-    except UserAlreadyExistsException as e:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(e),
-        )
-    except WeakPasswordException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+    user_dto = service.register(request.to_dto())
+    return UserResponse.from_dto(user_dto)
 
 
 @router.get(
@@ -57,14 +38,8 @@ def get_by_id(
     user_id: UUID,
     service: UserServiceDep,
 ) -> UserResponse:
-    try:
-        user_dto = service.get_by_id(user_id)
-        return UserResponse.from_dto(user_dto)
-    except UserNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+    user_dto = service.get_by_id(user_id)
+    return UserResponse.from_dto(user_dto)
 
 
 @router.patch(
@@ -78,20 +53,8 @@ def update_profile(
     request: UpdateUserRequest,
     service: UserServiceDep,
 ) -> UserResponse:
-    try:
-        dto = request.to_dto()
-        user_dto = service.update_profile(user_id, dto)
-        return UserResponse.from_dto(user_dto)
-    except UserNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    except UserAlreadyExistsException as e:
-        raise HTTPException(
-            status_code=status.HTTP_409_CONFLICT,
-            detail=str(e),
-        )
+    user_dto = service.update_profile(user_id, request.to_dto())
+    return UserResponse.from_dto(user_dto)
 
 
 @router.post(
@@ -104,24 +67,7 @@ def change_password(
     request: ChangePasswordRequest,
     service: UserServiceDep,
 ) -> None:
-    try:
-        dto = request.to_dto()
-        service.change_password(user_id, dto)
-    except UserNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
-    except InvalidCredentialsException as e:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail=str(e),
-        )
-    except WeakNewPasswordException as e:
-        raise HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST,
-            detail=str(e),
-        )
+    service.change_password(user_id, request.to_dto())
 
 
 @router.delete(
@@ -133,10 +79,4 @@ def delete_user(
     user_id: UUID,
     service: UserServiceDep,
 ) -> None:
-    try:
-        service.delete_user(user_id)
-    except UserNotFoundException as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e),
-        )
+    service.delete_user(user_id)

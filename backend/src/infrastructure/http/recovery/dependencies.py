@@ -31,6 +31,4 @@ def get_recovery_service(
     )
 
 
-RecoveryServiceDep = Annotated[
-    RecoveryService, Depends(get_recovery_service)
-]
+RecoveryServiceDep = Annotated[RecoveryService, Depends(get_recovery_service)]

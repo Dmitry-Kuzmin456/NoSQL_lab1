@@ -75,8 +75,7 @@ class TeacherService:
         if teacher.has_student(student_id):
             raise StudentAlreadyAssignedException(student_id)
 
-        teacher.add_student(student_id)
-        saved = self._teacher_repository.save(teacher)
+        self._teacher_repository.assign_student(teacher_id, student_id)
 
         self._event_bus.publish(
             OperationEvent(
@@ -86,15 +85,15 @@ class TeacherService:
             )
         )
 
-        return TeacherResponseDto.from_domain(saved)
+        teacher = self._get_teacher(teacher_id)
+        return TeacherResponseDto.from_domain(teacher)
 
     def remove_student(self, teacher_id: UUID, student_id: UUID) -> TeacherResponseDto:
-        teacher = self._get_teacher(teacher_id)
-        if not teacher.has_student(student_id):
-            raise StudentNotAssignedException(student_id)
+        if not self._teacher_repository.exists_by_id(teacher_id):
+            raise TeacherNotFoundException(teacher_id)
 
-        teacher.remove_student(student_id)
-        saved = self._teacher_repository.save(teacher)
+        if not self._teacher_repository.unassign_student(teacher_id, student_id):
+            raise StudentNotAssignedException(student_id)
 
         self._event_bus.publish(
             OperationEvent(
@@ -104,14 +103,15 @@ class TeacherService:
             )
         )
 
-        return TeacherResponseDto.from_domain(saved)
+        teacher = self._get_teacher(teacher_id)
+        return TeacherResponseDto.from_domain(teacher)
 
     def add_product_to_all_students(
         self,
         teacher_id: UUID,
         dto: AddProductToStudentsDto,
     ) -> BatchAddProductResultDto:
-        self._product_service.get_by_id(dto.product_id)
+        self._product_service.ensure_exists(dto.product_id)
 
         teacher = self._get_teacher(teacher_id)
         student_ids = teacher.get_student_ids()

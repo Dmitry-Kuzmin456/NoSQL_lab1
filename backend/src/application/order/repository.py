@@ -1,7 +1,7 @@
 from abc import ABC, abstractmethod
 from uuid import UUID
 
-from domain.order import Order
+from domain.order import Order, OrderStatus
 
 from .dto import OrderFilterDto
 
@@ -10,6 +10,11 @@ class IOrderRepository(ABC):
     @abstractmethod
     def get_by_id(self, order_id: UUID) -> Order | None:
         """Получить заказ по ID."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def exists_by_id(self, order_id: UUID) -> bool:
+        """Проверить существование заказа по ID без загрузки его полей."""
         raise NotImplementedError
 
     @abstractmethod
@@ -31,6 +36,26 @@ class IOrderRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def update_status(
+        self,
+        order_id: UUID,
+        new_status: OrderStatus,
+        expected_status: OrderStatus | None = None,
+    ) -> bool:
+        """Обновить статус заказа без предварительной загрузки сущности."""
+        raise NotImplementedError
+
+    @abstractmethod
     def delete(self, order_id: UUID) -> bool:
         """Удалить заказ по ID."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def increment_orders_count(self, amount: int = 1) -> int:
+        """Инкрементировать глобальный счётчик созданных заявок."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_total_orders_count(self) -> int:
+        """Получить текущее значение атомарного счётчика созданных заявок."""
         raise NotImplementedError

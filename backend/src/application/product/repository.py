@@ -13,6 +13,11 @@ class IProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def exists_by_id(self, product_id: UUID) -> bool:
+        """Проверить существование товара по UUID без загрузки данных объекта."""
+        raise NotImplementedError
+
+    @abstractmethod
     def list(
         self,
         filter_dto: ProductFilterDto | None = None,
@@ -23,6 +28,11 @@ class IProductRepository(ABC):
     @abstractmethod
     def save(self, product: Product) -> Product:
         """Сохранить или обновить товар."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def update_stock(self, product_id: UUID, delta: int) -> bool:
+        """Изменить остаток товара на складе на величину delta."""
         raise NotImplementedError
 
     @abstractmethod

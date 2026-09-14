@@ -48,6 +48,13 @@ class ProductService:
             raise ProductNotFoundException(product_id)
         return ProductResponseDto.from_domain(product)
 
+    def exists_by_id(self, product_id: UUID) -> bool:
+        return self._product_repository.exists_by_id(product_id)
+
+    def ensure_exists(self, product_id: UUID) -> None:
+        if not self._product_repository.exists_by_id(product_id):
+            raise ProductNotFoundException(product_id)
+
     def list(
         self,
         filter_dto: ProductFilterDto | None = None,
@@ -90,7 +97,7 @@ class ProductService:
         return ProductResponseDto.from_domain(saved_product)
 
     def delete(self, product_id: UUID) -> bool:
-        if self._product_repository.get_by_id(product_id) is None:
+        if not self._product_repository.exists_by_id(product_id):
             raise ProductNotFoundException(product_id)
         return self._product_repository.delete(product_id)
 
@@ -98,30 +105,29 @@ class ProductService:
         if amount <= 0:
             raise InvalidStockAmountException()
 
-        product = self._product_repository.get_by_id(product_id)
-        if product is None:
+        if not self._product_repository.exists_by_id(product_id):
             raise ProductNotFoundException(product_id)
 
-        try:
-            product.reserve_stock(amount)
-        except ValueError:
+        if not self._product_repository.update_stock(product_id, -amount):
+            product = self._product_repository.get_by_id(product_id)
+            available = product.quantity if product else 0
             raise InsufficientStockException(
                 product_id=product_id,
                 requested=amount,
-                available=product.quantity,
+                available=available,
             )
 
-        saved = self._product_repository.save(product)
+        saved = self._product_repository.get_by_id(product_id)
+        assert saved is not None
         return ProductResponseDto.from_domain(saved)
 
     def restore_stock(self, product_id: UUID, amount: int) -> ProductResponseDto:
         if amount <= 0:
             raise InvalidStockAmountException()
 
-        product = self._product_repository.get_by_id(product_id)
-        if product is None:
+        if not self._product_repository.update_stock(product_id, amount):
             raise ProductNotFoundException(product_id)
 
-        product.restore_stock(amount)
-        saved = self._product_repository.save(product)
+        saved = self._product_repository.get_by_id(product_id)
+        assert saved is not None
         return ProductResponseDto.from_domain(saved)

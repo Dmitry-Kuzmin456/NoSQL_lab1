@@ -40,7 +40,7 @@ class CartService:
         if dto.quantity <= 0:
             raise InvalidCartQuantityException()
 
-        self._product_service.get_by_id(dto.product_id)
+        self._product_service.ensure_exists(dto.product_id)
 
         cart = self._get_or_create(user_id)
         cart.add_product(dto.product_id, dto.quantity)
@@ -63,12 +63,10 @@ class CartService:
         user_id: UUID,
         dto: UpdateCartProductDto,
     ) -> CartResponseDto:
-        cart = self._get_or_create(user_id)
-        if not cart.has_product(dto.product_id):
+        if not self._cart_repository.has_product(user_id, dto.product_id):
             raise CartProductNotFoundException(dto.product_id)
 
-        cart.update_quantity(dto.product_id, dto.quantity)
-        saved = self._cart_repository.save(cart)
+        self._cart_repository.add_or_update_item(user_id, dto.product_id, dto.quantity)
 
         self._event_bus.publish(
             OperationEvent(
@@ -79,19 +77,16 @@ class CartService:
             )
         )
 
-        return CartResponseDto.from_domain(saved)
+        cart = self._get_or_create(user_id)
+        return CartResponseDto.from_domain(cart)
 
     def remove_product(
         self,
         user_id: UUID,
         product_id: UUID,
     ) -> CartResponseDto:
-        cart = self._get_or_create(user_id)
-        if not cart.has_product(product_id):
+        if not self._cart_repository.remove_item(user_id, product_id):
             raise CartProductNotFoundException(product_id)
-
-        cart.remove_product(product_id)
-        saved = self._cart_repository.save(cart)
 
         self._event_bus.publish(
             OperationEvent(
@@ -101,12 +96,11 @@ class CartService:
             )
         )
 
-        return CartResponseDto.from_domain(saved)
+        cart = self._get_or_create(user_id)
+        return CartResponseDto.from_domain(cart)
 
     def clear(self, user_id: UUID) -> CartResponseDto:
-        cart = self._get_or_create(user_id)
-        cart.clear()
-        saved = self._cart_repository.save(cart)
+        self._cart_repository.clear_cart(user_id)
 
         self._event_bus.publish(
             OperationEvent(
@@ -115,7 +109,8 @@ class CartService:
             )
         )
 
-        return CartResponseDto.from_domain(saved)
+        cart = self._get_or_create(user_id)
+        return CartResponseDto.from_domain(cart)
 
     def _get_or_create(self, user_id: UUID) -> Cart:
         cart = self._cart_repository.get_by_user_id(user_id)

@@ -43,11 +43,11 @@ class RecoveryService:
     def create_token_for_user(
         self, user_id: UUID, ttl_minutes: int = 15
     ) -> RecoveryResponseDto:
-        user = self._user_service.get_by_id(user_id)
+        self._user_service.ensure_exists(user_id)
         expires_at = datetime.now(UTC) + timedelta(minutes=ttl_minutes)
 
         recovery_token = RecoveryToken(
-            user_id=user.id,
+            user_id=user_id,
             expires_at=expires_at,
         )
 
@@ -90,8 +90,7 @@ class RecoveryService:
             new_password=dto.new_password,
         )
 
-        recovery_token.mark_as_used()
-        self._recovery_token_repository.save(recovery_token)
+        self._recovery_token_repository.mark_as_used(dto.token)
 
     def list_by_user_id(self, user_id: UUID) -> list[RecoveryResponseDto]:
         tokens = self._recovery_token_repository.list_by_user_id(user_id)

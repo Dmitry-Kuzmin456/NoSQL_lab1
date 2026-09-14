@@ -46,6 +46,7 @@ class OrderService:
         )
 
         saved = self._order_repository.save(order)
+        self._order_repository.increment_orders_count()
 
         self._event_bus.publish(
             OperationEvent(
@@ -100,18 +101,22 @@ class OrderService:
         return self.list(filter_dto)
 
     def cancel(self, order_id: UUID) -> OrderResponseDto:
-        order = self._order_repository.get_by_id(order_id)
-        if order is None:
+        if not self._order_repository.exists_by_id(order_id):
             raise OrderNotFoundException(order_id)
 
-        try:
-            order.cancel()
-        except ValueError as exc:
-            raise InvalidOrderStatusException(str(exc)) from exc
+        if not self._order_repository.update_status(
+            order_id, OrderStatus.CANCELLED, expected_status=OrderStatus.CREATED
+        ):
+            order = self._order_repository.get_by_id(order_id)
+            status = order.status if order else "UNKNOWN"
+            raise InvalidOrderStatusException(
+                f"Cannot cancel order with status {status}"
+            )
+
+        order = self._order_repository.get_by_id(order_id)
+        assert order is not None
 
         self._product_service.restore_stock(order.product_id, order.quantity)
-
-        saved = self._order_repository.save(order)
 
         self._event_bus.publish(
             OperationEvent(
@@ -125,19 +130,23 @@ class OrderService:
             )
         )
 
-        return OrderResponseDto.from_domain(saved)
+        return OrderResponseDto.from_domain(order)
 
     def approve(self, order_id: UUID) -> OrderResponseDto:
-        order = self._order_repository.get_by_id(order_id)
-        if order is None:
+        if not self._order_repository.exists_by_id(order_id):
             raise OrderNotFoundException(order_id)
 
-        try:
-            order.approve()
-        except ValueError as exc:
-            raise InvalidOrderStatusException(str(exc)) from exc
+        if not self._order_repository.update_status(
+            order_id, OrderStatus.APPROVED, expected_status=OrderStatus.CREATED
+        ):
+            order = self._order_repository.get_by_id(order_id)
+            status = order.status if order else "UNKNOWN"
+            raise InvalidOrderStatusException(
+                f"Cannot approve order with status {status}"
+            )
 
-        saved = self._order_repository.save(order)
+        order = self._order_repository.get_by_id(order_id)
+        assert order is not None
 
         self._event_bus.publish(
             OperationEvent(
@@ -147,21 +156,25 @@ class OrderService:
             )
         )
 
-        return OrderResponseDto.from_domain(saved)
+        return OrderResponseDto.from_domain(order)
 
     def reject(self, order_id: UUID) -> OrderResponseDto:
-        order = self._order_repository.get_by_id(order_id)
-        if order is None:
+        if not self._order_repository.exists_by_id(order_id):
             raise OrderNotFoundException(order_id)
 
-        try:
-            order.reject()
-        except ValueError as exc:
-            raise InvalidOrderStatusException(str(exc)) from exc
+        if not self._order_repository.update_status(
+            order_id, OrderStatus.REJECTED, expected_status=OrderStatus.CREATED
+        ):
+            order = self._order_repository.get_by_id(order_id)
+            status = order.status if order else "UNKNOWN"
+            raise InvalidOrderStatusException(
+                f"Cannot reject order with status {status}"
+            )
+
+        order = self._order_repository.get_by_id(order_id)
+        assert order is not None
 
         self._product_service.restore_stock(order.product_id, order.quantity)
-
-        saved = self._order_repository.save(order)
 
         self._event_bus.publish(
             OperationEvent(
@@ -171,4 +184,7 @@ class OrderService:
             )
         )
 
-        return OrderResponseDto.from_domain(saved)
+        return OrderResponseDto.from_domain(order)
+
+    def get_total_orders_count(self) -> int:
+        return self._order_repository.get_total_orders_count()

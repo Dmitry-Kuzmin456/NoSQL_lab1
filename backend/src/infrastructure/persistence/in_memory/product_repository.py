@@ -19,6 +19,10 @@ class InMemoryProductRepository(IProductRepository):
                 return None
             return copy.deepcopy(product)
 
+    def exists_by_id(self, product_id: UUID) -> bool:
+        with self._lock:
+            return product_id in self._products
+
     def list(
         self,
         filter_dto: ProductFilterDto | None = None,
@@ -38,6 +42,16 @@ class InMemoryProductRepository(IProductRepository):
         with self._lock:
             self._products[product.id] = copy.deepcopy(product)
             return copy.deepcopy(product)
+
+    def update_stock(self, product_id: UUID, delta: int) -> bool:
+        with self._lock:
+            product = self._products.get(product_id)
+            if product is None:
+                return False
+            if product.quantity + delta < 0:
+                return False
+            product.quantity += delta
+            return True
 
     def delete(self, product_id: UUID) -> bool:
         with self._lock:

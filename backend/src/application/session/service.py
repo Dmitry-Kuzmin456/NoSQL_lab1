@@ -77,22 +77,15 @@ class SessionService:
         return SessionResponseDto.from_domain(session)
 
     def revoke_session(self, session_id: UUID) -> None:
-        session = self._session_repository.get_by_id(session_id)
-        if session is None:
+        if not self._session_repository.revoke(session_id):
             raise SessionNotFoundException(session_id)
 
-        session.revoke()
-        self._session_repository.save(session)
+    def revoke_by_refresh_token(self, refresh_token: str) -> None:
+        if not self._session_repository.revoke_by_refresh_token(refresh_token):
+            raise SessionNotFoundException(refresh_token)
 
     def revoke_all_user_sessions(self, user_id: UUID) -> int:
-        sessions = self._session_repository.list_by_user_id(user_id)
-        count = 0
-        for s in sessions:
-            if not s.is_revoked:
-                s.revoke()
-                self._session_repository.save(s)
-                count += 1
-        return count
+        return self._session_repository.revoke_all_for_user(user_id)
 
     def get_user_sessions(self, user_id: UUID) -> list[SessionResponseDto]:
         sessions = self._session_repository.list_by_user_id(user_id)

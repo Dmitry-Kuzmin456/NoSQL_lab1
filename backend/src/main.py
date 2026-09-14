@@ -39,6 +39,11 @@ auth_rules: list[RouteAuthRule] = [
         allowed_roles={UserRole.ADMIN},
     ),
     RouteAuthRule.create(
+        path="/api/orders/{order_id}/reject",
+        methods={"POST"},
+        allowed_roles={UserRole.ADMIN},
+    ),
+    RouteAuthRule.create(
         path="/api/orders",
         allowed_roles=set(UserRole),
     ),

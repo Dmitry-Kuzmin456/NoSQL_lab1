@@ -1,5 +1,7 @@
 from uuid import UUID
 
+from application.event_bus import IEventBus
+from domain.history import OperationEvent, OperationType
 from domain.user import User
 
 from .dto import (
@@ -25,9 +27,11 @@ class UserService:
         self,
         user_repository: IUserRepository,
         password_hasher: IPasswordHasher,
+        event_bus: IEventBus,
     ):
         self._user_repository = user_repository
         self._password_hasher = password_hasher
+        self._event_bus = event_bus
 
     def register(self, dto: UserRegisterDto) -> UserResponseDto:
         normalized_email = dto.email.strip().lower()
@@ -39,16 +43,20 @@ class UserService:
         if existing_user is not None:
             raise UserAlreadyExistsException(normalized_email)
 
-        hashed_password = self._password_hasher.hash(dto.password)
-
         user = User(
             name=dto.name.strip(),
             email=normalized_email,
-            password_hash=hashed_password,
+            password_hash=self._password_hasher.hash(dto.password),
             role=dto.role,
         )
-
         saved_user = self._user_repository.save(user)
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=saved_user.id,
+                action=OperationType.USER_REGISTER,
+                details={"email": saved_user.email},
+            )
+        )
         return UserResponseDto.from_domain(saved_user)
 
     def get_by_id(self, user_id: UUID) -> UserResponseDto:
@@ -81,6 +89,13 @@ class UserService:
             user.name = dto.name.strip()
 
         saved_user = self._user_repository.save(user)
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=user_id,
+                action=OperationType.UPDATE_PROFILE,
+                details={"name": saved_user.name, "email": saved_user.email},
+            )
+        )
         return UserResponseDto.from_domain(saved_user)
 
     def change_password(self, user_id: UUID, dto: ChangePasswordDto) -> None:
@@ -97,6 +112,13 @@ class UserService:
         user.password_hash = self._password_hasher.hash(dto.new_password)
         self._user_repository.save(user)
 
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=user_id,
+                action=OperationType.CHANGE_PASSWORD,
+            )
+        )
+
     def reset_password(self, user_id: UUID, new_password: str) -> None:
         user = self._user_repository.get_by_id(user_id)
         if user is None:
@@ -107,6 +129,14 @@ class UserService:
 
         user.password_hash = self._password_hasher.hash(new_password)
         self._user_repository.save(user)
+
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=user_id,
+                action=OperationType.PASSWORD_RESET,
+                details={"type": "reset_password_with_token"},
+            )
+        )
 
     def delete_user(self, user_id: UUID) -> bool:
         if self._user_repository.get_by_id(user_id) is None:

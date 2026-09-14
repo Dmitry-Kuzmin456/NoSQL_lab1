@@ -48,6 +48,13 @@ class ProductService:
             raise ProductNotFoundException(product_id)
         return ProductResponseDto.from_domain(product)
 
+    def exists_by_id(self, product_id: UUID) -> bool:
+        return self._product_repository.exists_by_id(product_id)
+
+    def ensure_exists(self, product_id: UUID) -> None:
+        if not self._product_repository.exists_by_id(product_id):
+            raise ProductNotFoundException(product_id)
+
     def list(
         self,
         filter_dto: ProductFilterDto | None = None,

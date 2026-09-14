@@ -46,6 +46,14 @@ class InMemorySessionRepository(ISessionRepository):
             session.is_revoked = True
             return True
 
+    def revoke_by_refresh_token(self, refresh_token: str) -> bool:
+        with self._lock:
+            for session in self._sessions.values():
+                if session.refresh_token == refresh_token:
+                    session.is_revoked = True
+                    return True
+            return False
+
     def revoke_all_for_user(self, user_id: UUID) -> int:
         with self._lock:
             count = 0

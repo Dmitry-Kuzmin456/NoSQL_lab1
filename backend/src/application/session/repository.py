@@ -36,6 +36,11 @@ class ISessionRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def revoke_by_refresh_token(self, refresh_token: str) -> bool:
+        """Отозвать сессию по refresh токену без предварительной загрузки объекта."""
+        raise NotImplementedError
+
+    @abstractmethod
     def revoke_all_for_user(self, user_id: UUID) -> int:
         """Пакетно отозвать все сессии пользователя."""
         raise NotImplementedError

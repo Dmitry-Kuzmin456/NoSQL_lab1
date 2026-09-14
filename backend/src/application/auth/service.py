@@ -71,8 +71,7 @@ class AuthService:
         self._session_service.revoke_session(session_id)
 
     def logout_by_refresh_token(self, refresh_token: str) -> None:
-        session_dto = self._session_service.get_by_refresh_token(refresh_token)
-        self._session_service.revoke_session(session_dto.id)
+        self._session_service.revoke_by_refresh_token(refresh_token)
 
     def logout_all(self, user_id: UUID) -> int:
         return self._session_service.revoke_all_user_sessions(user_id)

@@ -64,6 +64,13 @@ class UserService:
             raise UserNotFoundException(user_id)
         return UserResponseDto.from_domain(user)
 
+    def exists_by_id(self, user_id: UUID) -> bool:
+        return self._user_repository.exists_by_id(user_id)
+
+    def ensure_exists(self, user_id: UUID) -> None:
+        if not self._user_repository.exists_by_id(user_id):
+            raise UserNotFoundException(user_id)
+
     def get_by_email(self, email: str) -> UserWithPasswordDto:
         normalized_email = email.strip().lower()
         user = self._user_repository.get_by_email(normalized_email)

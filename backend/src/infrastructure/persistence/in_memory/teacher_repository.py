@@ -53,6 +53,8 @@ class InMemoryTeacherRepository(ITeacherRepository):
             return False
         with self._lock:
             if teacher_id in self._student_assignments:
+                if student_id not in self._student_assignments[teacher_id]:
+                    return False
                 self._student_assignments[teacher_id].discard(student_id)
                 return True
             return False

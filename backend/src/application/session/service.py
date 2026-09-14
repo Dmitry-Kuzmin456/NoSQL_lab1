@@ -80,6 +80,10 @@ class SessionService:
         if not self._session_repository.revoke(session_id):
             raise SessionNotFoundException(session_id)
 
+    def revoke_by_refresh_token(self, refresh_token: str) -> None:
+        if not self._session_repository.revoke_by_refresh_token(refresh_token):
+            raise SessionNotFoundException(refresh_token)
+
     def revoke_all_user_sessions(self, user_id: UUID) -> int:
         return self._session_repository.revoke_all_for_user(user_id)
 

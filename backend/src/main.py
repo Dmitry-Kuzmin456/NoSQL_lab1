@@ -24,6 +24,25 @@ from infrastructure.http.user.controller import router as user_router
 
 auth_rules: list[RouteAuthRule] = [
     RouteAuthRule.create(
+        path="/api/auth/logout-all/{user_id}",
+        methods={"POST"},
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
+        path="/api/auth/logout",
+        methods={"POST"},
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
+        path="/api/orders/{order_id}/approve",
+        methods={"POST"},
+        allowed_roles={UserRole.ADMIN},
+    ),
+    RouteAuthRule.create(
+        path="/api/orders",
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
         path="/api/products",
         methods={"POST", "PATCH", "DELETE"},
         allowed_roles={UserRole.ADMIN},
@@ -39,15 +58,6 @@ auth_rules: list[RouteAuthRule] = [
     RouteAuthRule.create(
         path="/api/checkout",
         allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
-        path="/api/orders",
-        allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
-        path="/api/orders/{order_id}/approve",
-        methods={"POST"},
-        allowed_roles={UserRole.ADMIN},
     ),
     RouteAuthRule.create(
         path="/api/users",

@@ -36,6 +36,16 @@ class InMemoryHistoryRepository(IHistoryRepository):
             paginated = events[offset : offset + limit]
             return [copy.deepcopy(e) for e in paginated], total
 
+    def count_user_events(self, user_id: UUID) -> int:
+        """Быстро получить общее количество событий пользователя без вычитки всех записей."""
+        with self._lock:
+            return len(self._user_events.get(user_id, []))
+
+    def exists_by_user_id(self, user_id: UUID) -> bool:
+        """Проверить наличие хотя бы одного события у пользователя."""
+        with self._lock:
+            return bool(self._user_events.get(user_id))
+
     def delete_by_user_id(self, user_id: UUID) -> bool:
         """Удаляет всю историю пользователя."""
         with self._lock:

@@ -19,6 +19,18 @@ class InMemoryRecoveryTokenRepository(IRecoveryTokenRepository):
         with self._lock:
             return self._tokens.get(token)
 
+    def exists_by_token(self, token: str) -> bool:
+        with self._lock:
+            return token in self._tokens
+
+    def mark_as_used(self, token: str) -> bool:
+        with self._lock:
+            rec_token = self._tokens.get(token)
+            if rec_token is None:
+                return False
+            rec_token.mark_as_used()
+            return True
+
     def list_by_user_id(self, user_id: UUID) -> list[RecoveryToken]:
         with self._lock:
             return [
@@ -42,3 +54,14 @@ class InMemoryRecoveryTokenRepository(IRecoveryTokenRepository):
             for tok in keys_to_delete:
                 del self._tokens[tok]
             return len(keys_to_delete)
+
+    def delete_expired(self) -> int:
+        with self._lock:
+            expired_keys = [
+                tok
+                for tok, token in self._tokens.items()
+                if token.is_expired()
+            ]
+            for tok in expired_keys:
+                del self._tokens[tok]
+            return len(expired_keys)

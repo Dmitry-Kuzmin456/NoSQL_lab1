@@ -35,6 +35,28 @@ class InMemoryTeacherRepository(ITeacherRepository):
             student_ids=student_ids,
         )
 
+    def exists_by_id(self, teacher_id: UUID) -> bool:
+        user = self._user_repository.get_by_id(teacher_id)
+        return user is not None and user.role == UserRole.TEACHER
+
+    def assign_student(self, teacher_id: UUID, student_id: UUID) -> bool:
+        if not self.exists_by_id(teacher_id):
+            return False
+        with self._lock:
+            if teacher_id not in self._student_assignments:
+                self._student_assignments[teacher_id] = set()
+            self._student_assignments[teacher_id].add(student_id)
+            return True
+
+    def unassign_student(self, teacher_id: UUID, student_id: UUID) -> bool:
+        if not self.exists_by_id(teacher_id):
+            return False
+        with self._lock:
+            if teacher_id in self._student_assignments:
+                self._student_assignments[teacher_id].discard(student_id)
+                return True
+            return False
+
     def save(self, teacher: Teacher) -> Teacher:
         self._user_repository.save(teacher)
 

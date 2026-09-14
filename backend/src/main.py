@@ -9,6 +9,7 @@ from infrastructure.http.checkout.controller import router as checkout_router
 from infrastructure.http.exception_handlers import setup_exception_handlers
 from infrastructure.http.favourites.controller import router as favourites_router
 from infrastructure.http.health.controller import router as health_router
+from infrastructure.http.history.controller import router as history_router
 from infrastructure.http.middleware.authentication_middleware import (
     authentication_middleware,
 )
@@ -80,6 +81,10 @@ auth_rules: list[RouteAuthRule] = [
         allowed_roles=set(UserRole),
     ),
     RouteAuthRule.create(
+        path="/api/history",
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
         path="/api/teachers",
         allowed_roles={UserRole.TEACHER},
     ),
@@ -99,6 +104,7 @@ app.include_router(product_router, prefix="/api")
 app.include_router(favourites_router, prefix="/api")
 app.include_router(cart_router, prefix="/api")
 app.include_router(checkout_router, prefix="/api")
+app.include_router(history_router, prefix="/api")
 app.include_router(teacher_router, prefix="/api")
 app.include_router(recovery_router, prefix="/api")
 app.include_router(order_router, prefix="/api")
@@ -106,6 +112,5 @@ app.include_router(order_router, prefix="/api")
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
-# TODO: Events history application and infrastructure level still need to be finished.
 # TODO: Choose db for all domains
 # TODO: Implement repositories

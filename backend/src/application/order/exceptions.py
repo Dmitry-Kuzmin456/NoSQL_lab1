@@ -27,5 +27,7 @@ class InvalidOrderStatusException(OrderException):
 class InvalidOrderQuantityException(OrderException):
     status_code: int = 400
 
-    def __init__(self, message: str = "Количество товара в заказе должно быть больше 0.") -> None:
+    def __init__(
+        self, message: str = "Количество товара в заказе должно быть больше 0."
+    ) -> None:
         super().__init__(message)

@@ -15,7 +15,9 @@ from domain.order import OrderStatus
 
 class CreateOrderRequest(BaseModel):
     product_id: UUID = Field(..., description="ID заказываемого товара")
-    quantity: int = Field(default=1, gt=0, description="Количество товара (должно быть > 0)")
+    quantity: int = Field(
+        default=1, gt=0, description="Количество товара (должно быть > 0)"
+    )
 
     def to_dto(self) -> CreateOrderDto:
         return CreateOrderDto(
@@ -26,7 +28,9 @@ class CreateOrderRequest(BaseModel):
 
 class OrderFilterParams(BaseModel):
     user_id: UUID | None = Field(default=None, description="Фильтр по ID пользователя")
-    status: OrderStatus | None = Field(default=None, description="Фильтр по статусу заказа")
+    status: OrderStatus | None = Field(
+        default=None, description="Фильтр по статусу заказа"
+    )
     offset: int = Field(default=0, ge=0, description="Смещение (offset)")
     limit: int = Field(default=50, ge=1, le=100, description="Лимит на страницу")
 

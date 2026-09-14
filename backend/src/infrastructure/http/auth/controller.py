@@ -5,6 +5,7 @@ from fastapi import APIRouter, Cookie, Response, status
 
 from application.session.exceptions import SessionException
 from infrastructure.http.auth.cookies import CookieManager
+from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 from infrastructure.http.user.schemas import UserResponse
 
 from .dependencies import AuthServiceDep
@@ -72,9 +73,23 @@ def logout(
 
 
 @router.post(
+    "/logout-all/me",
+    status_code=status.HTTP_204_NO_CONTENT,
+    summary="Завершение всех активных сессий текущего пользователя",
+)
+def logout_all_me(
+    current_user: CurrentUserDep,
+    response: Response,
+    service: AuthServiceDep,
+) -> None:
+    service.logout_all(current_user.id)
+    CookieManager.clear_auth_cookies(response)
+
+
+@router.post(
     "/logout-all/{user_id}",
     status_code=status.HTTP_204_NO_CONTENT,
-    summary="Завершение всех активных сессий пользователя и очистка cookie",
+    summary="Завершение всех активных сессий пользователя по ID (Admin)",
 )
 def logout_all(
     user_id: UUID,

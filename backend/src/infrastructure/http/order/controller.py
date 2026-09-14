@@ -3,6 +3,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, status
 
+from domain.order import OrderStatus
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 
 from .dependencies import OrderServiceDep
@@ -13,16 +14,66 @@ from .schemas import (
     OrderResponse,
 )
 
-router = APIRouter(prefix="/orders", tags=["Orders"])
+router = APIRouter(tags=["Orders"])
+
+
+@router.get(
+    "/users/me/orders",
+    response_model=OrderListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить список заказов текущего пользователя",
+)
+def list_my_orders(
+    current_user: CurrentUserDep,
+    service: OrderServiceDep,
+    order_status: Annotated[
+        OrderStatus | None,
+        Query(alias="status", description="Фильтр по статусу заказа"),
+    ] = None,
+    offset: Annotated[int, Query(ge=0, description="Смещение (offset)")] = 0,
+    limit: Annotated[int, Query(ge=1, le=100, description="Лимит на страницу")] = 50,
+) -> OrderListResponse:
+    result = service.list_user_orders(
+        user_id=current_user.id,
+        status=order_status,
+        offset=offset,
+        limit=limit,
+    )
+    return OrderListResponse.from_dto(result)
+
+
+@router.get(
+    "/users/{user_id}/orders",
+    response_model=OrderListResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить список заказов пользователя по ID (Admin)",
+)
+def list_orders_by_user_id(
+    user_id: UUID,
+    service: OrderServiceDep,
+    order_status: Annotated[
+        OrderStatus | None,
+        Query(alias="status", description="Фильтр по статусу заказа"),
+    ] = None,
+    offset: Annotated[int, Query(ge=0, description="Смещение (offset)")] = 0,
+    limit: Annotated[int, Query(ge=1, le=100, description="Лимит на страницу")] = 50,
+) -> OrderListResponse:
+    result = service.list_user_orders(
+        user_id=user_id,
+        status=order_status,
+        offset=offset,
+        limit=limit,
+    )
+    return OrderListResponse.from_dto(result)
 
 
 @router.post(
-    "",
+    "/users/me/orders",
     response_model=OrderResponse,
     status_code=status.HTTP_201_CREATED,
-    summary="Создать новый заказ",
+    summary="Создать новый заказ для текущего пользователя",
 )
-def create_order(
+def create_order_me(
     request: CreateOrderRequest,
     current_user: CurrentUserDep,
     service: OrderServiceDep,
@@ -34,8 +85,25 @@ def create_order(
     return OrderResponse.from_dto(dto)
 
 
+@router.post(
+    "/users/{user_id}/orders",
+    response_model=OrderResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Создать новый заказ для пользователя по ID (Admin)",
+)
+def create_order_by_user_id(
+    user_id: UUID,
+    request: CreateOrderRequest,
+    service: OrderServiceDep,
+) -> OrderResponse:
+    dto = service.create(
+        user_id=user_id,
+        dto=request.to_dto(),
+    )
+    return OrderResponse.from_dto(dto)
+
 @router.get(
-    "",
+    "/orders",
     response_model=OrderListResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить список заказов",
@@ -49,7 +117,7 @@ def list_orders(
 
 
 @router.get(
-    "/{order_id}",
+    "/orders/{order_id}",
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить информацию о заказе по ID",
@@ -63,7 +131,7 @@ def get_order(
 
 
 @router.post(
-    "/{order_id}/cancel",
+    "/orders/{order_id}/cancel",
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Отменить заказ",
@@ -77,7 +145,7 @@ def cancel_order(
 
 
 @router.post(
-    "/{order_id}/approve",
+    "/orders/{order_id}/approve",
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Подтвердить заказ",
@@ -91,7 +159,7 @@ def approve_order(
 
 
 @router.post(
-    "/{order_id}/reject",
+    "/orders/{order_id}/reject",
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Отклонить заказ",

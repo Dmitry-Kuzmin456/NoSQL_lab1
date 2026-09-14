@@ -15,18 +15,7 @@ Content-Type: application/json
     client.global.set("userId", response.body.id);
 %}
 
-### 2. Получение пользователя
-GET {{baseUrl}}/users/{{userId}}
-
-### 3. Обновление пользователя
-PATCH {{baseUrl}}/users/{{userId}}
-Content-Type: application/json
-
-{
-  "name": "Иван Петров"
-}
-
-### 4. Вход (Login)
+### 2. Вход (Login)
 POST {{baseUrl}}/auth/login
 Content-Type: application/json
 
@@ -35,11 +24,25 @@ Content-Type: application/json
   "password": "password123"
 }
 
-### 5. Обновление токенов (Refresh)
+### 3. Получение профиля текущего пользователя (/me доступен всем)
+GET {{baseUrl}}/users/me
+
+### 4. Обновление профиля текущего пользователя (/me)
+PATCH {{baseUrl}}/users/me
+Content-Type: application/json
+
+{
+  "name": "Иван Петров"
+}
+
+### 5. Попытка получить профиль по ID обычным пользователем (Ожидается 403 Forbidden)
+GET {{baseUrl}}/users/{{userId}}
+
+### 6. Обновление токенов (Refresh)
 POST {{baseUrl}}/auth/refresh
 
-### 6. Смена пароля
-POST {{baseUrl}}/users/{{userId}}/change-password
+### 7. Смена пароля текущего пользователя (/me)
+POST {{baseUrl}}/users/me/change-password
 Content-Type: application/json
 
 {
@@ -47,13 +50,14 @@ Content-Type: application/json
   "new_password": "newpassword123"
 }
 
-### 7. Выход из системы (Logout)
+### 8. Выход из системы (Logout)
 POST {{baseUrl}}/auth/logout
 
-### 8. Завершение всех сессий
-POST {{baseUrl}}/auth/logout-all/{{userId}}
+### 9. Завершение всех сессий текущего пользователя (Auth /me)
+POST {{baseUrl}}/auth/logout-all/me
 
-### 9. Запрос токена восстановления пароля
+
+### 10. Запрос токена восстановления пароля
 POST {{baseUrl}}/recovery
 Content-Type: application/json
 
@@ -65,10 +69,10 @@ Content-Type: application/json
     client.global.set("recoveryToken", response.body.token);
 %}
 
-### 10. Проверка токена восстановления
+### 11. Проверка токена восстановления
 GET {{baseUrl}}/recovery/{{recoveryToken}}
 
-### 11. Сброс пароля по токену восстановления
+### 12. Сброс пароля по токену восстановления
 POST {{baseUrl}}/recovery/reset-password
 Content-Type: application/json
 
@@ -77,5 +81,5 @@ Content-Type: application/json
   "new_password": "newSecurePassword456"
 }
 
-### 12. Удаление пользователя
-DELETE {{baseUrl}}/users/{{userId}}
+### 13. Удаление собственного профиля (/me)
+DELETE {{baseUrl}}/users/me

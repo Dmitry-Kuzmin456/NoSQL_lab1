@@ -4,6 +4,8 @@ from fastapi import FastAPI
 from domain.user import UserRole
 from infrastructure.http.auth.controller import router as auth_router
 from infrastructure.http.auth.dependencies import get_token_service
+from infrastructure.http.cart.controller import router as cart_router
+from infrastructure.http.checkout.controller import router as checkout_router
 from infrastructure.http.exception_handlers import setup_exception_handlers
 from infrastructure.http.favourites.controller import router as favourites_router
 from infrastructure.http.health.controller import router as health_router
@@ -36,6 +38,14 @@ auth_rules: list[RouteAuthRule] = [
         allowed_roles=set(UserRole),
     ),
     RouteAuthRule.create(
+        path="/api/cart",
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
+        path="/api/checkout",
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
         path="/api/orders",
         allowed_roles=set(UserRole),
     ),
@@ -57,6 +67,8 @@ app.include_router(user_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(product_router, prefix="/api")
 app.include_router(favourites_router, prefix="/api")
+app.include_router(cart_router, prefix="/api")
+app.include_router(checkout_router, prefix="/api")
 app.include_router(teacher_router, prefix="/api")
 app.include_router(recovery_router, prefix="/api")
 app.include_router(order_router, prefix="/api")

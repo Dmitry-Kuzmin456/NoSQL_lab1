@@ -24,9 +24,28 @@ from infrastructure.http.user.controller import router as user_router
 
 auth_rules: list[RouteAuthRule] = [
     RouteAuthRule.create(
+        path="/api/auth/logout-all/{user_id}",
+        methods={"POST"},
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
+        path="/api/auth/logout",
+        methods={"POST"},
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
         path="/api/orders/{order_id}/approve",
         methods={"POST"},
         allowed_roles={UserRole.ADMIN},
+    ),
+    RouteAuthRule.create(
+        path="/api/orders/{order_id}/reject",
+        methods={"POST"},
+        allowed_roles={UserRole.ADMIN},
+    ),
+    RouteAuthRule.create(
+        path="/api/orders",
+        allowed_roles=set(UserRole),
     ),
     RouteAuthRule.create(
         path="/api/products",
@@ -46,7 +65,18 @@ auth_rules: list[RouteAuthRule] = [
         allowed_roles=set(UserRole),
     ),
     RouteAuthRule.create(
-        path="/api/orders",
+        path="/api/users",
+        methods={"DELETE"},
+        allowed_roles={UserRole.ADMIN},
+    ),
+    RouteAuthRule.create(
+        path="/api/users/{user_id}/change-password",
+        methods={"POST"},
+        allowed_roles=set(UserRole),
+    ),
+    RouteAuthRule.create(
+        path="/api/users",
+        methods={"GET", "PATCH"},
         allowed_roles=set(UserRole),
     ),
     RouteAuthRule.create(
@@ -76,7 +106,6 @@ app.include_router(order_router, prefix="/api")
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
-# TODO: Cart application and infrastructure level still need to be finished.
 # TODO: Events history application and infrastructure level still need to be finished.
 # TODO: Choose db for all domains
 # TODO: Implement repositories

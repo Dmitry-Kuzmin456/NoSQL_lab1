@@ -90,8 +90,7 @@ class RecoveryService:
             new_password=dto.new_password,
         )
 
-        recovery_token.mark_as_used()
-        self._recovery_token_repository.save(recovery_token)
+        self._recovery_token_repository.mark_as_used(dto.token)
 
     def list_by_user_id(self, user_id: UUID) -> list[RecoveryResponseDto]:
         tokens = self._recovery_token_repository.list_by_user_id(user_id)

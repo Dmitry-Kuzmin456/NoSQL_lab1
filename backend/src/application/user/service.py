@@ -39,8 +39,7 @@ class UserService:
         if len(dto.password) < 6:
             raise WeakPasswordException()
 
-        existing_user = self._user_repository.get_by_email(normalized_email)
-        if existing_user is not None:
+        if self._user_repository.exists_by_email(normalized_email):
             raise UserAlreadyExistsException(normalized_email)
 
         user = User(
@@ -80,8 +79,7 @@ class UserService:
         if dto.email is not None:
             new_email = dto.email.strip().lower()
             if new_email != user.email:
-                existing = self._user_repository.get_by_email(new_email)
-                if existing is not None:
+                if self._user_repository.exists_by_email(new_email):
                     raise UserAlreadyExistsException(new_email)
                 user.email = new_email
 
@@ -120,15 +118,15 @@ class UserService:
         )
 
     def reset_password(self, user_id: UUID, new_password: str) -> None:
-        user = self._user_repository.get_by_id(user_id)
-        if user is None:
+        if not self._user_repository.exists_by_id(user_id):
             raise UserNotFoundException(user_id)
 
         if len(new_password) < 6:
             raise WeakNewPasswordException()
 
-        user.password_hash = self._password_hasher.hash(new_password)
-        self._user_repository.save(user)
+        new_hash = self._password_hasher.hash(new_password)
+        if not self._user_repository.update_password_hash(user_id, new_hash):
+            raise UserNotFoundException(user_id)
 
         self._event_bus.publish(
             OperationEvent(
@@ -139,6 +137,6 @@ class UserService:
         )
 
     def delete_user(self, user_id: UUID) -> bool:
-        if self._user_repository.get_by_id(user_id) is None:
+        if not self._user_repository.exists_by_id(user_id):
             raise UserNotFoundException(user_id)
         return self._user_repository.delete(user_id)

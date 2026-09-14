@@ -42,11 +42,7 @@ class IOrderRepository(ABC):
         new_status: OrderStatus,
         expected_status: OrderStatus | None = None,
     ) -> bool:
-        """
-        Атомарно обновить статус заказа без предварительной загрузки сущности.
-        Если указан expected_status, обновление выполняется только если текущий статус равен expected_status.
-        Возвращает True в случае успешной модификации, False если заказ не найден или статус не совпал.
-        """
+        """Обновить статус заказа без предварительной загрузки сущности."""
         raise NotImplementedError
 
     @abstractmethod
@@ -56,10 +52,7 @@ class IOrderRepository(ABC):
 
     @abstractmethod
     def increment_orders_count(self, amount: int = 1) -> int:
-        """
-        Атомарно инкрементировать глобальный счётчик созданных заявок (Riak PN-Counter).
-        Возвращает новое значение счётчика.
-        """
+        """Инкрементировать глобальный счётчик созданных заявок."""
         raise NotImplementedError
 
     @abstractmethod

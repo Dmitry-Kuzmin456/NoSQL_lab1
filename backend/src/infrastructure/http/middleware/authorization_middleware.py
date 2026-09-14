@@ -1,3 +1,4 @@
+import re
 from collections.abc import Awaitable, Callable, Collection, MutableMapping
 from dataclasses import dataclass
 from typing import Any, Self
@@ -43,6 +44,10 @@ class RouteAuthRule:
     def matches(self, request_path: str, request_method: str) -> bool:
         if self.methods is not None and request_method.upper() not in self.methods:
             return False
+
+        if "{" in self.path and "}" in self.path:
+            pattern = re.sub(r"\{[^}]+}", r"[^/]+", self.path)
+            return bool(re.fullmatch(pattern, request_path))
 
         if self.exact_match:
             return request_path == self.path

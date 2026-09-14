@@ -58,9 +58,7 @@ class InMemoryRecoveryTokenRepository(IRecoveryTokenRepository):
     def delete_expired(self) -> int:
         with self._lock:
             expired_keys = [
-                tok
-                for tok, token in self._tokens.items()
-                if token.is_expired()
+                tok for tok, token in self._tokens.items() if token.is_expired()
             ]
             for tok in expired_keys:
                 del self._tokens[tok]

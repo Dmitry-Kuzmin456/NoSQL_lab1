@@ -76,9 +76,7 @@ class InMemorySessionRepository(ISessionRepository):
     def delete_expired(self) -> int:
         with self._lock:
             expired_ids = [
-                sid
-                for sid, session in self._sessions.items()
-                if session.is_expired()
+                sid for sid, session in self._sessions.items() if session.is_expired()
             ]
             for sid in expired_ids:
                 del self._sessions[sid]

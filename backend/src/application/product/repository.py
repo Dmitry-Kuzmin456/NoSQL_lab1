@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.product import Product
+
 from .dto import ProductFilterDto
 
 
@@ -18,8 +19,8 @@ class IProductRepository(ABC):
 
     @abstractmethod
     def list(
-            self,
-            filter_dto: ProductFilterDto | None = None,
+        self,
+        filter_dto: ProductFilterDto | None = None,
     ) -> tuple[list[Product], int]:
         """Получить список товаров с фильтрацией и пагинацией, а также общее количество."""
         raise NotImplementedError

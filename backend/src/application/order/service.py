@@ -109,7 +109,9 @@ class OrderService:
         ):
             order = self._order_repository.get_by_id(order_id)
             status = order.status if order else "UNKNOWN"
-            raise InvalidOrderStatusException(f"Cannot cancel order with status {status}")
+            raise InvalidOrderStatusException(
+                f"Cannot cancel order with status {status}"
+            )
 
         order = self._order_repository.get_by_id(order_id)
         assert order is not None
@@ -139,7 +141,9 @@ class OrderService:
         ):
             order = self._order_repository.get_by_id(order_id)
             status = order.status if order else "UNKNOWN"
-            raise InvalidOrderStatusException(f"Cannot approve order with status {status}")
+            raise InvalidOrderStatusException(
+                f"Cannot approve order with status {status}"
+            )
 
         order = self._order_repository.get_by_id(order_id)
         assert order is not None
@@ -163,7 +167,9 @@ class OrderService:
         ):
             order = self._order_repository.get_by_id(order_id)
             status = order.status if order else "UNKNOWN"
-            raise InvalidOrderStatusException(f"Cannot reject order with status {status}")
+            raise InvalidOrderStatusException(
+                f"Cannot reject order with status {status}"
+            )
 
         order = self._order_repository.get_by_id(order_id)
         assert order is not None

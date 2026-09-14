@@ -46,12 +46,19 @@ class RouteAuthRule:
             return False
 
         if "{" in self.path and "}" in self.path:
-            pattern = re.sub(r"\{[^}]+}", r"[^/]+", self.path)
-            return bool(re.fullmatch(pattern, request_path))
+            pattern = re.sub(
+                r"\{[^}]*_id}",
+                r"[0-9a-fA-F-]{36}",
+                self.path,
+            )
+            pattern = re.sub(r"\{[^}]+}", r"[^/]+", pattern)
+            if self.exact_match:
+                return bool(re.fullmatch(pattern, request_path))
+            return bool(re.match(rf"^{pattern}(?:/.*)?$", request_path))
 
         if self.exact_match:
             return request_path == self.path
-        return request_path.startswith(self.path)
+        return request_path == self.path or request_path.startswith(f"{self.path}/")
 
 
 def authorization_middleware(

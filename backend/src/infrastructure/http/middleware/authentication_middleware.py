@@ -39,6 +39,8 @@ def authentication_middleware(
 
             if auth_header and auth_header.startswith("Bearer "):
                 token = auth_header[7:].strip()
+            elif "access_token" in request.cookies:
+                token = request.cookies.get("access_token")
 
             request.state.user = None
             if token:

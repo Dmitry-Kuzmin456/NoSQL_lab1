@@ -25,14 +25,10 @@ from infrastructure.http.user.controller import router as user_router
 
 auth_rules: list[RouteAuthRule] = [
     RouteAuthRule.create(
-        path="/api/auth/logout-all/{user_id}",
-        methods={"POST"},
-        allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
         path="/api/auth/logout",
         methods={"POST"},
         allowed_roles=set(UserRole),
+        exact_match=True,
     ),
     RouteAuthRule.create(
         path="/api/orders/{order_id}/approve",
@@ -46,6 +42,11 @@ auth_rules: list[RouteAuthRule] = [
     ),
     RouteAuthRule.create(
         path="/api/orders",
+        methods={"GET"},
+        allowed_roles={UserRole.ADMIN},
+    ),
+    RouteAuthRule.create(
+        path="/api/orders/{order_id}",
         allowed_roles=set(UserRole),
     ),
     RouteAuthRule.create(
@@ -54,39 +55,31 @@ auth_rules: list[RouteAuthRule] = [
         allowed_roles={UserRole.ADMIN},
     ),
     RouteAuthRule.create(
-        path="/api/favourites",
-        allowed_roles=set(UserRole),
+        path="/api/users/me/teacher",
+        allowed_roles={UserRole.TEACHER},
+        exact_match=False,
     ),
     RouteAuthRule.create(
-        path="/api/cart",
+        path="/api/users/me",
         allowed_roles=set(UserRole),
+        exact_match=False,
     ),
     RouteAuthRule.create(
-        path="/api/checkout",
-        allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
-        path="/api/users",
-        methods={"DELETE"},
+        path="/api/users/{user_id}",
         allowed_roles={UserRole.ADMIN},
+        exact_match=False,
     ),
     RouteAuthRule.create(
-        path="/api/users/{user_id}/change-password",
+        path="/api/auth/logout-all/me",
         methods={"POST"},
         allowed_roles=set(UserRole),
+        exact_match=True,
     ),
     RouteAuthRule.create(
-        path="/api/users",
-        methods={"GET", "PATCH"},
-        allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
-        path="/api/history",
-        allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
-        path="/api/teachers",
-        allowed_roles={UserRole.TEACHER},
+        path="/api/auth/logout-all/{user_id}",
+        methods={"POST"},
+        allowed_roles={UserRole.ADMIN},
+        exact_match=True,
     ),
 ]
 

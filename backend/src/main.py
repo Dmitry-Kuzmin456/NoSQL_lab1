@@ -106,7 +106,6 @@ app.include_router(order_router, prefix="/api")
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
 
-# TODO: Cart application and infrastructure level still need to be finished.
 # TODO: Events history application and infrastructure level still need to be finished.
 # TODO: Choose db for all domains
 # TODO: Implement repositories

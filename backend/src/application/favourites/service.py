@@ -1,7 +1,9 @@
 from uuid import UUID
 
+from application.event_bus import IEventBus
 from application.product.service import ProductService
 from domain.favourites import Favourites
+from domain.history import OperationEvent, OperationType
 
 from .dto import AddFavouriteDto, FavouritesResponseDto
 from .exceptions import FavouriteProductNotFoundException
@@ -13,9 +15,11 @@ class FavouritesService:
         self,
         favourites_repository: IFavouritesRepository,
         product_service: ProductService,
+        event_bus: IEventBus,
     ):
         self._favourites_repository = favourites_repository
         self._product_service = product_service
+        self._event_bus = event_bus
 
     def get_by_user_id(self, user_id: UUID) -> FavouritesResponseDto:
         favourites = self._get_or_create(user_id)
@@ -38,6 +42,16 @@ class FavouritesService:
         )
 
         saved = self._favourites_repository.save(favourites)
+
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=user_id,
+                action=OperationType.ADD_FAVOURITE,
+                target_id=dto.product_id,
+                details={"note": dto.note or ""},
+            )
+        )
+
         return FavouritesResponseDto.from_domain(saved)
 
     def remove_product(
@@ -51,6 +65,15 @@ class FavouritesService:
 
         favourites.remove_product(product_id)
         saved = self._favourites_repository.save(favourites)
+
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=user_id,
+                action=OperationType.REMOVE_FAVOURITE,
+                target_id=product_id,
+            )
+        )
+
         return FavouritesResponseDto.from_domain(saved)
 
     def is_in_favourites(self, user_id: UUID, product_id: UUID) -> bool:
@@ -63,6 +86,12 @@ class FavouritesService:
         favourites = self._get_or_create(user_id)
         favourites.clear()
         saved = self._favourites_repository.save(favourites)
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=user_id,
+                action=OperationType.CLEAR_FAVOURITES,
+            )
+        )
         return FavouritesResponseDto.from_domain(saved)
 
     def _get_or_create(self, user_id: UUID) -> Favourites:

@@ -1,12 +1,14 @@
 import logging
 from uuid import UUID
 
+from application.event_bus import IEventBus
 from application.favourites.dto import AddFavouriteDto
 from application.favourites.service import FavouritesService
 from application.product.service import ProductService
 from application.user.dto import UserResponseDto
 from application.user.exceptions import UserNotFoundException
 from application.user.service import UserService
+from domain.history import OperationEvent, OperationType
 from domain.teacher import Teacher
 from domain.user import UserRole
 
@@ -34,11 +36,13 @@ class TeacherService:
         user_service: UserService,
         product_service: ProductService,
         favourites_service: FavouritesService,
+        event_bus: IEventBus,
     ):
         self._teacher_repository = teacher_repository
         self._user_service = user_service
         self._product_service = product_service
         self._favourites_service = favourites_service
+        self._event_bus = event_bus
 
     def get_teacher(self, teacher_id: UUID) -> TeacherResponseDto:
         teacher = self._get_teacher(teacher_id)
@@ -73,6 +77,15 @@ class TeacherService:
 
         teacher.add_student(student_id)
         saved = self._teacher_repository.save(teacher)
+
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=teacher_id,
+                action=OperationType.ADD_STUDENT,
+                target_id=student_id,
+            )
+        )
+
         return TeacherResponseDto.from_domain(saved)
 
     def remove_student(self, teacher_id: UUID, student_id: UUID) -> TeacherResponseDto:
@@ -82,6 +95,15 @@ class TeacherService:
 
         teacher.remove_student(student_id)
         saved = self._teacher_repository.save(teacher)
+
+        self._event_bus.publish(
+            OperationEvent(
+                user_id=teacher_id,
+                action=OperationType.REMOVE_STUDENT,
+                target_id=student_id,
+            )
+        )
+
         return TeacherResponseDto.from_domain(saved)
 
     def add_product_to_all_students(

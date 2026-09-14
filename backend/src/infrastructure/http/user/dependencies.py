@@ -5,6 +5,7 @@ from fastapi import Depends
 from application.user.hasher import IPasswordHasher
 from application.user.repository import IUserRepository
 from application.user.service import UserService
+from infrastructure.event_bus.dependencies import EventBusDep
 from infrastructure.persistence.in_memory.user_repository import (
     InMemoryUserRepository,
 )
@@ -29,10 +30,12 @@ PasswordHasherDep = Annotated[IPasswordHasher, Depends(get_password_hasher)]
 def get_user_service(
     user_repository: UserRepositoryDep,
     password_hasher: PasswordHasherDep,
+    event_bus: EventBusDep,
 ) -> UserService:
     return UserService(
         user_repository=user_repository,
         password_hasher=password_hasher,
+        event_bus=event_bus,
     )
 
 

@@ -1,9 +1,7 @@
 from uuid import UUID
 
-from fastapi import APIRouter, Response, status
+from fastapi import APIRouter, status
 
-from infrastructure.http.auth.cookies import CookieManager
-from infrastructure.http.auth.dependencies import AuthServiceDep
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 from infrastructure.http.user.schemas import (
     ChangePasswordRequest,

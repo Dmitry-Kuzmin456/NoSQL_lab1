@@ -31,6 +31,7 @@ def _clear_history(
 ) -> None:
     service.clear_user_history(user_id=user_id)
 
+
 @router.get(
     "/users/me/history",
     response_model=UserHistoryResponse,

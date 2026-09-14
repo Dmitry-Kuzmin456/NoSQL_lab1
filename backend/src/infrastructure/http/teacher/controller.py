@@ -67,6 +67,7 @@ def _add_product_to_all_students(
     )
     return BatchAddProductResponse.from_dto(dto)
 
+
 @router.get(
     "/users/me/teacher",
     response_model=TeacherResponse,

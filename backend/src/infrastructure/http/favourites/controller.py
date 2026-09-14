@@ -51,6 +51,7 @@ def _clear_favourites(
     dto = service.clear(user_id)
     return FavouritesResponse.from_dto(dto)
 
+
 @router.get(
     "/users/me/favourites",
     response_model=FavouritesResponse,

@@ -60,6 +60,7 @@ def _clear(user_id: UUID, service: CartServiceDep) -> CartResponse:
     dto = service.clear(user_id)
     return CartResponse.from_dto(dto)
 
+
 @router.get(
     "/users/me/cart",
     response_model=CartResponse,

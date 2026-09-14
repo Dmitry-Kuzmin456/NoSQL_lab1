@@ -44,5 +44,8 @@ class Cart:
     def clear(self) -> None:
         self.cart_products.clear()
 
+    def has_product(self, product_id: UUID) -> bool:
+        return any(p.product_id == product_id for p in self.cart_products)
+
     def get_total_items(self) -> int:
         return sum(p.quantity for p in self.cart_products)

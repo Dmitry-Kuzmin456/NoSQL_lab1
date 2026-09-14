@@ -16,6 +16,16 @@ class IRecoveryTokenRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def exists_by_token(self, token: str) -> bool:
+        """Проверить существование токена без выгрузки данных."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def mark_as_used(self, token: str) -> bool:
+        """Пометить токен восстановления как использованный."""
+        raise NotImplementedError
+
+    @abstractmethod
     def list_by_user_id(self, user_id: UUID) -> list[RecoveryToken]:
         """Получить все токены восстановления пользователя."""
         raise NotImplementedError
@@ -28,4 +38,9 @@ class IRecoveryTokenRepository(ABC):
     @abstractmethod
     def delete_all_for_user(self, user_id: UUID) -> int:
         """Удалить все токены восстановления пользователя."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def delete_expired(self) -> int:
+        """Очистить истекшие токены восстановления (TTL / application-level cleanup)."""
         raise NotImplementedError

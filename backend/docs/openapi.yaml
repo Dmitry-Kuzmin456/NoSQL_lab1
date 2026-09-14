@@ -1,0 +1,2662 @@
+openapi: 3.1.0
+info:
+  title: Our site
+  version: 0.1.0
+paths:
+  /api/health:
+    get:
+      tags:
+      - Health
+      summary: Общий статус доступности приложения
+      operationId: health_api_health_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  type: string
+                type: object
+                title: Response Health Api Health Get
+  /api/health/riak:
+    get:
+      tags:
+      - Health
+      summary: Проверка доступности Riak KV
+      operationId: riak_health_api_health_riak_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                additionalProperties:
+                  anyOf:
+                  - type: string
+                  - type: integer
+                type: object
+                title: Response Riak Health Api Health Riak Get
+  /api/users/register:
+    post:
+      tags:
+      - Users
+      summary: Регистрация нового пользователя
+      operationId: register_api_users_register_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me:
+    get:
+      tags:
+      - Users
+      summary: Получить профиль текущего пользователя
+      operationId: get_me_api_users_me_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+    delete:
+      tags:
+      - Users
+      summary: Удалить профиль текущего пользователя
+      operationId: delete_user_me_api_users_me_delete
+      responses:
+        '204':
+          description: Successful Response
+    patch:
+      tags:
+      - Users
+      summary: Обновить профиль текущего пользователя
+      operationId: update_profile_me_api_users_me_patch
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}:
+    get:
+      tags:
+      - Users
+      summary: Получить пользователя по ID (Admin)
+      operationId: get_by_id_api_users__user_id__get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Users
+      summary: Обновить профиль пользователя по ID (Admin)
+      operationId: update_profile_api_users__user_id__patch
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateUserRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Users
+      summary: Удалить пользователя по ID (Admin)
+      operationId: delete_user_api_users__user_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/change-password:
+    post:
+      tags:
+      - Users
+      summary: Сменить пароль текущего пользователя
+      operationId: change_password_me_api_users_me_change_password_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+        required: true
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/change-password:
+    post:
+      tags:
+      - Users
+      summary: Сменить пароль пользователя по ID (Admin)
+      operationId: change_password_api_users__user_id__change_password_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ChangePasswordRequest'
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/login:
+    post:
+      tags:
+      - Auth
+      summary: Аутентификация пользователя и установка auth-cookie
+      operationId: login_api_auth_login_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/LoginRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/refresh:
+    post:
+      tags:
+      - Auth
+      summary: Обновление токенов через обязательный cookie
+      operationId: refresh_api_auth_refresh_post
+      parameters:
+      - name: refresh_token
+        in: cookie
+        required: true
+        schema:
+          type: string
+          title: Refresh Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/logout:
+    post:
+      tags:
+      - Auth
+      summary: Выход из системы (отзыв текущей сессии и очистка cookie)
+      operationId: logout_api_auth_logout_post
+      parameters:
+      - name: refresh_token
+        in: cookie
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Refresh Token
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/auth/logout-all/me:
+    post:
+      tags:
+      - Auth
+      summary: Завершение всех активных сессий текущего пользователя
+      operationId: logout_all_me_api_auth_logout_all_me_post
+      responses:
+        '204':
+          description: Successful Response
+  /api/auth/logout-all/{user_id}:
+    post:
+      tags:
+      - Auth
+      summary: Завершение всех активных сессий пользователя по ID (Admin)
+      operationId: logout_all_api_auth_logout_all__user_id__post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/products:
+    get:
+      tags:
+      - Products
+      summary: Получить каталог товаров с фильтрацией и пагинацией
+      operationId: list_products_api_products_get
+      parameters:
+      - name: query
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+          - type: 'null'
+          description: Поисковый запрос по названию или описанию
+          title: Query
+        description: Поисковый запрос по названию или описанию
+      - name: min_price
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          description: Минимальная цена
+          title: Min Price
+        description: Минимальная цена
+      - name: max_price
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          description: Максимальная цена
+          title: Max Price
+        description: Максимальная цена
+      - name: in_stock_only
+        in: query
+        required: false
+        schema:
+          type: boolean
+          description: Только товары в наличии
+          default: false
+          title: In Stock Only
+        description: Только товары в наличии
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Смещение (offset)
+          default: 0
+          title: Offset
+        description: Смещение (offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Лимит на страницу
+          default: 50
+          title: Limit
+        description: Лимит на страницу
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Products
+      summary: Создать новый товар
+      operationId: create_product_api_products_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProductRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/products/{product_id}:
+    get:
+      tags:
+      - Products
+      summary: Получить товар по ID
+      operationId: get_product_by_id_api_products__product_id__get
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    patch:
+      tags:
+      - Products
+      summary: Обновить данные товара
+      operationId: update_product_api_products__product_id__patch
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateProductRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Products
+      summary: Удалить товар
+      operationId: delete_product_api_products__product_id__delete
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/products/{product_id}/reserve:
+    post:
+      tags:
+      - Products
+      summary: Зарезервировать количество товара на складе
+      operationId: reserve_stock_api_products__product_id__reserve_post
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockOperationRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/products/{product_id}/restore:
+    post:
+      tags:
+      - Products
+      summary: Вернуть зарезервированное количество товара на склад
+      operationId: restore_stock_api_products__product_id__restore_post
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/StockOperationRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/favourites:
+    get:
+      tags:
+      - Favourites
+      summary: Получить список избранного текущего пользователя
+      operationId: get_favourites_me_api_users_me_favourites_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+    post:
+      tags:
+      - Favourites
+      summary: Добавить товар в избранное текущего пользователя
+      operationId: add_to_favourites_me_api_users_me_favourites_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddFavouriteRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Favourites
+      summary: Очистить всё избранное текущего пользователя
+      operationId: clear_favourites_me_api_users_me_favourites_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+  /api/users/{user_id}/favourites:
+    get:
+      tags:
+      - Favourites
+      summary: Получить список избранного пользователя по ID (Admin)
+      operationId: get_favourites_by_user_id_api_users__user_id__favourites_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Favourites
+      summary: Добавить товар в избранное пользователя по ID (Admin)
+      operationId: add_to_favourites_by_user_id_api_users__user_id__favourites_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddFavouriteRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Favourites
+      summary: Очистить всё избранное пользователя по ID (Admin)
+      operationId: clear_favourites_by_user_id_api_users__user_id__favourites_delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/favourites/{product_id}:
+    delete:
+      tags:
+      - Favourites
+      summary: Удалить товар из избранного текущего пользователя
+      operationId: remove_from_favourites_me_api_users_me_favourites__product_id__delete
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/favourites/{product_id}:
+    delete:
+      tags:
+      - Favourites
+      summary: Удалить товар из избранного пользователя по ID (Admin)
+      operationId: remove_from_favourites_by_user_id_api_users__user_id__favourites__product_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/FavouritesResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/cart:
+    get:
+      tags:
+      - Cart
+      summary: Получить корзину текущего пользователя
+      operationId: get_cart_me_api_users_me_cart_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+    delete:
+      tags:
+      - Cart
+      summary: Очистить корзину текущего пользователя
+      operationId: clear_cart_me_api_users_me_cart_delete
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+  /api/users/{user_id}/cart:
+    get:
+      tags:
+      - Cart
+      summary: Получить корзину пользователя по ID (Admin)
+      operationId: get_cart_by_user_id_api_users__user_id__cart_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Cart
+      summary: Очистить корзину пользователя по ID (Admin)
+      operationId: clear_cart_by_user_id_api_users__user_id__cart_delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/cart/items:
+    post:
+      tags:
+      - Cart
+      summary: Добавить товар в корзину текущего пользователя
+      operationId: add_item_to_cart_me_api_users_me_cart_items_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItemRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/cart/items:
+    post:
+      tags:
+      - Cart
+      summary: Добавить товар в корзину пользователя по ID (Admin)
+      operationId: add_item_to_cart_by_user_id_api_users__user_id__cart_items_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddCartItemRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/cart/items/{product_id}:
+    patch:
+      tags:
+      - Cart
+      summary: Обновить количество товара в корзине текущего пользователя
+      operationId: update_cart_item_me_api_users_me_cart_items__product_id__patch
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItemRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Cart
+      summary: Удалить товар из корзины текущего пользователя
+      operationId: remove_cart_item_me_api_users_me_cart_items__product_id__delete
+      parameters:
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/cart/items/{product_id}:
+    patch:
+      tags:
+      - Cart
+      summary: Обновить количество товара в корзине пользователя по ID (Admin)
+      operationId: update_cart_item_by_user_id_api_users__user_id__cart_items__product_id__patch
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateCartItemRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - Cart
+      summary: Удалить товар из корзины пользователя по ID (Admin)
+      operationId: remove_cart_item_by_user_id_api_users__user_id__cart_items__product_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: product_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Product Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CartResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/checkout:
+    post:
+      tags:
+      - Checkout
+      summary: Оформить заказ из товаров в корзине текущего пользователя
+      operationId: checkout_cart_me_api_users_me_checkout_post
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+  /api/users/{user_id}/checkout:
+    post:
+      tags:
+      - Checkout
+      summary: Оформить заказ из товаров в корзине пользователя по ID (Admin)
+      operationId: checkout_cart_by_user_id_api_users__user_id__checkout_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CheckoutResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/history:
+    get:
+      tags:
+      - History
+      summary: Получить историю действий текущего пользователя
+      operationId: get_user_history_me_api_users_me_history_get
+      parameters:
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Смещение (offset)
+          default: 0
+          title: Offset
+        description: Смещение (offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Количество событий на страницу (limit)
+          default: 20
+          title: Limit
+        description: Количество событий на страницу (limit)
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHistoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - History
+      summary: Очистить историю действий текущего пользователя
+      operationId: clear_user_history_me_api_users_me_history_delete
+      responses:
+        '204':
+          description: Successful Response
+  /api/users/{user_id}/history:
+    get:
+      tags:
+      - History
+      summary: Получить историю действий пользователя по ID (Admin)
+      operationId: get_user_history_by_user_id_api_users__user_id__history_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Смещение (offset)
+          default: 0
+          title: Offset
+        description: Смещение (offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Количество событий на страницу (limit)
+          default: 20
+          title: Limit
+        description: Количество событий на страницу (limit)
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserHistoryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    delete:
+      tags:
+      - History
+      summary: Очистить историю действий пользователя по ID (Admin)
+      operationId: clear_user_history_by_user_id_api_users__user_id__history_delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '204':
+          description: Successful Response
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/teacher:
+    get:
+      tags:
+      - Teachers
+      summary: Получить профиль текущего преподавателя со списком ID учеников
+      operationId: get_my_teacher_profile_api_users_me_teacher_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+  /api/users/{user_id}/teacher:
+    get:
+      tags:
+      - Teachers
+      summary: Получить профиль преподавателя по ID (Admin)
+      operationId: get_teacher_profile_by_id_api_users__user_id__teacher_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/teacher/students:
+    get:
+      tags:
+      - Teachers
+      summary: Получить подробный список учеников текущего преподавателя
+      operationId: get_my_students_api_users_me_teacher_students_get
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+                type: array
+                title: Response Get My Students Api Users Me Teacher Students Get
+    post:
+      tags:
+      - Teachers
+      summary: Прикрепить ученика к текущему преподавателю
+      operationId: add_student_me_api_users_me_teacher_students_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/teacher/students:
+    get:
+      tags:
+      - Teachers
+      summary: Получить подробный список учеников преподавателя по ID (Admin)
+      operationId: get_students_by_id_api_users__user_id__teacher_students_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/UserResponse'
+                title: Response Get Students By Id Api Users  User Id  Teacher Students
+                  Get
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Teachers
+      summary: Прикрепить ученика к преподавателю по ID (Admin)
+      operationId: add_student_by_id_api_users__user_id__teacher_students_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddStudentRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/teacher/students/{student_id}:
+    delete:
+      tags:
+      - Teachers
+      summary: Открепить ученика от текущего преподавателя
+      operationId: remove_student_me_api_users_me_teacher_students__student_id__delete
+      parameters:
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Student Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/teacher/students/{student_id}:
+    delete:
+      tags:
+      - Teachers
+      summary: Открепить ученика от преподавателя по ID (Admin)
+      operationId: remove_student_by_id_api_users__user_id__teacher_students__student_id__delete
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: student_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Student Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TeacherResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/teacher/students/favourites:
+    post:
+      tags:
+      - Teachers
+      summary: Добавить товар в избранное всем своим ученикам
+      operationId: add_product_to_all_students_me_api_users_me_teacher_students_favourites_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProductToStudentsRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchAddProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/teacher/students/favourites:
+    post:
+      tags:
+      - Teachers
+      summary: Добавить товар в избранное всем ученикам преподавателя по ID (Admin)
+      operationId: add_product_to_all_students_by_id_api_users__user_id__teacher_students_favourites_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/AddProductToStudentsRequest'
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BatchAddProductResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/recovery:
+    post:
+      tags:
+      - Recovery
+      summary: Запросить токен для восстановления пароля по email
+      operationId: request_recovery_token_api_recovery_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RequestRecoveryRequest'
+        required: true
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/recovery/{token}:
+    get:
+      tags:
+      - Recovery
+      summary: Проверить валидность токена восстановления
+      operationId: validate_recovery_token_api_recovery__token__get
+      parameters:
+      - name: token
+        in: path
+        required: true
+        schema:
+          type: string
+          title: Token
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/RecoveryResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/recovery/reset-password:
+    post:
+      tags:
+      - Recovery
+      summary: Сбросить пароль с использованием токена восстановления
+      operationId: reset_password_api_recovery_reset_password_post
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ResetPasswordWithTokenRequest'
+        required: true
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/MessageResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/me/orders:
+    get:
+      tags:
+      - Orders
+      summary: Получить список заказов текущего пользователя
+      operationId: list_my_orders_api_users_me_orders_get
+      parameters:
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/OrderStatus'
+          - type: 'null'
+          description: Фильтр по статусу заказа
+          title: Status
+        description: Фильтр по статусу заказа
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Смещение (offset)
+          default: 0
+          title: Offset
+        description: Смещение (offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Лимит на страницу
+          default: 50
+          title: Limit
+        description: Лимит на страницу
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Orders
+      summary: Создать новый заказ для текущего пользователя
+      operationId: create_order_me_api_users_me_orders_post
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/users/{user_id}/orders:
+    get:
+      tags:
+      - Orders
+      summary: Получить список заказов пользователя по ID (Admin)
+      operationId: list_orders_by_user_id_api_users__user_id__orders_get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/OrderStatus'
+          - type: 'null'
+          description: Фильтр по статусу заказа
+          title: Status
+        description: Фильтр по статусу заказа
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Смещение (offset)
+          default: 0
+          title: Offset
+        description: Смещение (offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Лимит на страницу
+          default: 50
+          title: Limit
+        description: Лимит на страницу
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+    post:
+      tags:
+      - Orders
+      summary: Создать новый заказ для пользователя по ID (Admin)
+      operationId: create_order_by_user_id_api_users__user_id__orders_post
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrderRequest'
+      responses:
+        '201':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/orders:
+    get:
+      tags:
+      - Orders
+      summary: Получить список заказов
+      operationId: list_orders_api_orders_get
+      parameters:
+      - name: user_id
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          description: Фильтр по ID пользователя
+          title: User Id
+        description: Фильтр по ID пользователя
+      - name: status
+        in: query
+        required: false
+        schema:
+          anyOf:
+          - $ref: '#/components/schemas/OrderStatus'
+          - type: 'null'
+          description: Фильтр по статусу заказа
+          title: Status
+        description: Фильтр по статусу заказа
+      - name: offset
+        in: query
+        required: false
+        schema:
+          type: integer
+          minimum: 0
+          description: Смещение (offset)
+          default: 0
+          title: Offset
+        description: Смещение (offset)
+      - name: limit
+        in: query
+        required: false
+        schema:
+          type: integer
+          maximum: 100
+          minimum: 1
+          description: Лимит на страницу
+          default: 50
+          title: Limit
+        description: Лимит на страницу
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderListResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/orders/{order_id}:
+    get:
+      tags:
+      - Orders
+      summary: Получить информацию о заказе по ID
+      operationId: get_order_api_orders__order_id__get
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Order Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/orders/{order_id}/cancel:
+    post:
+      tags:
+      - Orders
+      summary: Отменить заказ
+      operationId: cancel_order_api_orders__order_id__cancel_post
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Order Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/orders/{order_id}/approve:
+    post:
+      tags:
+      - Orders
+      summary: Подтвердить заказ
+      operationId: approve_order_api_orders__order_id__approve_post
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Order Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+  /api/orders/{order_id}/reject:
+    post:
+      tags:
+      - Orders
+      summary: Отклонить заказ
+      operationId: reject_order_api_orders__order_id__reject_post
+      parameters:
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Order Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+components:
+  schemas:
+    AddCartItemRequest:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+          description: ID добавляемого товара
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+          description: Количество товара (должно быть > 0)
+          default: 1
+      type: object
+      required:
+      - product_id
+      title: AddCartItemRequest
+    AddFavouriteRequest:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+          description: ID добавляемого товара
+        note:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Note
+          description: Заметка к товару в избранном
+      type: object
+      required:
+      - product_id
+      title: AddFavouriteRequest
+    AddProductToStudentsRequest:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+          description: ID рекомендуемого товара
+        note:
+          anyOf:
+          - type: string
+            maxLength: 500
+          - type: 'null'
+          title: Note
+          description: Заметка/рекомендация от преподавателя
+      type: object
+      required:
+      - product_id
+      title: AddProductToStudentsRequest
+    AddStudentRequest:
+      properties:
+        student_id:
+          type: string
+          format: uuid
+          title: Student Id
+          description: ID прикрепляемого ученика
+      type: object
+      required:
+      - student_id
+      title: AddStudentRequest
+    BatchAddProductResponse:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+        affected_students:
+          type: integer
+          title: Affected Students
+        student_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          title: Student Ids
+      type: object
+      required:
+      - product_id
+      - affected_students
+      - student_ids
+      title: BatchAddProductResponse
+    CartItemResponse:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+        quantity:
+          type: integer
+          title: Quantity
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+      type: object
+      required:
+      - product_id
+      - quantity
+      - updated_at
+      title: CartItemResponse
+    CartResponse:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        items:
+          items:
+            $ref: '#/components/schemas/CartItemResponse'
+          type: array
+          title: Items
+        total_items:
+          type: integer
+          title: Total Items
+      type: object
+      required:
+      - user_id
+      - items
+      - total_items
+      title: CartResponse
+    ChangePasswordRequest:
+      properties:
+        old_password:
+          type: string
+          minLength: 1
+          title: Old Password
+        new_password:
+          type: string
+          maxLength: 128
+          minLength: 6
+          title: New Password
+      type: object
+      required:
+      - old_password
+      - new_password
+      title: ChangePasswordRequest
+    CheckoutResponse:
+      properties:
+        orders:
+          items:
+            $ref: '#/components/schemas/OrderResponse'
+          type: array
+          title: Orders
+        total_orders:
+          type: integer
+          title: Total Orders
+        total_amount:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Total Amount
+      type: object
+      required:
+      - orders
+      - total_orders
+      - total_amount
+      title: CheckoutResponse
+    CreateOrderRequest:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+          description: ID заказываемого товара
+        quantity:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Quantity
+          description: Количество товара (должно быть > 0)
+          default: 1
+      type: object
+      required:
+      - product_id
+      title: CreateOrderRequest
+    CreateProductRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 255
+          minLength: 1
+          title: Name
+          examples:
+          - Ноутбук ThinkPad
+        description:
+          type: string
+          maxLength: 2000
+          title: Description
+          default: ''
+          examples:
+          - Ноутбук для программирования и учебы
+        price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Price
+          examples:
+          - '79990.00'
+        quantity:
+          type: integer
+          minimum: 0.0
+          title: Quantity
+          default: 0
+          examples:
+          - 10
+      type: object
+      required:
+      - name
+      - price
+      title: CreateProductRequest
+    FavouriteItemResponse:
+      properties:
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+        added_user_id:
+          type: string
+          format: uuid
+          title: Added User Id
+        updated_at:
+          type: string
+          format: date-time
+          title: Updated At
+        note:
+          anyOf:
+          - type: string
+          - type: 'null'
+          title: Note
+      type: object
+      required:
+      - product_id
+      - added_user_id
+      - updated_at
+      title: FavouriteItemResponse
+    FavouritesResponse:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        products:
+          items:
+            $ref: '#/components/schemas/FavouriteItemResponse'
+          type: array
+          title: Products
+        total_count:
+          type: integer
+          title: Total Count
+      type: object
+      required:
+      - user_id
+      - products
+      - total_count
+      title: FavouritesResponse
+    HTTPValidationError:
+      properties:
+        detail:
+          items:
+            $ref: '#/components/schemas/ValidationError'
+          type: array
+          title: Detail
+      type: object
+      title: HTTPValidationError
+    LoginRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+          examples:
+          - ivan@edu.ru
+        password:
+          type: string
+          minLength: 1
+          title: Password
+          examples:
+          - secretPassword123
+      type: object
+      required:
+      - email
+      - password
+      title: LoginRequest
+    MessageResponse:
+      properties:
+        message:
+          type: string
+          title: Message
+      type: object
+      required:
+      - message
+      title: MessageResponse
+    OperationEventResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        action:
+          $ref: '#/components/schemas/OperationType'
+        target_id:
+          anyOf:
+          - type: string
+            format: uuid
+          - type: 'null'
+          title: Target Id
+        details:
+          additionalProperties: true
+          type: object
+          title: Details
+          default: {}
+        timestamp:
+          type: string
+          format: date-time
+          title: Timestamp
+      type: object
+      required:
+      - id
+      - user_id
+      - action
+      - timestamp
+      title: OperationEventResponse
+    OperationType:
+      type: string
+      enum:
+      - ADD_FAVOURITE
+      - REMOVE_FAVOURITE
+      - CLEAR_FAVOURITES
+      - ADD_CART_ITEM
+      - UPDATE_CART_ITEM
+      - REMOVE_CART_ITEM
+      - CLEAR_CART
+      - CREATE_ORDER
+      - CANCEL_ORDER
+      - APPROVE_ORDER
+      - REJECT_ORDER
+      - CHECKOUT
+      - USER_REGISTER
+      - UPDATE_PROFILE
+      - CHANGE_PASSWORD
+      - PASSWORD_RESET
+      - ADD_STUDENT
+      - REMOVE_STUDENT
+      title: OperationType
+    OrderListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/OrderResponse'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        offset:
+          type: integer
+          title: Offset
+        limit:
+          type: integer
+          title: Limit
+      type: object
+      required:
+      - items
+      - total
+      - offset
+      - limit
+      title: OrderListResponse
+    OrderResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        product_id:
+          type: string
+          format: uuid
+          title: Product Id
+        quantity:
+          type: integer
+          title: Quantity
+        unit_price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Unit Price
+        total_amount:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Total Amount
+        status:
+          $ref: '#/components/schemas/OrderStatus'
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+      type: object
+      required:
+      - id
+      - user_id
+      - product_id
+      - quantity
+      - unit_price
+      - total_amount
+      - status
+      - created_at
+      title: OrderResponse
+    OrderStatus:
+      type: string
+      enum:
+      - CREATED
+      - APPROVED
+      - REJECTED
+      - CANCELLED
+      title: OrderStatus
+    ProductListResponse:
+      properties:
+        items:
+          items:
+            $ref: '#/components/schemas/ProductResponse'
+          type: array
+          title: Items
+        total:
+          type: integer
+          title: Total
+        offset:
+          type: integer
+          title: Offset
+        limit:
+          type: integer
+          title: Limit
+      type: object
+      required:
+      - items
+      - total
+      - offset
+      - limit
+      title: ProductListResponse
+    ProductResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        description:
+          type: string
+          title: Description
+        price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Price
+        quantity:
+          type: integer
+          title: Quantity
+        is_in_stock:
+          type: boolean
+          title: Is In Stock
+      type: object
+      required:
+      - id
+      - name
+      - description
+      - price
+      - quantity
+      - is_in_stock
+      title: ProductResponse
+    RecoveryResponse:
+      properties:
+        token:
+          type: string
+          title: Token
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        created_at:
+          type: string
+          format: date-time
+          title: Created At
+        expires_at:
+          type: string
+          format: date-time
+          title: Expires At
+        is_used:
+          type: boolean
+          title: Is Used
+        is_expired:
+          type: boolean
+          title: Is Expired
+      type: object
+      required:
+      - token
+      - user_id
+      - created_at
+      - expires_at
+      - is_used
+      - is_expired
+      title: RecoveryResponse
+    RegisterUserRequest:
+      properties:
+        name:
+          type: string
+          maxLength: 100
+          minLength: 2
+          title: Name
+          examples:
+          - Иван Иванов
+        email:
+          type: string
+          format: email
+          title: Email
+          examples:
+          - ivan@edu.ru
+        password:
+          type: string
+          maxLength: 128
+          minLength: 6
+          title: Password
+          examples:
+          - secretPassword123
+        role:
+          $ref: '#/components/schemas/UserRole'
+          default: STUDENT
+          examples:
+          - STUDENT
+      type: object
+      required:
+      - name
+      - email
+      - password
+      title: RegisterUserRequest
+    RequestRecoveryRequest:
+      properties:
+        email:
+          type: string
+          format: email
+          title: Email
+          examples:
+          - ivan@edu.ru
+      type: object
+      required:
+      - email
+      title: RequestRecoveryRequest
+    ResetPasswordWithTokenRequest:
+      properties:
+        token:
+          type: string
+          minLength: 1
+          title: Token
+          examples:
+          - some-recovery-token
+        new_password:
+          type: string
+          maxLength: 128
+          minLength: 6
+          title: New Password
+          examples:
+          - newStrongPassword123
+      type: object
+      required:
+      - token
+      - new_password
+      title: ResetPasswordWithTokenRequest
+    StockOperationRequest:
+      properties:
+        amount:
+          type: integer
+          exclusiveMinimum: 0.0
+          title: Amount
+          examples:
+          - 1
+      type: object
+      required:
+      - amount
+      title: StockOperationRequest
+    TeacherResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        email:
+          type: string
+          title: Email
+        role:
+          $ref: '#/components/schemas/UserRole'
+        student_ids:
+          items:
+            type: string
+            format: uuid
+          type: array
+          title: Student Ids
+        total_students:
+          type: integer
+          title: Total Students
+      type: object
+      required:
+      - id
+      - name
+      - email
+      - role
+      - student_ids
+      - total_students
+      title: TeacherResponse
+    UpdateCartItemRequest:
+      properties:
+        quantity:
+          type: integer
+          minimum: 0.0
+          title: Quantity
+          description: Новое количество товара (если 0 — товар будет удален)
+      type: object
+      required:
+      - quantity
+      title: UpdateCartItemRequest
+    UpdateProductRequest:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 255
+            minLength: 1
+          - type: 'null'
+          title: Name
+        description:
+          anyOf:
+          - type: string
+            maxLength: 2000
+          - type: 'null'
+          title: Description
+        price:
+          anyOf:
+          - type: number
+            minimum: 0.0
+          - type: string
+            pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          - type: 'null'
+          title: Price
+        quantity:
+          anyOf:
+          - type: integer
+            minimum: 0.0
+          - type: 'null'
+          title: Quantity
+      type: object
+      title: UpdateProductRequest
+    UpdateUserRequest:
+      properties:
+        name:
+          anyOf:
+          - type: string
+            maxLength: 100
+            minLength: 2
+          - type: 'null'
+          title: Name
+        email:
+          anyOf:
+          - type: string
+            format: email
+          - type: 'null'
+          title: Email
+      type: object
+      title: UpdateUserRequest
+    UserHistoryResponse:
+      properties:
+        user_id:
+          type: string
+          format: uuid
+          title: User Id
+        events:
+          items:
+            $ref: '#/components/schemas/OperationEventResponse'
+          type: array
+          title: Events
+        total:
+          type: integer
+          title: Total
+        offset:
+          type: integer
+          title: Offset
+        limit:
+          type: integer
+          title: Limit
+      type: object
+      required:
+      - user_id
+      - events
+      - total
+      - offset
+      - limit
+      title: UserHistoryResponse
+    UserResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+        name:
+          type: string
+          title: Name
+        email:
+          type: string
+          title: Email
+        role:
+          $ref: '#/components/schemas/UserRole'
+      type: object
+      required:
+      - id
+      - name
+      - email
+      - role
+      title: UserResponse
+    UserRole:
+      type: string
+      enum:
+      - STUDENT
+      - TEACHER
+      - ADMIN
+      title: UserRole
+    ValidationError:
+      properties:
+        loc:
+          items:
+            anyOf:
+            - type: string
+            - type: integer
+          type: array
+          title: Location
+        msg:
+          type: string
+          title: Message
+        type:
+          type: string
+          title: Error Type
+        input:
+          title: Input
+        ctx:
+          type: object
+          title: Context
+      type: object
+      required:
+      - loc
+      - msg
+      - type
+      title: ValidationError

@@ -5,6 +5,8 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from application.product.dto import ProductFilterDto
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.product.schemas import (
     CreateProductRequest,
     ProductListResponse,
@@ -65,6 +67,7 @@ def list_products(
 
 @router.post(
     "",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=ProductResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Создать новый товар",
@@ -93,6 +96,7 @@ def get_product_by_id(
 
 @router.patch(
     "/{product_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=ProductResponse,
     status_code=status.HTTP_200_OK,
     summary="Обновить данные товара",
@@ -108,6 +112,7 @@ def update_product(
 
 @router.delete(
     "/{product_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Удалить товар",
 )
@@ -120,6 +125,7 @@ def delete_product(
 
 @router.post(
     "/{product_id}/reserve",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=ProductResponse,
     status_code=status.HTTP_200_OK,
     summary="Зарезервировать количество товара на складе",
@@ -135,6 +141,7 @@ def reserve_stock(
 
 @router.post(
     "/{product_id}/restore",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=ProductResponse,
     status_code=status.HTTP_200_OK,
     summary="Вернуть зарезервированное количество товара на склад",

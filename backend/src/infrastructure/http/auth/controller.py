@@ -4,11 +4,12 @@ from uuid import UUID
 from fastapi import APIRouter, Cookie, Response, status
 
 from application.session.exceptions import SessionException
+from domain.user import UserRole
 from infrastructure.http.auth.cookies import CookieManager
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 from infrastructure.http.user.schemas import UserResponse
 
-from .dependencies import AuthServiceDep
+from .dependencies import AuthServiceDep, require_roles
 from .schemas import LoginRequest
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
@@ -56,6 +57,7 @@ def refresh(
 
 @router.post(
     "/logout",
+    dependencies=[require_roles()],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Выход из системы (отзыв текущей сессии и очистка cookie)",
 )
@@ -74,6 +76,7 @@ def logout(
 
 @router.post(
     "/logout-all/me",
+    dependencies=[require_roles()],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Завершение всех активных сессий текущего пользователя",
 )
@@ -88,6 +91,7 @@ def logout_all_me(
 
 @router.post(
     "/logout-all/{user_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Завершение всех активных сессий пользователя по ID (Admin)",
 )

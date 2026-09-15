@@ -1,12 +1,17 @@
 from typing import Annotated
 
-from fastapi import Depends
+from fastapi import Depends, HTTPException, status
 
 from application.auth.service import AuthService
 from application.auth.token import ITokenService
 from application.session.repository import ISessionRepository
 from application.session.service import SessionService
+from domain.user import UserRole
 from infrastructure.environment.settings import settings
+from infrastructure.http.middleware.authentication_middleware import (
+    AuthUser,
+    get_current_user,
+)
 from infrastructure.http.user.dependencies import (
     PasswordHasherDep,
     UserServiceDep,
@@ -62,3 +67,18 @@ def get_auth_service(
 
 
 AuthServiceDep = Annotated[AuthService, Depends(get_auth_service)]
+ 
+ 
+def require_roles(*allowed_roles: UserRole):
+    """Фабрика зависимости для проверки ролевого доступа пользователя."""
+
+    def role_checker(user: AuthUser = Depends(get_current_user)) -> AuthUser:
+        if allowed_roles and user.role not in allowed_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Недостаточно прав доступа для выполнения данной операции.",
+            )
+        return user
+
+    return Depends(role_checker)
+

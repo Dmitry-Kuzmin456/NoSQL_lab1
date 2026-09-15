@@ -63,9 +63,16 @@ class OrderService:
 
         return OrderResponseDto.from_domain(saved)
 
-    def get_by_id(self, order_id: UUID) -> OrderResponseDto:
+    def get_by_id(
+        self,
+        order_id: UUID,
+        user_id: UUID | None = None,
+    ) -> OrderResponseDto:
         order = self._order_repository.get_by_id(order_id)
         if order is None:
+            raise OrderNotFoundException(order_id)
+
+        if user_id is not None and order.user_id != user_id:
             raise OrderNotFoundException(order_id)
 
         return OrderResponseDto.from_domain(order)
@@ -100,17 +107,32 @@ class OrderService:
         )
         return self.list(filter_dto)
 
-    def cancel(self, order_id: UUID) -> OrderResponseDto:
-        if not self._order_repository.exists_by_id(order_id):
+    def cancel(
+        self,
+        order_id: UUID,
+        user_id: UUID | None = None,
+    ) -> OrderResponseDto:
+        order = self._order_repository.get_by_id(order_id)
+        if order is None:
             raise OrderNotFoundException(order_id)
+
+        if user_id is not None and order.user_id != user_id:
+            raise OrderNotFoundException(order_id)
+
+        if order.status != OrderStatus.CREATED:
+            raise InvalidOrderStatusException(
+                f"Невозможно отменить заказ со статусом {order.status}. "
+                f"Отмена доступна только для заказов в статусе CREATED (до одобрения)."
+            )
 
         if not self._order_repository.update_status(
             order_id, OrderStatus.CANCELLED, expected_status=OrderStatus.CREATED
         ):
             order = self._order_repository.get_by_id(order_id)
-            status = order.status if order else "UNKNOWN"
+            curr_status = order.status if order else "UNKNOWN"
             raise InvalidOrderStatusException(
-                f"Cannot cancel order with status {status}"
+                f"Невозможно отменить заказ со статусом {curr_status}. "
+                f"Отмена доступна только для заказов в статусе CREATED (до одобрения)."
             )
 
         order = self._order_repository.get_by_id(order_id)

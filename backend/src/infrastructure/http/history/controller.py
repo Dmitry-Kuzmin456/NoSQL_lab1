@@ -3,6 +3,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, status
 
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 
 from .dependencies import HistoryServiceDep
@@ -34,6 +36,7 @@ def _clear_history(
 
 @router.get(
     "/users/me/history",
+    dependencies=[require_roles()],
     response_model=UserHistoryResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить историю действий текущего пользователя",
@@ -60,6 +63,7 @@ def get_user_history_me(
 
 @router.get(
     "/users/{user_id}/history",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=UserHistoryResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить историю действий пользователя по ID (Admin)",
@@ -86,6 +90,7 @@ def get_user_history_by_user_id(
 
 @router.delete(
     "/users/me/history",
+    dependencies=[require_roles()],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Очистить историю действий текущего пользователя",
 )
@@ -98,6 +103,7 @@ def clear_user_history_me(
 
 @router.delete(
     "/users/{user_id}/history",
+    dependencies=[require_roles(UserRole.ADMIN)],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Очистить историю действий пользователя по ID (Admin)",
 )

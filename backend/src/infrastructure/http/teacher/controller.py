@@ -2,6 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 from infrastructure.http.user.schemas import UserResponse
 
@@ -70,6 +72,7 @@ def _add_product_to_all_students(
 
 @router.get(
     "/users/me/teacher",
+    dependencies=[require_roles(UserRole.TEACHER)],
     response_model=TeacherResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить профиль текущего преподавателя со списком ID учеников",
@@ -83,6 +86,7 @@ def get_my_teacher_profile(
 
 @router.get(
     "/users/{user_id}/teacher",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=TeacherResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить профиль преподавателя по ID (Admin)",
@@ -96,6 +100,7 @@ def get_teacher_profile_by_id(
 
 @router.get(
     "/users/me/teacher/students",
+    dependencies=[require_roles(UserRole.TEACHER)],
     response_model=list[UserResponse],
     status_code=status.HTTP_200_OK,
     summary="Получить подробный список учеников текущего преподавателя",
@@ -109,6 +114,7 @@ def get_my_students(
 
 @router.get(
     "/users/{user_id}/teacher/students",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=list[UserResponse],
     status_code=status.HTTP_200_OK,
     summary="Получить подробный список учеников преподавателя по ID (Admin)",
@@ -122,6 +128,7 @@ def get_students_by_id(
 
 @router.post(
     "/users/me/teacher/students",
+    dependencies=[require_roles(UserRole.TEACHER)],
     response_model=TeacherResponse,
     status_code=status.HTTP_200_OK,
     summary="Прикрепить ученика к текущему преподавателю",
@@ -136,6 +143,7 @@ def add_student_me(
 
 @router.post(
     "/users/{user_id}/teacher/students",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=TeacherResponse,
     status_code=status.HTTP_200_OK,
     summary="Прикрепить ученика к преподавателю по ID (Admin)",
@@ -150,6 +158,7 @@ def add_student_by_id(
 
 @router.delete(
     "/users/me/teacher/students/{student_id}",
+    dependencies=[require_roles(UserRole.TEACHER)],
     response_model=TeacherResponse,
     status_code=status.HTTP_200_OK,
     summary="Открепить ученика от текущего преподавателя",
@@ -164,6 +173,7 @@ def remove_student_me(
 
 @router.delete(
     "/users/{user_id}/teacher/students/{student_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=TeacherResponse,
     status_code=status.HTTP_200_OK,
     summary="Открепить ученика от преподавателя по ID (Admin)",
@@ -178,6 +188,7 @@ def remove_student_by_id(
 
 @router.post(
     "/users/me/teacher/students/favourites",
+    dependencies=[require_roles(UserRole.TEACHER)],
     response_model=BatchAddProductResponse,
     status_code=status.HTTP_200_OK,
     summary="Добавить товар в избранное всем своим ученикам",
@@ -192,6 +203,7 @@ def add_product_to_all_students_me(
 
 @router.post(
     "/users/{user_id}/teacher/students/favourites",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=BatchAddProductResponse,
     status_code=status.HTTP_200_OK,
     summary="Добавить товар в избранное всем ученикам преподавателя по ID (Admin)",

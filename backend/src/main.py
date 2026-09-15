@@ -1,7 +1,6 @@
 import uvicorn
 from fastapi import FastAPI
 
-from domain.user import UserRole
 from infrastructure.http.auth.controller import router as auth_router
 from infrastructure.http.auth.dependencies import get_token_service
 from infrastructure.http.cart.controller import router as cart_router
@@ -13,81 +12,16 @@ from infrastructure.http.history.controller import router as history_router
 from infrastructure.http.middleware.authentication_middleware import (
     authentication_middleware,
 )
-from infrastructure.http.middleware.authorization_middleware import (
-    RouteAuthRule,
-    authorization_middleware,
-)
 from infrastructure.http.order.controller import router as order_router
 from infrastructure.http.product.controller import router as product_router
 from infrastructure.http.recovery.controller import router as recovery_router
 from infrastructure.http.teacher.controller import router as teacher_router
 from infrastructure.http.user.controller import router as user_router
 
-auth_rules: list[RouteAuthRule] = [
-    RouteAuthRule.create(
-        path="/api/auth/logout",
-        methods={"POST"},
-        allowed_roles=set(UserRole),
-        exact_match=True,
-    ),
-    RouteAuthRule.create(
-        path="/api/orders/{order_id}/approve",
-        methods={"POST"},
-        allowed_roles={UserRole.ADMIN},
-    ),
-    RouteAuthRule.create(
-        path="/api/orders/{order_id}/reject",
-        methods={"POST"},
-        allowed_roles={UserRole.ADMIN},
-    ),
-    RouteAuthRule.create(
-        path="/api/orders",
-        methods={"GET"},
-        allowed_roles={UserRole.ADMIN},
-    ),
-    RouteAuthRule.create(
-        path="/api/orders/{order_id}",
-        allowed_roles=set(UserRole),
-    ),
-    RouteAuthRule.create(
-        path="/api/products",
-        methods={"POST", "PATCH", "DELETE"},
-        allowed_roles={UserRole.ADMIN},
-    ),
-    RouteAuthRule.create(
-        path="/api/users/me/teacher",
-        allowed_roles={UserRole.TEACHER},
-        exact_match=False,
-    ),
-    RouteAuthRule.create(
-        path="/api/users/me",
-        allowed_roles=set(UserRole),
-        exact_match=False,
-    ),
-    RouteAuthRule.create(
-        path="/api/users/{user_id}",
-        allowed_roles={UserRole.ADMIN},
-        exact_match=False,
-    ),
-    RouteAuthRule.create(
-        path="/api/auth/logout-all/me",
-        methods={"POST"},
-        allowed_roles=set(UserRole),
-        exact_match=True,
-    ),
-    RouteAuthRule.create(
-        path="/api/auth/logout-all/{user_id}",
-        methods={"POST"},
-        allowed_roles={UserRole.ADMIN},
-        exact_match=True,
-    ),
-]
-
 app = FastAPI(title="Our site")
 
 setup_exception_handlers(app)
 
-app.add_middleware(authorization_middleware(rules=auth_rules))
 app.add_middleware(authentication_middleware(token_service=get_token_service()))
 
 app.include_router(health_router, prefix="/api")

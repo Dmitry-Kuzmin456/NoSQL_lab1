@@ -1,3 +1,5 @@
+from typing import Any
+
 import uvicorn
 from fastapi import FastAPI
 
@@ -12,18 +14,23 @@ from infrastructure.http.history.controller import router as history_router
 from infrastructure.http.middleware.authentication_middleware import (
     authentication_middleware,
 )
-from infrastructure.http.openapi import custom_openapi_factory
+from infrastructure.http.openapi import generate_openapi_schema
 from infrastructure.http.order.controller import router as order_router
 from infrastructure.http.product.controller import router as product_router
 from infrastructure.http.recovery.controller import router as recovery_router
 from infrastructure.http.teacher.controller import router as teacher_router
 from infrastructure.http.user.controller import router as user_router
 
-app = FastAPI(title="Our site")
+
+class App(FastAPI):
+    def openapi(self) -> dict[str, Any]:
+        return generate_openapi_schema(self)
+
+
+app = App(title="Our site")
 
 setup_exception_handlers(app)
 
-app.openapi = custom_openapi_factory(app)
 app.add_middleware(authentication_middleware(token_service=get_token_service()))
 
 app.include_router(health_router, prefix="/api")

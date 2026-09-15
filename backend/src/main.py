@@ -12,6 +12,7 @@ from infrastructure.http.history.controller import router as history_router
 from infrastructure.http.middleware.authentication_middleware import (
     authentication_middleware,
 )
+from infrastructure.http.openapi import custom_openapi_factory
 from infrastructure.http.order.controller import router as order_router
 from infrastructure.http.product.controller import router as product_router
 from infrastructure.http.recovery.controller import router as recovery_router
@@ -22,6 +23,7 @@ app = FastAPI(title="Our site")
 
 setup_exception_handlers(app)
 
+app.openapi = custom_openapi_factory(app)
 app.add_middleware(authentication_middleware(token_service=get_token_service()))
 
 app.include_router(health_router, prefix="/api")

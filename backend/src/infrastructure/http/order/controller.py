@@ -142,6 +142,22 @@ def cancel_order_me_post(
 
 
 @router.get(
+    "/users/{user_id}/orders/{order_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
+    response_model=OrderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить информацию о заказе пользователя по ID (Admin)",
+)
+def get_order_by_user_id(
+    user_id: UUID,
+    order_id: UUID,
+    service: OrderServiceDep,
+) -> OrderResponse:
+    dto = service.get_by_id(order_id=order_id, user_id=user_id)
+    return OrderResponse.from_dto(dto)
+
+
+@router.get(
     "/orders",
     dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderListResponse,

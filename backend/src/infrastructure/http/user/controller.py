@@ -2,6 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 from infrastructure.http.user.schemas import (
     ChangePasswordRequest,
@@ -31,6 +33,7 @@ def register(
 
 @router.get(
     "/me",
+    dependencies=[require_roles()],
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить профиль текущего пользователя",
@@ -45,6 +48,7 @@ def get_me(
 
 @router.get(
     "/{user_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить пользователя по ID (Admin)",
@@ -59,6 +63,7 @@ def get_by_id(
 
 @router.patch(
     "/me",
+    dependencies=[require_roles()],
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
     summary="Обновить профиль текущего пользователя",
@@ -74,6 +79,7 @@ def update_profile_me(
 
 @router.patch(
     "/{user_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=UserResponse,
     status_code=status.HTTP_200_OK,
     summary="Обновить профиль пользователя по ID (Admin)",
@@ -89,6 +95,7 @@ def update_profile(
 
 @router.post(
     "/me/change-password",
+    dependencies=[require_roles()],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Сменить пароль текущего пользователя",
 )
@@ -102,6 +109,7 @@ def change_password_me(
 
 @router.post(
     "/{user_id}/change-password",
+    dependencies=[require_roles(UserRole.ADMIN)],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Сменить пароль пользователя по ID (Admin)",
 )
@@ -115,6 +123,7 @@ def change_password(
 
 @router.delete(
     "/me",
+    dependencies=[require_roles()],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Удалить профиль текущего пользователя",
 )
@@ -127,6 +136,7 @@ def delete_user_me(
 
 @router.delete(
     "/{user_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     status_code=status.HTTP_204_NO_CONTENT,
     summary="Удалить пользователя по ID (Admin)",
 )

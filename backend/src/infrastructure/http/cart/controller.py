@@ -2,6 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 
 from .dependencies import CartServiceDep
@@ -63,6 +65,7 @@ def _clear(user_id: UUID, service: CartServiceDep) -> CartResponse:
 
 @router.get(
     "/users/me/cart",
+    dependencies=[require_roles()],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить корзину текущего пользователя",
@@ -76,6 +79,7 @@ def get_cart_me(
 
 @router.get(
     "/users/{user_id}/cart",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить корзину пользователя по ID (Admin)",
@@ -89,6 +93,7 @@ def get_cart_by_user_id(
 
 @router.post(
     "/users/me/cart/items",
+    dependencies=[require_roles()],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Добавить товар в корзину текущего пользователя",
@@ -103,6 +108,7 @@ def add_item_to_cart_me(
 
 @router.post(
     "/users/{user_id}/cart/items",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Добавить товар в корзину пользователя по ID (Admin)",
@@ -117,6 +123,7 @@ def add_item_to_cart_by_user_id(
 
 @router.patch(
     "/users/me/cart/items/{product_id}",
+    dependencies=[require_roles()],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Обновить количество товара в корзине текущего пользователя",
@@ -132,6 +139,7 @@ def update_cart_item_me(
 
 @router.patch(
     "/users/{user_id}/cart/items/{product_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Обновить количество товара в корзине пользователя по ID (Admin)",
@@ -147,6 +155,7 @@ def update_cart_item_by_user_id(
 
 @router.delete(
     "/users/me/cart/items/{product_id}",
+    dependencies=[require_roles()],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Удалить товар из корзины текущего пользователя",
@@ -161,6 +170,7 @@ def remove_cart_item_me(
 
 @router.delete(
     "/users/{user_id}/cart/items/{product_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Удалить товар из корзины пользователя по ID (Admin)",
@@ -175,6 +185,7 @@ def remove_cart_item_by_user_id(
 
 @router.delete(
     "/users/me/cart",
+    dependencies=[require_roles()],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Очистить корзину текущего пользователя",
@@ -188,6 +199,7 @@ def clear_cart_me(
 
 @router.delete(
     "/users/{user_id}/cart",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=CartResponse,
     status_code=status.HTTP_200_OK,
     summary="Очистить корзину пользователя по ID (Admin)",

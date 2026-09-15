@@ -4,6 +4,8 @@ from uuid import UUID
 from fastapi import APIRouter, Query, status
 
 from domain.order import OrderStatus
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 
 from .dependencies import OrderServiceDep
@@ -19,6 +21,7 @@ router = APIRouter(tags=["Orders"])
 
 @router.get(
     "/users/me/orders",
+    dependencies=[require_roles()],
     response_model=OrderListResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить список заказов текущего пользователя",
@@ -44,6 +47,7 @@ def list_my_orders(
 
 @router.get(
     "/users/{user_id}/orders",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderListResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить список заказов пользователя по ID (Admin)",
@@ -69,6 +73,7 @@ def list_orders_by_user_id(
 
 @router.post(
     "/users/me/orders",
+    dependencies=[require_roles()],
     response_model=OrderResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Создать новый заказ для текущего пользователя",
@@ -87,6 +92,7 @@ def create_order_me(
 
 @router.post(
     "/users/{user_id}/orders",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderResponse,
     status_code=status.HTTP_201_CREATED,
     summary="Создать новый заказ для пользователя по ID (Admin)",
@@ -104,7 +110,56 @@ def create_order_by_user_id(
 
 
 @router.get(
+    "/users/me/orders/{order_id}",
+    dependencies=[require_roles()],
+    response_model=OrderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить информацию о заказе текущего пользователя по ID",
+)
+def get_order_me(
+    order_id: UUID,
+    current_user: CurrentUserDep,
+    service: OrderServiceDep,
+) -> OrderResponse:
+    dto = service.get_by_id(order_id=order_id, user_id=current_user.id)
+    return OrderResponse.from_dto(dto)
+
+
+@router.post(
+    "/users/me/orders/{order_id}/cancel",
+    dependencies=[require_roles()],
+    response_model=OrderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Отменить заказ текущего пользователя (пока он не одобрен)",
+)
+def cancel_order_me_post(
+    order_id: UUID,
+    current_user: CurrentUserDep,
+    service: OrderServiceDep,
+) -> OrderResponse:
+    dto = service.cancel(order_id=order_id, user_id=current_user.id)
+    return OrderResponse.from_dto(dto)
+
+
+@router.get(
+    "/users/{user_id}/orders/{order_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
+    response_model=OrderResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить информацию о заказе пользователя по ID (Admin)",
+)
+def get_order_by_user_id(
+    user_id: UUID,
+    order_id: UUID,
+    service: OrderServiceDep,
+) -> OrderResponse:
+    dto = service.get_by_id(order_id=order_id, user_id=user_id)
+    return OrderResponse.from_dto(dto)
+
+
+@router.get(
     "/orders",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderListResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить список заказов",
@@ -119,6 +174,7 @@ def list_orders(
 
 @router.get(
     "/orders/{order_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить информацию о заказе по ID",
@@ -133,6 +189,7 @@ def get_order(
 
 @router.post(
     "/orders/{order_id}/cancel",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Отменить заказ",
@@ -147,6 +204,7 @@ def cancel_order(
 
 @router.post(
     "/orders/{order_id}/approve",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Подтвердить заказ",
@@ -161,6 +219,7 @@ def approve_order(
 
 @router.post(
     "/orders/{order_id}/reject",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=OrderResponse,
     status_code=status.HTTP_200_OK,
     summary="Отклонить заказ",

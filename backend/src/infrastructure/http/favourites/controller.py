@@ -2,6 +2,8 @@ from uuid import UUID
 
 from fastapi import APIRouter, status
 
+from domain.user import UserRole
+from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 
 from .dependencies import FavouritesServiceDep
@@ -54,6 +56,7 @@ def _clear_favourites(
 
 @router.get(
     "/users/me/favourites",
+    dependencies=[require_roles()],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить список избранного текущего пользователя",
@@ -67,6 +70,7 @@ def get_favourites_me(
 
 @router.get(
     "/users/{user_id}/favourites",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Получить список избранного пользователя по ID (Admin)",
@@ -80,6 +84,7 @@ def get_favourites_by_user_id(
 
 @router.post(
     "/users/me/favourites",
+    dependencies=[require_roles()],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Добавить товар в избранное текущего пользователя",
@@ -99,6 +104,7 @@ def add_to_favourites_me(
 
 @router.post(
     "/users/{user_id}/favourites",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Добавить товар в избранное пользователя по ID (Admin)",
@@ -117,6 +123,7 @@ def add_to_favourites_by_user_id(
 
 @router.delete(
     "/users/me/favourites/{product_id}",
+    dependencies=[require_roles()],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Удалить товар из избранного текущего пользователя",
@@ -131,6 +138,7 @@ def remove_from_favourites_me(
 
 @router.delete(
     "/users/{user_id}/favourites/{product_id}",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Удалить товар из избранного пользователя по ID (Admin)",
@@ -145,6 +153,7 @@ def remove_from_favourites_by_user_id(
 
 @router.delete(
     "/users/me/favourites",
+    dependencies=[require_roles()],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Очистить всё избранное текущего пользователя",
@@ -158,6 +167,7 @@ def clear_favourites_me(
 
 @router.delete(
     "/users/{user_id}/favourites",
+    dependencies=[require_roles(UserRole.ADMIN)],
     response_model=FavouritesResponse,
     status_code=status.HTTP_200_OK,
     summary="Очистить всё избранное пользователя по ID (Admin)",

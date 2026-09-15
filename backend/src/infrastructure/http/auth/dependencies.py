@@ -87,5 +87,3 @@ class RoleChecker:
 def require_roles(*allowed_roles: UserRole):
     """Фабрика зависимости для проверки ролевого доступа пользователя."""
     return Depends(RoleChecker(allowed_roles))
-
-

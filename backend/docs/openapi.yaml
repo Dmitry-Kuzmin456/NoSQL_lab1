@@ -75,6 +75,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/UserResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     delete:
       tags:
       - Users
@@ -83,6 +94,17 @@ paths:
       responses:
         '204':
           description: Successful Response
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     patch:
       tags:
       - Users
@@ -107,6 +129,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}:
     get:
       tags:
@@ -134,6 +167,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     patch:
       tags:
       - Users
@@ -166,6 +216,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     delete:
       tags:
       - Users
@@ -188,6 +255,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/change-password:
     post:
       tags:
@@ -209,6 +293,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/change-password:
     post:
       tags:
@@ -238,6 +333,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/auth/login:
     post:
       tags:
@@ -313,6 +425,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/auth/logout-all/me:
     post:
       tags:
@@ -322,6 +445,17 @@ paths:
       responses:
         '204':
           description: Successful Response
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/auth/logout-all/{user_id}:
     post:
       tags:
@@ -345,6 +479,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/products:
     get:
       tags:
@@ -455,6 +606,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/products/{product_id}:
     get:
       tags:
@@ -514,6 +682,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     delete:
       tags:
       - Products
@@ -536,6 +721,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/products/{product_id}/reserve:
     post:
       tags:
@@ -569,6 +771,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/products/{product_id}/restore:
     post:
       tags:
@@ -602,6 +821,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/favourites:
     get:
       tags:
@@ -615,6 +851,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FavouritesResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     post:
       tags:
       - Favourites
@@ -639,6 +886,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     delete:
       tags:
       - Favourites
@@ -651,6 +909,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/FavouritesResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/favourites:
     get:
       tags:
@@ -678,6 +947,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     post:
       tags:
       - Favourites
@@ -710,6 +996,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     delete:
       tags:
       - Favourites
@@ -736,6 +1039,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/favourites/{product_id}:
     delete:
       tags:
@@ -763,6 +1083,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/favourites/{product_id}:
     delete:
       tags:
@@ -797,6 +1128,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/cart:
     get:
       tags:
@@ -810,6 +1158,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CartResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     delete:
       tags:
       - Cart
@@ -822,6 +1181,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CartResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/cart:
     get:
       tags:
@@ -849,6 +1219,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     delete:
       tags:
       - Cart
@@ -875,6 +1262,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/cart/items:
     post:
       tags:
@@ -900,6 +1304,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/cart/items:
     post:
       tags:
@@ -933,6 +1348,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/cart/items/{product_id}:
     patch:
       tags:
@@ -966,6 +1398,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     delete:
       tags:
       - Cart
@@ -992,6 +1435,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/cart/items/{product_id}:
     patch:
       tags:
@@ -1032,6 +1486,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     delete:
       tags:
       - Cart
@@ -1065,6 +1536,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/checkout:
     post:
       tags:
@@ -1078,6 +1566,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/CheckoutResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/checkout:
     post:
       tags:
@@ -1105,6 +1604,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/history:
     get:
       tags:
@@ -1146,6 +1662,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     delete:
       tags:
       - History
@@ -1154,6 +1681,17 @@ paths:
       responses:
         '204':
           description: Successful Response
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/history:
     get:
       tags:
@@ -1202,6 +1740,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     delete:
       tags:
       - History
@@ -1224,6 +1779,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/teacher:
     get:
       tags:
@@ -1237,6 +1809,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TeacherResponse'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - TEACHER
+      description: '**Требуемые роли:** `TEACHER`'
   /api/users/{user_id}/teacher:
     get:
       tags:
@@ -1264,6 +1853,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/teacher/students:
     get:
       tags:
@@ -1280,6 +1886,23 @@ paths:
                   $ref: '#/components/schemas/UserResponse'
                 type: array
                 title: Response Get My Students Api Users Me Teacher Students Get
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - TEACHER
+      description: '**Требуемые роли:** `TEACHER`'
     post:
       tags:
       - Teachers
@@ -1304,6 +1927,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - TEACHER
+      description: '**Требуемые роли:** `TEACHER`'
   /api/users/{user_id}/teacher/students:
     get:
       tags:
@@ -1335,6 +1975,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     post:
       tags:
       - Teachers
@@ -1367,6 +2024,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/teacher/students/{student_id}:
     delete:
       tags:
@@ -1394,6 +2068,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - TEACHER
+      description: '**Требуемые роли:** `TEACHER`'
   /api/users/{user_id}/teacher/students/{student_id}:
     delete:
       tags:
@@ -1428,6 +2119,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/teacher/students/favourites:
     post:
       tags:
@@ -1453,6 +2161,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - TEACHER
+      description: '**Требуемые роли:** `TEACHER`'
   /api/users/{user_id}/teacher/students/favourites:
     post:
       tags:
@@ -1486,6 +2211,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/recovery:
     post:
       tags:
@@ -1613,6 +2355,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
     post:
       tags:
       - Orders
@@ -1637,6 +2390,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/{user_id}/orders:
     get:
       tags:
@@ -1695,6 +2459,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
     post:
       tags:
       - Orders
@@ -1727,6 +2508,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/orders/{order_id}:
     get:
       tags:
@@ -1754,6 +2552,17 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
   /api/users/me/orders/{order_id}/cancel:
     post:
       tags:
@@ -1781,6 +2590,68 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - AUTHENTICATED
+      description: '**Требуемые роли:** Любой авторизованный пользователь'
+  /api/users/{user_id}/orders/{order_id}:
+    get:
+      tags:
+      - Orders
+      summary: Получить информацию о заказе пользователя по ID (Admin)
+      operationId: get_order_by_user_id_api_users__user_id__orders__order_id__get
+      parameters:
+      - name: user_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: User Id
+      - name: order_id
+        in: path
+        required: true
+        schema:
+          type: string
+          format: uuid
+          title: Order Id
+      responses:
+        '200':
+          description: Successful Response
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
+        '422':
+          description: Validation Error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/orders:
     get:
       tags:
@@ -1843,6 +2714,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/orders/{order_id}:
     get:
       tags:
@@ -1870,6 +2758,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/orders/{order_id}/cancel:
     post:
       tags:
@@ -1897,6 +2802,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/orders/{order_id}/approve:
     post:
       tags:
@@ -1924,6 +2846,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
   /api/orders/{order_id}/reject:
     post:
       tags:
@@ -1951,6 +2890,23 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/HTTPValidationError'
+        '401':
+          description: Пользователь не аутентифицирован.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+        '403':
+          description: Недостаточно прав доступа для выполнения данной операции.
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorDetailResponse'
+      security:
+      - BearerAuth: []
+      x-required-roles:
+      - ADMIN
+      description: '**Требуемые роли:** `ADMIN`'
 components:
   schemas:
     AddCartItemRequest:
@@ -2714,3 +3670,20 @@ components:
       - msg
       - type
       title: ValidationError
+    ErrorDetailResponse:
+      title: ErrorDetailResponse
+      type: object
+      properties:
+        detail:
+          title: Detail
+          type: string
+          description: Описание ошибки
+      required:
+      - detail
+  securitySchemes:
+    BearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+      description: 'JWT Access Token (в заголовке `Authorization: Bearer <token>`
+        или cookie `access_token`)'

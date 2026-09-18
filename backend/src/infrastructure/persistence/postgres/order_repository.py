@@ -18,11 +18,21 @@ class PostgresOrderRepository(IOrderRepository):
     def __init__(self, pool: ConnectionPool | None = None) -> None:
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
+    @staticmethod
+    def _row_to_order(row: dict[str, Any]) -> Order:
+        return Order(
+            id=row["id"],
+            user_id=row["user_id"],
+            product_id=row["product_id"],
+            quantity=row["quantity"],
+            unit_price=Decimal(str(row["unit_price"])),
+            total_amount=Decimal(str(row["total_amount"])),
+            status=OrderStatus(row["status"]),
+            created_at=row["created_at"],
+        )
+
     def get_by_id(self, order_id: UUID) -> Order | None:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
@@ -31,18 +41,7 @@ class PostgresOrderRepository(IOrderRepository):
                 (order_id,),
             )
             row = cur.fetchone()
-            if row is None:
-                return None
-            return Order(
-                id=row["id"],
-                user_id=row["user_id"],
-                product_id=row["product_id"],
-                quantity=row["quantity"],
-                unit_price=Decimal(str(row["unit_price"])),
-                total_amount=Decimal(str(row["total_amount"])),
-                status=OrderStatus(row["status"]),
-                created_at=row["created_at"],
-            )
+            return self._row_to_order(row) if row else None
 
     def exists_by_id(self, order_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
@@ -50,10 +49,7 @@ class PostgresOrderRepository(IOrderRepository):
             return cur.fetchone() is not None
 
     def get_by_user_id(self, user_id: UUID) -> list[Order]:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
@@ -62,19 +58,7 @@ class PostgresOrderRepository(IOrderRepository):
                 (user_id,),
             )
             rows = cur.fetchall()
-            return [
-                Order(
-                    id=row["id"],
-                    user_id=row["user_id"],
-                    product_id=row["product_id"],
-                    quantity=row["quantity"],
-                    unit_price=Decimal(str(row["unit_price"])),
-                    total_amount=Decimal(str(row["total_amount"])),
-                    status=OrderStatus(row["status"]),
-                    created_at=row["created_at"],
-                )
-                for row in rows
-            ]
+            return [self._row_to_order(r) for r in rows]
 
     def list(
         self,
@@ -109,10 +93,7 @@ class PostgresOrderRepository(IOrderRepository):
             " ORDER BY created_at DESC LIMIT %s OFFSET %s"
         )
 
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(count_query, params)
             total = int((cur.fetchone() or {}).get("count", 0))
 
@@ -121,21 +102,7 @@ class PostgresOrderRepository(IOrderRepository):
 
             cur.execute(select_query, [*params, limit, offset])
             rows = cur.fetchall()
-
-            orders = [
-                Order(
-                    id=row["id"],
-                    user_id=row["user_id"],
-                    product_id=row["product_id"],
-                    quantity=row["quantity"],
-                    unit_price=Decimal(str(row["unit_price"])),
-                    total_amount=Decimal(str(row["total_amount"])),
-                    status=OrderStatus(row["status"]),
-                    created_at=row["created_at"],
-                )
-                for row in rows
-            ]
-            return orders, total
+            return [self._row_to_order(r) for r in rows], total
 
     def save(self, order: Order) -> Order:
         with self._pool.connection() as conn, conn.cursor() as cur:

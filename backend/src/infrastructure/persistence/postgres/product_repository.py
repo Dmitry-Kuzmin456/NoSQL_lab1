@@ -18,32 +18,28 @@ class PostgresProductRepository(IProductRepository):
     def __init__(self, pool: ConnectionPool | None = None) -> None:
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
+    @staticmethod
+    def _row_to_product(row: dict[str, Any]) -> Product:
+        return Product(
+            id=row["id"],
+            name=row["name"],
+            description=row["description"],
+            price=Decimal(str(row["price"])),
+            quantity=row["quantity"],
+        )
+
     def get_by_id(self, product_id: UUID) -> Product | None:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 "SELECT id, name, description, price, quantity FROM products WHERE id = %s",
                 (product_id,),
             )
             row = cur.fetchone()
-            if row is None:
-                return None
-            return Product(
-                id=row["id"],
-                name=row["name"],
-                description=row["description"],
-                price=Decimal(str(row["price"])),
-                quantity=row["quantity"],
-            )
+            return self._row_to_product(row) if row else None
 
     def exists_by_id(self, product_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM products WHERE id = %s",
-                (product_id,),
-            )
+            cur.execute("SELECT 1 FROM products WHERE id = %s", (product_id,))
             return cur.fetchone() is not None
 
     def list(
@@ -82,10 +78,7 @@ class PostgresProductRepository(IProductRepository):
         count_query = base_count
         select_query = base_select + sql.SQL(" ORDER BY name ASC LIMIT %s OFFSET %s")
 
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(count_query, params)
             total = int((cur.fetchone() or {}).get("count", 0))
 
@@ -94,18 +87,7 @@ class PostgresProductRepository(IProductRepository):
 
             cur.execute(select_query, [*params, limit, offset])
             rows = cur.fetchall()
-
-            products = [
-                Product(
-                    id=row["id"],
-                    name=row["name"],
-                    description=row["description"],
-                    price=Decimal(str(row["price"])),
-                    quantity=row["quantity"],
-                )
-                for row in rows
-            ]
-            return products, total
+            return [self._row_to_product(r) for r in rows], total
 
     def save(self, product: Product) -> Product:
         with self._pool.connection() as conn, conn.cursor() as cur:
@@ -134,10 +116,10 @@ class PostgresProductRepository(IProductRepository):
         with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute(
                 """
-                    UPDATE products
-                    SET quantity = quantity + %s
-                    WHERE id = %s AND (quantity + %s) >= 0
-                    """,
+                UPDATE products
+                SET quantity = quantity + %s
+                WHERE id = %s AND (quantity + %s) >= 0
+                """,
                 (delta, product_id, delta),
             )
             conn.commit()
@@ -145,9 +127,6 @@ class PostgresProductRepository(IProductRepository):
 
     def delete(self, product_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM products WHERE id = %s",
-                (product_id,),
-            )
+            cur.execute("DELETE FROM products WHERE id = %s", (product_id,))
             conn.commit()
             return cur.rowcount > 0

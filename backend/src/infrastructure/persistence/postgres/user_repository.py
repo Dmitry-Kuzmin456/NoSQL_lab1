@@ -1,3 +1,4 @@
+from typing import Any
 from uuid import UUID
 
 from psycopg.rows import dict_row
@@ -14,60 +15,42 @@ class PostgresUserRepository(IUserRepository):
     def __init__(self, pool: ConnectionPool | None = None) -> None:
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
+    @staticmethod
+    def _row_to_user(row: dict[str, Any]) -> User:
+        return User(
+            id=row["id"],
+            name=row["name"],
+            email=row["email"],
+            password_hash=row["password_hash"],
+            role=UserRole(row["role"]),
+        )
+
     def get_by_id(self, user_id: UUID) -> User | None:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 "SELECT id, name, email, password_hash, role FROM users WHERE id = %s",
                 (user_id,),
             )
             row = cur.fetchone()
-            if row is None:
-                return None
-            return User(
-                id=row["id"],
-                name=row["name"],
-                email=row["email"],
-                password_hash=row["password_hash"],
-                role=UserRole(row["role"]),
-            )
+            return self._row_to_user(row) if row else None
 
     def exists_by_id(self, user_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM users WHERE id = %s",
-                (user_id,),
-            )
+            cur.execute("SELECT 1 FROM users WHERE id = %s", (user_id,))
             return cur.fetchone() is not None
 
     def get_by_email(self, email: str) -> User | None:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 "SELECT id, name, email, password_hash, role FROM users WHERE email = %s",
                 (email,),
             )
             row = cur.fetchone()
-            if row is None:
-                return None
-            return User(
-                id=row["id"],
-                name=row["name"],
-                email=row["email"],
-                password_hash=row["password_hash"],
-                role=UserRole(row["role"]),
-            )
+            return self._row_to_user(row) if row else None
 
     def exists_by_email(self, email: str) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                "SELECT 1 FROM users WHERE email = %s",
-                (email,),
-            )
+            cur.execute("SELECT 1 FROM users WHERE email = %s", (email,))
             return cur.fetchone() is not None
 
     def update_password_hash(self, user_id: UUID, new_password_hash: str) -> bool:
@@ -98,9 +81,6 @@ class PostgresUserRepository(IUserRepository):
 
     def delete(self, user_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
-            cur.execute(
-                "DELETE FROM users WHERE id = %s",
-                (user_id,),
-            )
+            cur.execute("DELETE FROM users WHERE id = %s", (user_id,))
             conn.commit()
             return cur.rowcount > 0

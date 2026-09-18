@@ -31,7 +31,6 @@ class OperationEventResponseDto:
 class UserHistoryResponseDto:
     user_id: UUID
     events: list[OperationEventResponseDto]
-    total: int
     offset: int
     limit: int
 
@@ -43,12 +42,10 @@ class UserHistoryResponseDto:
         limit: int = 20,
     ) -> "UserHistoryResponseDto":
         all_events = history.get_recent_events(limit=1000)
-        total = len(all_events)
         paginated = all_events[offset : offset + limit]
         return cls.from_events(
             user_id=history.user_id,
             events=paginated,
-            total=total,
             offset=offset,
             limit=limit,
         )
@@ -58,14 +55,18 @@ class UserHistoryResponseDto:
         cls,
         user_id: UUID,
         events: list[OperationEvent],
-        total: int,
         offset: int = 0,
         limit: int = 20,
     ) -> "UserHistoryResponseDto":
         return cls(
             user_id=user_id,
             events=[OperationEventResponseDto.from_domain(e) for e in events],
-            total=total,
             offset=offset,
             limit=limit,
         )
+
+
+@dataclass(frozen=True)
+class UserHistoryCountResponseDto:
+    user_id: UUID
+    total: int

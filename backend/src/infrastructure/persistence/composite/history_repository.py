@@ -32,17 +32,15 @@ class CompositeHistoryRepository(IHistoryRepository):
         user_id: UUID,
         offset: int = 0,
         limit: int = 20,
-    ) -> tuple[list[OperationEvent], int]:
-        total = self._postgres_repo.count_by_user_id(user_id)
+    ) -> list[OperationEvent]:
         if offset == 0:
             cached = self._riak_repo.get_cached_events(user_id, limit=limit)
             if cached:
-                return cached, total
+                return cached
 
-        events, total = self._postgres_repo.list_by_user_id(
+        return self._postgres_repo.list_by_user_id(
             user_id=user_id, offset=offset, limit=limit
         )
-        return events, total
 
     def count_user_events(self, user_id: UUID) -> int:
         return self._postgres_repo.count_by_user_id(user_id)

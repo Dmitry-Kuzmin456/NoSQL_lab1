@@ -8,7 +8,7 @@ from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.middleware.authentication_middleware import CurrentUserDep
 
 from .dependencies import HistoryServiceDep
-from .schemas import UserHistoryResponse
+from .schemas import UserHistoryCountResponse, UserHistoryResponse
 
 router = APIRouter(tags=["History"])
 
@@ -25,6 +25,14 @@ def _get_history(
         limit=limit,
     )
     return UserHistoryResponse.from_dto(dto)
+
+
+def _get_history_count(
+    user_id: UUID,
+    service: HistoryServiceDep,
+) -> UserHistoryCountResponse:
+    dto = service.count_by_user_id(user_id=user_id)
+    return UserHistoryCountResponse.from_dto(dto)
 
 
 def _clear_history(
@@ -62,6 +70,23 @@ def get_user_history_me(
 
 
 @router.get(
+    "/users/me/history/count",
+    dependencies=[require_roles()],
+    response_model=UserHistoryCountResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить количество событий в истории текущего пользователя",
+)
+def get_user_history_count_me(
+    current_user: CurrentUserDep,
+    service: HistoryServiceDep,
+) -> UserHistoryCountResponse:
+    return _get_history_count(
+        user_id=current_user.id,
+        service=service,
+    )
+
+
+@router.get(
     "/users/{user_id}/history",
     dependencies=[require_roles(UserRole.ADMIN)],
     response_model=UserHistoryResponse,
@@ -85,6 +110,23 @@ def get_user_history_by_user_id(
         service=service,
         offset=offset,
         limit=limit,
+    )
+
+
+@router.get(
+    "/users/{user_id}/history/count",
+    dependencies=[require_roles(UserRole.ADMIN)],
+    response_model=UserHistoryCountResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Получить количество событий в истории пользователя по ID (Admin)",
+)
+def get_user_history_count_by_user_id(
+    user_id: UUID,
+    service: HistoryServiceDep,
+) -> UserHistoryCountResponse:
+    return _get_history_count(
+        user_id=user_id,
+        service=service,
     )
 
 

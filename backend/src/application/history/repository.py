@@ -18,7 +18,7 @@ class IHistoryRepository(ABC):
         user_id: UUID,
         offset: int = 0,
         limit: int = 20,
-    ) -> tuple[list[OperationEvent], int]:
+    ) -> list[OperationEvent]:
         """Получить события пользователя с пагинацией."""
         raise NotImplementedError
 

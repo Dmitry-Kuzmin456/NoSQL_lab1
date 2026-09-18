@@ -1,3 +1,5 @@
+from collections.abc import AsyncGenerator
+from contextlib import asynccontextmanager
 from typing import Any
 
 import uvicorn
@@ -20,6 +22,14 @@ from infrastructure.http.product.controller import router as product_router
 from infrastructure.http.recovery.controller import router as recovery_router
 from infrastructure.http.teacher.controller import router as teacher_router
 from infrastructure.http.user.controller import router as user_router
+from infrastructure.persistence.postgres.connection import close_postgres_pool, init_db
+
+
+@asynccontextmanager
+async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
+    init_db()
+    yield
+    close_postgres_pool()
 
 
 class App(FastAPI):
@@ -27,7 +37,7 @@ class App(FastAPI):
         return generate_openapi_schema(self)
 
 
-app = App(title="Our site")
+app = App(title="Our site", lifespan=lifespan)
 
 setup_exception_handlers(app)
 
@@ -47,6 +57,3 @@ app.include_router(order_router, prefix="/api")
 
 if __name__ == "__main__":
     uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
-
-# TODO: Choose db for all domains
-# TODO: Implement repositories

@@ -18,18 +18,7 @@ class IFavouritesRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def add_item(self, user_id: UUID, item: FavouriteProduct) -> bool:
-        """CRDT-мутация добавления элемента в OR-Set без полного чтения всего списка."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def add_or_update_item(
-        self,
-        user_id: UUID,
-        product_id: UUID,
-        added_user_id: UUID,
-        note: str | None = None,
-    ) -> bool:
+    def add_or_update_item(self, user_id: UUID, item: FavouriteProduct) -> bool:
         """Добавить или обновить товар в избранном без предварительной загрузки всего списка."""
         raise NotImplementedError
 
@@ -40,20 +29,10 @@ class IFavouritesRepository(ABC):
 
     @abstractmethod
     def clear(self, user_id: UUID) -> bool:
-        """Удаление ключа user_id (DELETE /favourites/{user_id})."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def clear_favourites(self, user_id: UUID) -> bool:
-        """Очистить все товары из избранного пользователя."""
+        """Очистить все товары из списка избранного пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def save(self, favourites: Favourites) -> Favourites:
         """Сохранить или обновить список избранного целиком."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def delete_by_user_id(self, user_id: UUID) -> bool:
-        """Удалить избранное пользователя."""
         raise NotImplementedError

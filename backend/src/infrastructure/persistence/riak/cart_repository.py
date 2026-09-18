@@ -10,9 +10,6 @@ class RiakCartRepository(ICartRepository):
     def get_by_user_id(self, user_id: UUID) -> Cart | None:
         raise NotImplementedError
 
-    def exists_by_user_id(self, user_id: UUID) -> bool:
-        raise NotImplementedError
-
     def has_product(self, user_id: UUID, product_id: UUID) -> bool:
         raise NotImplementedError
 

@@ -28,11 +28,6 @@ class IHistoryRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def exists_by_user_id(self, user_id: UUID) -> bool:
-        """Проверить наличие хотя бы одного события у пользователя."""
-        raise NotImplementedError
-
-    @abstractmethod
     def clear_user_history(self, user_id: UUID) -> bool:
         """Очистить историю действий пользователя."""
         raise NotImplementedError

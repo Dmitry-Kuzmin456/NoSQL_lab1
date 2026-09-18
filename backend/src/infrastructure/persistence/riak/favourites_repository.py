@@ -10,9 +10,6 @@ class RiakFavouritesRepository(IFavouritesRepository):
     def get_by_user_id(self, user_id: UUID) -> Favourites | None:
         raise NotImplementedError
 
-    def exists_by_user_id(self, user_id: UUID) -> bool:
-        raise NotImplementedError
-
     def is_favourite(self, user_id: UUID, product_id: UUID) -> bool:
         raise NotImplementedError
 

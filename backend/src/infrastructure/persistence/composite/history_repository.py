@@ -11,12 +11,7 @@ from infrastructure.persistence.riak.history_cache_repository import (
 
 
 class CompositeHistoryRepository(IHistoryRepository):
-    """Композитный репозиторий истории операций:
-
-    - PostgresHistoryRepository выступает в роли System of Record для персистентного хранения всех событий.
-    - RiakHistoryCacheRepository выступает в роли быстрого кэша последних операций (Capped Ring-Buffer).
-    - Метод get_cached_user_events перенаправляет чтение напрямую в Riak KV.
-    """
+    """Композитный репозиторий истории операций."""
 
     def __init__(
         self,
@@ -53,9 +48,6 @@ class CompositeHistoryRepository(IHistoryRepository):
 
     def count_user_events(self, user_id: UUID) -> int:
         return self._postgres_repo.count_by_user_id(user_id)
-
-    def exists_by_user_id(self, user_id: UUID) -> bool:
-        return self._riak_repo.exists(user_id) or (self.count_user_events(user_id) > 0)
 
     def clear_user_history(self, user_id: UUID) -> bool:
         self._riak_repo.clear(user_id)

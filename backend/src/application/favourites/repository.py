@@ -13,11 +13,6 @@ class IFavouritesRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def exists_by_user_id(self, user_id: UUID) -> bool:
-        """Быстрая проверка существования ключа через HEAD-запрос (без передачи payload)."""
-        raise NotImplementedError
-
-    @abstractmethod
     def is_favourite(self, user_id: UUID, product_id: UUID) -> bool:
         """Проверить наличие элемента в множестве без десериализации всего списка."""
         raise NotImplementedError

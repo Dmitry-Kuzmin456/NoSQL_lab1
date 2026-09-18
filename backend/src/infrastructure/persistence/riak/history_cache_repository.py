@@ -12,8 +12,5 @@ class RiakHistoryCacheRepository:
     def get_cached_events(self, user_id: UUID, limit: int = 20) -> list[OperationEvent]:
         raise NotImplementedError
 
-    def exists(self, user_id: UUID) -> bool:
-        raise NotImplementedError
-
     def clear(self, user_id: UUID) -> bool:
         raise NotImplementedError

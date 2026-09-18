@@ -21,8 +21,23 @@ class AuthSettings(BaseModel):
     cookie_samesite: Literal["lax", "strict", "none"] = "lax"
 
 
+class PostgresSettings(BaseModel):
+    host: str = "localhost"
+    port: int = 5432
+    user: str = "postgres"
+    password: str = "postgres"
+    db: str = "nosql_store"
+    min_connections: int = 1
+    max_connections: int = 10
+
+    @property
+    def conninfo(self) -> str:
+        return f"postgresql://{self.user}:{self.password}@{self.host}:{self.port}/{self.db}"
+
+
 class Settings(BaseSettings):
     riak: RiakSettings = RiakSettings()
+    postgres: PostgresSettings = PostgresSettings()
     auth: AuthSettings = AuthSettings()
 
     model_config = SettingsConfigDict(

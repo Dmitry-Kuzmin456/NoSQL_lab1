@@ -1,4 +1,21 @@
 services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nosql_store
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+      - ./backend/scripts/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nosql_store"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
   riak:
     image: basho/riak-kv:ubuntu-2.2.3
     platform: linux/amd64
@@ -27,9 +44,12 @@ services:
     ports:
       - "8000:8000"
     depends_on:
+      postgres:
+        condition: service_healthy
       riak:
         condition: service_healthy
 
 volumes:
+  postgres-data:
   riak-data:
   riak-schemas:

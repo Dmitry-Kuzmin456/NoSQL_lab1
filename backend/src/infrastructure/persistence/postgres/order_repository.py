@@ -1,30 +1,170 @@
+from decimal import Decimal
+from typing import Any
 from uuid import UUID
+
+from psycopg import sql
+from psycopg.rows import dict_row
+from psycopg_pool import ConnectionPool
 
 from application.order.dto import OrderFilterDto
 from application.order.repository import IOrderRepository
 from domain.order import Order, OrderStatus
+from infrastructure.persistence.postgres.connection import get_postgres_pool
 
 
 class PostgresOrderRepository(IOrderRepository):
     """Репозиторий заказов для PostgreSQL."""
 
+    def __init__(self, pool: ConnectionPool | None = None) -> None:
+        self._pool: ConnectionPool = pool or get_postgres_pool()
+
     def get_by_id(self, order_id: UUID) -> Order | None:
-        raise NotImplementedError
+        with (
+            self._pool.connection() as conn,
+            conn.cursor(row_factory=dict_row) as cur,
+        ):
+            cur.execute(
+                """
+                SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                FROM orders WHERE id = %s
+                """,
+                (order_id,),
+            )
+            row = cur.fetchone()
+            if row is None:
+                return None
+            return Order(
+                id=row["id"],
+                user_id=row["user_id"],
+                product_id=row["product_id"],
+                quantity=row["quantity"],
+                unit_price=Decimal(str(row["unit_price"])),
+                total_amount=Decimal(str(row["total_amount"])),
+                status=OrderStatus(row["status"]),
+                created_at=row["created_at"],
+            )
 
     def exists_by_id(self, order_id: UUID) -> bool:
-        raise NotImplementedError
+        with self._pool.connection() as conn, conn.cursor() as cur:
+            cur.execute("SELECT 1 FROM orders WHERE id = %s", (order_id,))
+            return cur.fetchone() is not None
 
     def get_by_user_id(self, user_id: UUID) -> list[Order]:
-        raise NotImplementedError
+        with (
+            self._pool.connection() as conn,
+            conn.cursor(row_factory=dict_row) as cur,
+        ):
+            cur.execute(
+                """
+                SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                FROM orders WHERE user_id = %s ORDER BY created_at DESC
+                """,
+                (user_id,),
+            )
+            rows = cur.fetchall()
+            return [
+                Order(
+                    id=row["id"],
+                    user_id=row["user_id"],
+                    product_id=row["product_id"],
+                    quantity=row["quantity"],
+                    unit_price=Decimal(str(row["unit_price"])),
+                    total_amount=Decimal(str(row["total_amount"])),
+                    status=OrderStatus(row["status"]),
+                    created_at=row["created_at"],
+                )
+                for row in rows
+            ]
 
     def list(
         self,
         filter_dto: OrderFilterDto | None = None,
     ) -> tuple[list[Order], int]:
-        raise NotImplementedError
+        conditions: list[sql.SQL] = []
+        params: list[Any] = []
+
+        if filter_dto is not None:
+            if filter_dto.user_id is not None:
+                conditions.append(sql.SQL("user_id = %s"))
+                params.append(filter_dto.user_id)
+            if filter_dto.status is not None:
+                conditions.append(sql.SQL("status = %s"))
+                params.append(filter_dto.status.value)
+
+        base_count: sql.SQL | sql.Composed = sql.SQL(
+            "SELECT count(*) as count FROM orders"
+        )
+        base_select: sql.SQL | sql.Composed = sql.SQL(
+            "SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at "
+            "FROM orders"
+        )
+
+        if conditions:
+            where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(conditions)
+            base_count = base_count + where_clause
+            base_select = base_select + where_clause
+
+        count_query = base_count
+        select_query = base_select + sql.SQL(
+            " ORDER BY created_at DESC LIMIT %s OFFSET %s"
+        )
+
+        with (
+            self._pool.connection() as conn,
+            conn.cursor(row_factory=dict_row) as cur,
+        ):
+            cur.execute(count_query, params)
+            total = int((cur.fetchone() or {}).get("count", 0))
+
+            offset = filter_dto.offset if filter_dto else 0
+            limit = filter_dto.limit if filter_dto else 50
+
+            cur.execute(select_query, [*params, limit, offset])
+            rows = cur.fetchall()
+
+            orders = [
+                Order(
+                    id=row["id"],
+                    user_id=row["user_id"],
+                    product_id=row["product_id"],
+                    quantity=row["quantity"],
+                    unit_price=Decimal(str(row["unit_price"])),
+                    total_amount=Decimal(str(row["total_amount"])),
+                    status=OrderStatus(row["status"]),
+                    created_at=row["created_at"],
+                )
+                for row in rows
+            ]
+            return orders, total
 
     def save(self, order: Order) -> Order:
-        raise NotImplementedError
+        with self._pool.connection() as conn, conn.cursor() as cur:
+            cur.execute(
+                """
+                INSERT INTO orders (id, user_id, product_id, quantity, unit_price, total_amount, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                ON CONFLICT (id) DO UPDATE SET
+                    user_id = EXCLUDED.user_id,
+                    product_id = EXCLUDED.product_id,
+                    quantity = EXCLUDED.quantity,
+                    unit_price = EXCLUDED.unit_price,
+                    total_amount = EXCLUDED.total_amount,
+                    status = EXCLUDED.status,
+                    created_at = EXCLUDED.created_at
+                """,
+                (
+                    order.id,
+                    order.user_id,
+                    order.product_id,
+                    order.quantity,
+                    order.unit_price,
+                    order.total_amount,
+                    order.status.value,
+                    order.created_at,
+                ),
+            )
+            conn.commit()
+            return order
 
     def update_status(
         self,
@@ -32,4 +172,16 @@ class PostgresOrderRepository(IOrderRepository):
         new_status: OrderStatus,
         expected_status: OrderStatus | None = None,
     ) -> bool:
-        raise NotImplementedError
+        with self._pool.connection() as conn, conn.cursor() as cur:
+            if expected_status is not None:
+                cur.execute(
+                    "UPDATE orders SET status = %s WHERE id = %s AND status = %s",
+                    (new_status.value, order_id, expected_status.value),
+                )
+            else:
+                cur.execute(
+                    "UPDATE orders SET status = %s WHERE id = %s",
+                    (new_status.value, order_id),
+                )
+            conn.commit()
+            return cur.rowcount > 0

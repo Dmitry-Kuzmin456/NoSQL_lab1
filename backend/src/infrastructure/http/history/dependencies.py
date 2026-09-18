@@ -2,11 +2,7 @@ from typing import Annotated
 
 from fastapi import Depends
 
-from application.history.repository import (
-    IHistoryRepository,
-    IPostgresHistoryRepository,
-    IRiakHistoryCacheRepository,
-)
+from application.history.repository import IHistoryRepository
 from application.history.service import HistoryService
 from infrastructure.event_bus.dependencies import EventBusDep
 from infrastructure.persistence.composite.history_repository import (
@@ -19,10 +15,10 @@ from infrastructure.persistence.riak.history_cache_repository import (
     RiakHistoryCacheRepository,
 )
 
-_postgres_history_repository: IPostgresHistoryRepository = (
+_postgres_history_repository: PostgresHistoryRepository = (
     PostgresHistoryRepository()
 )
-_riak_history_cache_repository: IRiakHistoryCacheRepository = (
+_riak_history_cache_repository: RiakHistoryCacheRepository = (
     RiakHistoryCacheRepository()
 )
 _history_repository: IHistoryRepository = CompositeHistoryRepository(
@@ -31,11 +27,11 @@ _history_repository: IHistoryRepository = CompositeHistoryRepository(
 )
 
 
-def get_postgres_history_repository() -> IPostgresHistoryRepository:
+def get_postgres_history_repository() -> PostgresHistoryRepository:
     return _postgres_history_repository
 
 
-def get_riak_history_cache_repository() -> IRiakHistoryCacheRepository:
+def get_riak_history_cache_repository() -> RiakHistoryCacheRepository:
     return _riak_history_cache_repository
 
 

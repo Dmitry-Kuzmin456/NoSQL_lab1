@@ -5,6 +5,7 @@ from application.product.service import ProductService
 from domain.history import OperationEvent, OperationType
 from domain.order import Order, OrderStatus
 
+from .counter_repository import IOrderCounterRepository
 from .dto import (
     CreateOrderDto,
     OrderFilterDto,
@@ -25,10 +26,12 @@ class OrderService:
         order_repository: IOrderRepository,
         product_service: ProductService,
         event_bus: IEventBus,
+        counter_repository: IOrderCounterRepository,
     ) -> None:
         self._order_repository = order_repository
         self._product_service = product_service
         self._event_bus = event_bus
+        self._counter_repository = counter_repository
 
     def create(self, user_id: UUID, dto: CreateOrderDto) -> OrderResponseDto:
         if dto.quantity <= 0:
@@ -46,7 +49,7 @@ class OrderService:
         )
 
         saved = self._order_repository.save(order)
-        self._order_repository.increment_orders_count()
+        self._counter_repository.increment(user_id)
 
         self._event_bus.publish(
             OperationEvent(
@@ -208,5 +211,8 @@ class OrderService:
 
         return OrderResponseDto.from_domain(order)
 
+    def get_user_orders_count(self, user_id: UUID) -> int:
+        return self._counter_repository.get_by_user_id(user_id)
+
     def get_total_orders_count(self) -> int:
-        return self._order_repository.get_total_orders_count()
+        return self._counter_repository.get_total_count()

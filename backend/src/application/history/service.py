@@ -3,7 +3,7 @@ from uuid import UUID
 from application.event_bus import IEventBus
 from domain.history import OperationEvent
 
-from .dto import UserHistoryCountResponseDto, UserHistoryResponseDto
+from .dto import UserHistoryResponseDto
 from .repository import IHistoryRepository
 
 
@@ -44,11 +44,6 @@ class HistoryService:
             offset=offset,
             limit=limit,
         )
-
-    def count_by_user_id(self, user_id: UUID) -> UserHistoryCountResponseDto:
-        """Получить общее количество событий в истории пользователя."""
-        total = self._history_repository.count_user_events(user_id)
-        return UserHistoryCountResponseDto(user_id=user_id, total=total)
 
     def clear_user_history(self, user_id: UUID) -> bool:
         """Очистить историю действий пользователя."""

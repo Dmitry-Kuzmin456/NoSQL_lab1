@@ -23,11 +23,6 @@ class IHistoryRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def count_user_events(self, user_id: UUID) -> int:
-        """Получить общее количество событий пользователя."""
-        raise NotImplementedError
-
-    @abstractmethod
     def clear(self, user_id: UUID) -> bool:
         """Очистить историю действий пользователя."""
         raise NotImplementedError

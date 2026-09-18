@@ -6,7 +6,6 @@ from pydantic import BaseModel
 
 from application.history.dto import (
     OperationEventResponseDto,
-    UserHistoryCountResponseDto,
     UserHistoryResponseDto,
 )
 from domain.history import OperationType
@@ -45,16 +44,4 @@ class UserHistoryResponse(BaseModel):
             events=[OperationEventResponse.from_dto(e) for e in dto.events],
             offset=dto.offset,
             limit=dto.limit,
-        )
-
-
-class UserHistoryCountResponse(BaseModel):
-    user_id: UUID
-    total: int
-
-    @classmethod
-    def from_dto(cls, dto: UserHistoryCountResponseDto) -> "UserHistoryCountResponse":
-        return cls(
-            user_id=dto.user_id,
-            total=dto.total,
         )

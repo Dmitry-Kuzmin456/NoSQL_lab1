@@ -72,14 +72,6 @@ class PostgresHistoryRepository:
             rows = cur.fetchall()
             return [self._row_to_event(r) for r in rows]
 
-    def count_by_user_id(self, user_id: UUID) -> int:
-        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(
-                "SELECT count(*) as count FROM operation_history WHERE user_id = %s",
-                (user_id,),
-            )
-            return int((cur.fetchone() or {}).get("count", 0))
-
     def delete_by_user_id(self, user_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute("DELETE FROM operation_history WHERE user_id = %s", (user_id,))

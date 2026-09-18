@@ -64,9 +64,3 @@ class UserHistoryResponseDto:
             offset=offset,
             limit=limit,
         )
-
-
-@dataclass(frozen=True)
-class UserHistoryCountResponseDto:
-    user_id: UUID
-    total: int

@@ -19,7 +19,7 @@ class PostgresProductRepository(IProductRepository):
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
     @staticmethod
-    def _row_to_product(row: dict[str, Any]) -> Product:
+    def _row_to_product(row: Any) -> Product:
         return Product(
             id=row["id"],
             name=row["name"],
@@ -35,7 +35,9 @@ class PostgresProductRepository(IProductRepository):
                 (product_id,),
             )
             row = cur.fetchone()
-            return self._row_to_product(row) if row else None
+            if row is None:
+                return None
+            return self._row_to_product(row)
 
     def exists_by_id(self, product_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:

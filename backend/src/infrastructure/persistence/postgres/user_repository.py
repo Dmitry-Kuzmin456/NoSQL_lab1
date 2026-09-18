@@ -16,7 +16,7 @@ class PostgresUserRepository(IUserRepository):
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
     @staticmethod
-    def _row_to_user(row: dict[str, Any]) -> User:
+    def _row_to_user(row: Any) -> User:
         return User(
             id=row["id"],
             name=row["name"],
@@ -32,7 +32,9 @@ class PostgresUserRepository(IUserRepository):
                 (user_id,),
             )
             row = cur.fetchone()
-            return self._row_to_user(row) if row else None
+            if row is None:
+                return None
+            return self._row_to_user(row)
 
     def exists_by_id(self, user_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
@@ -46,7 +48,9 @@ class PostgresUserRepository(IUserRepository):
                 (email,),
             )
             row = cur.fetchone()
-            return self._row_to_user(row) if row else None
+            if row is None:
+                return None
+            return self._row_to_user(row)
 
     def exists_by_email(self, email: str) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:

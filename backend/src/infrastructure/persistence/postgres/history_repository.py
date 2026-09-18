@@ -16,7 +16,7 @@ class PostgresHistoryRepository:
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
     @staticmethod
-    def _row_to_event(row: dict[str, Any]) -> OperationEvent:
+    def _row_to_event(row: Any) -> OperationEvent:
         return OperationEvent(
             id=row["id"],
             user_id=row["user_id"],

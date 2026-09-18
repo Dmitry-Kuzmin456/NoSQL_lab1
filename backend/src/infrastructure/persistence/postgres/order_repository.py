@@ -19,7 +19,7 @@ class PostgresOrderRepository(IOrderRepository):
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
     @staticmethod
-    def _row_to_order(row: dict[str, Any]) -> Order:
+    def _row_to_order(row: Any) -> Order:
         return Order(
             id=row["id"],
             user_id=row["user_id"],
@@ -41,7 +41,9 @@ class PostgresOrderRepository(IOrderRepository):
                 (order_id,),
             )
             row = cur.fetchone()
-            return self._row_to_order(row) if row else None
+            if row is None:
+                return None
+            return self._row_to_order(row)
 
     def exists_by_id(self, order_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:

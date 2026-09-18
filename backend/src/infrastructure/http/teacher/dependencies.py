@@ -7,17 +7,12 @@ from application.teacher.service import TeacherService
 from infrastructure.event_bus.dependencies import EventBusDep
 from infrastructure.http.favourites.dependencies import FavouritesServiceDep
 from infrastructure.http.product.dependencies import ProductServiceDep
-from infrastructure.http.user.dependencies import (
-    UserServiceDep,
-    get_user_repository,
-)
-from infrastructure.persistence.in_memory.teacher_repository import (
-    InMemoryTeacherRepository,
+from infrastructure.http.user.dependencies import UserServiceDep
+from infrastructure.persistence.postgres.teacher_repository import (
+    PostgresTeacherRepository,
 )
 
-_teacher_repository: ITeacherRepository = InMemoryTeacherRepository(
-    user_repository=get_user_repository()
-)
+_teacher_repository: ITeacherRepository = PostgresTeacherRepository()
 
 
 def get_teacher_repository() -> ITeacherRepository:

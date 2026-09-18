@@ -4,11 +4,11 @@ from fastapi import Depends
 
 from application.product.repository import IProductRepository
 from application.product.service import ProductService
-from infrastructure.persistence.in_memory.product_repository import (
-    InMemoryProductRepository,
+from infrastructure.persistence.postgres.product_repository import (
+    PostgresProductRepository,
 )
 
-_product_repository: IProductRepository = InMemoryProductRepository()
+_product_repository: IProductRepository = PostgresProductRepository()
 
 
 def get_product_repository() -> IProductRepository:

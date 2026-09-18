@@ -5,11 +5,13 @@ from fastapi import Depends
 from application.recovery.repository import IRecoveryTokenRepository
 from application.recovery.service import RecoveryService
 from infrastructure.http.user.dependencies import UserServiceDep
-from infrastructure.persistence.in_memory.recovery_token_repository import (
-    InMemoryRecoveryTokenRepository,
+from infrastructure.persistence.riak.recovery_token_repository import (
+    RiakRecoveryTokenRepository,
 )
 
-_recovery_token_repository: IRecoveryTokenRepository = InMemoryRecoveryTokenRepository()
+_recovery_token_repository: IRecoveryTokenRepository = (
+    RiakRecoveryTokenRepository()
+)
 
 
 def get_recovery_token_repository() -> IRecoveryTokenRepository:

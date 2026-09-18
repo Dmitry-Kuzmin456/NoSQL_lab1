@@ -2,31 +2,43 @@ from typing import Annotated
 
 from fastapi import Depends
 
+from application.order.counter_repository import IOrderCounterRepository
 from application.order.repository import IOrderRepository
 from application.order.service import OrderService
 from infrastructure.event_bus.dependencies import EventBusDep
 from infrastructure.http.product.dependencies import ProductServiceDep
-from infrastructure.persistence.in_memory.order_repository import (
-    InMemoryOrderRepository,
+from infrastructure.persistence.postgres.order_repository import (
+    PostgresOrderRepository,
+)
+from infrastructure.persistence.riak.order_counter_repository import (
+    RiakOrderCounterRepository,
 )
 
-_order_repository: IOrderRepository = InMemoryOrderRepository()
+_order_repository: IOrderRepository = PostgresOrderRepository()
+_counter_repository: IOrderCounterRepository = RiakOrderCounterRepository()
 
 
 def get_order_repository() -> IOrderRepository:
     return _order_repository
 
 
+def get_counter_repository() -> IOrderCounterRepository:
+    return _counter_repository
+
+
 OrderRepositoryDep = Annotated[IOrderRepository, Depends(get_order_repository)]
+CounterRepositoryDep = Annotated[IOrderCounterRepository, Depends(get_counter_repository)]
 
 
 def get_order_service(
     order_repository: OrderRepositoryDep,
+    counter_repository: CounterRepositoryDep,
     product_service: ProductServiceDep,
     event_bus: EventBusDep,
 ) -> OrderService:
     return OrderService(
         order_repository=order_repository,
+        counter_repository=counter_repository,
         product_service=product_service,
         event_bus=event_bus,
     )

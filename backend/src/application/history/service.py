@@ -48,4 +48,4 @@ class HistoryService:
 
     def clear_user_history(self, user_id: UUID) -> bool:
         """Очистить историю действий пользователя."""
-        return self._history_repository.delete_by_user_id(user_id)
+        return self._history_repository.clear(user_id)

@@ -49,10 +49,6 @@ class CompositeHistoryRepository(IHistoryRepository):
     def count_user_events(self, user_id: UUID) -> int:
         return self._postgres_repo.count_by_user_id(user_id)
 
-    def clear_user_history(self, user_id: UUID) -> bool:
-        self._riak_repo.clear(user_id)
-        return self._postgres_repo.delete_by_user_id(user_id)
-
-    def delete_by_user_id(self, user_id: UUID) -> bool:
+    def clear(self, user_id: UUID) -> bool:
         self._riak_repo.clear(user_id)
         return self._postgres_repo.delete_by_user_id(user_id)

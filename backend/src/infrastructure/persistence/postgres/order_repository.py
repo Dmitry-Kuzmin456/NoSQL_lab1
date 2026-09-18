@@ -33,6 +33,3 @@ class PostgresOrderRepository(IOrderRepository):
         expected_status: OrderStatus | None = None,
     ) -> bool:
         raise NotImplementedError
-
-    def delete(self, order_id: UUID) -> bool:
-        raise NotImplementedError

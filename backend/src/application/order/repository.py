@@ -44,8 +44,3 @@ class IOrderRepository(ABC):
     ) -> bool:
         """Обновить статус заказа без предварительной загрузки сущности."""
         raise NotImplementedError
-
-    @abstractmethod
-    def delete(self, order_id: UUID) -> bool:
-        """Удалить заказ по ID."""
-        raise NotImplementedError

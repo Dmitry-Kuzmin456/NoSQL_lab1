@@ -29,7 +29,3 @@ class IOrderCounterRepository(ABC):
     def delete_by_user_id(self, user_id: UUID) -> bool:
         """Удалить счетчик заказов пользователя (DELETE /counters/{user_id})."""
         raise NotImplementedError
-
-
-# Псевдоним для обратной совместимости
-ICounterRepository = IOrderCounterRepository

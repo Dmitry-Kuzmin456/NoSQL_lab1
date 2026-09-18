@@ -49,13 +49,3 @@ class IOrderRepository(ABC):
     def delete(self, order_id: UUID) -> bool:
         """Удалить заказ по ID."""
         raise NotImplementedError
-
-    @abstractmethod
-    def increment_orders_count(self, amount: int = 1) -> int:
-        """Инкрементировать глобальный счётчик созданных заявок."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_total_orders_count(self) -> int:
-        """Получить текущее значение атомарного счётчика созданных заявок."""
-        raise NotImplementedError

@@ -5,24 +5,31 @@ from domain.recovery_token import RecoveryToken
 
 
 class IRecoveryTokenRepository(ABC):
+    """Интерфейс токенов восстановления с поддержкой Secondary Index (2i)."""
+
     @abstractmethod
     def save(self, recovery_token: RecoveryToken) -> RecoveryToken:
-        """Сохранить или обновить токен восстановления."""
+        """Сохранить токен с установкой 2i индексов (user_id_bin, expires_at_int)."""
         raise NotImplementedError
 
     @abstractmethod
     def get_by_token(self, token: str) -> RecoveryToken | None:
-        """Получить токен восстановления по значению."""
+        """Точечное O(1) чтение по первичному ключу token."""
         raise NotImplementedError
 
     @abstractmethod
     def exists_by_token(self, token: str) -> bool:
-        """Проверить существование токена без выгрузки данных."""
+        """Быстрая проверка существования через HEAD-запрос без выгрузки данных."""
         raise NotImplementedError
 
     @abstractmethod
     def mark_as_used(self, token: str) -> bool:
-        """Пометить токен восстановления как использованный."""
+        """Точечное обновление статуса токена."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def find_tokens_by_user_id(self, user_id: UUID) -> list[RecoveryToken]:
+        """Поиск токенов пользователя через вторичный индекс 2i user_id_bin."""
         raise NotImplementedError
 
     @abstractmethod
@@ -32,7 +39,7 @@ class IRecoveryTokenRepository(ABC):
 
     @abstractmethod
     def delete(self, token: str) -> bool:
-        """Удалить токен восстановления."""
+        """Удалить токен по первичному ключу."""
         raise NotImplementedError
 
     @abstractmethod
@@ -41,6 +48,6 @@ class IRecoveryTokenRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def delete_expired(self) -> int:
-        """Очистить истекшие токены восстановления (TTL / application-level cleanup)."""
+    def delete_expired(self, current_timestamp: int | None = None) -> int:
+        """Пакетное удаление протухших токенов по 2i диапазону expires_at_int <= current_timestamp."""
         raise NotImplementedError

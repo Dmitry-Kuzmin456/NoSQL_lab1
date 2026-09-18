@@ -47,7 +47,7 @@ class PostgresProductRepository(IProductRepository):
     def list(
         self,
         filter_dto: ProductFilterDto | None = None,
-    ) -> tuple[list[Product], int]:
+    ) -> list[Product]:
         conditions: list[sql.SQL] = []
         params: list[Any] = []
 
@@ -65,31 +65,23 @@ class PostgresProductRepository(IProductRepository):
             if filter_dto.in_stock_only:
                 conditions.append(sql.SQL("quantity > 0"))
 
-        base_count: sql.SQL | sql.Composed = sql.SQL(
-            "SELECT count(*) as count FROM products"
-        )
         base_select: sql.SQL | sql.Composed = sql.SQL(
             "SELECT id, name, description, price, quantity FROM products"
         )
 
         if conditions:
             where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(conditions)
-            base_count = base_count + where_clause
             base_select = base_select + where_clause
 
-        count_query = base_count
+        offset = filter_dto.offset if filter_dto else 0
+        limit = filter_dto.limit if filter_dto else 50
+
         select_query = base_select + sql.SQL(" ORDER BY name ASC LIMIT %s OFFSET %s")
 
         with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(count_query, params)
-            total = int((cur.fetchone() or {}).get("count", 0))
-
-            offset = filter_dto.offset if filter_dto else 0
-            limit = filter_dto.limit if filter_dto else 50
-
             cur.execute(select_query, [*params, limit, offset])
             rows = cur.fetchall()
-            return [self._row_to_product(r) for r in rows], total
+            return [self._row_to_product(r) for r in rows]
 
     def save(self, product: Product) -> Product:
         with self._pool.connection() as conn, conn.cursor() as cur:

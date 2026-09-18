@@ -23,7 +23,7 @@ class IProductRepository(ABC):
     def list(
         self,
         filter_dto: ProductFilterDto | None = None,
-    ) -> tuple[list[Product], int]:
+    ) -> list[Product]:
         """Получить список товаров с фильтрацией."""
         raise NotImplementedError
 

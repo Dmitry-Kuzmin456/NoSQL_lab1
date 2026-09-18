@@ -41,11 +41,9 @@ class ProductFilterDto:
             return False
         return not (self.in_stock_only and not product.is_in_stock())
 
-    def apply(self, products: list[Product]) -> tuple[list[Product], int]:
+    def apply(self, products: list[Product]) -> list[Product]:
         filtered = [p for p in products if self.matches(p)]
-        total = len(filtered)
-        paginated = filtered[self.offset : self.offset + self.limit]
-        return paginated, total
+        return filtered[self.offset : self.offset + self.limit]
 
 
 @dataclass(frozen=True)
@@ -72,6 +70,5 @@ class ProductResponseDto:
 @dataclass(frozen=True)
 class ProductListResponseDto:
     items: list[ProductResponseDto]
-    total: int
     offset: int
     limit: int

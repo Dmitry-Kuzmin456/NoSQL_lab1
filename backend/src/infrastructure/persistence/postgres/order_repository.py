@@ -18,11 +18,21 @@ class PostgresOrderRepository(IOrderRepository):
     def __init__(self, pool: ConnectionPool | None = None) -> None:
         self._pool: ConnectionPool = pool or get_postgres_pool()
 
+    @staticmethod
+    def _row_to_order(row: Any) -> Order:
+        return Order(
+            id=row["id"],
+            user_id=row["user_id"],
+            product_id=row["product_id"],
+            quantity=row["quantity"],
+            unit_price=Decimal(str(row["unit_price"])),
+            total_amount=Decimal(str(row["total_amount"])),
+            status=OrderStatus(row["status"]),
+            created_at=row["created_at"],
+        )
+
     def get_by_id(self, order_id: UUID) -> Order | None:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
@@ -33,16 +43,7 @@ class PostgresOrderRepository(IOrderRepository):
             row = cur.fetchone()
             if row is None:
                 return None
-            return Order(
-                id=row["id"],
-                user_id=row["user_id"],
-                product_id=row["product_id"],
-                quantity=row["quantity"],
-                unit_price=Decimal(str(row["unit_price"])),
-                total_amount=Decimal(str(row["total_amount"])),
-                status=OrderStatus(row["status"]),
-                created_at=row["created_at"],
-            )
+            return self._row_to_order(row)
 
     def exists_by_id(self, order_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
@@ -50,10 +51,7 @@ class PostgresOrderRepository(IOrderRepository):
             return cur.fetchone() is not None
 
     def get_by_user_id(self, user_id: UUID) -> list[Order]:
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
                 SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
@@ -62,24 +60,12 @@ class PostgresOrderRepository(IOrderRepository):
                 (user_id,),
             )
             rows = cur.fetchall()
-            return [
-                Order(
-                    id=row["id"],
-                    user_id=row["user_id"],
-                    product_id=row["product_id"],
-                    quantity=row["quantity"],
-                    unit_price=Decimal(str(row["unit_price"])),
-                    total_amount=Decimal(str(row["total_amount"])),
-                    status=OrderStatus(row["status"]),
-                    created_at=row["created_at"],
-                )
-                for row in rows
-            ]
+            return [self._row_to_order(r) for r in rows]
 
     def list(
         self,
         filter_dto: OrderFilterDto | None = None,
-    ) -> tuple[list[Order], int]:
+    ) -> list[Order]:
         conditions: list[sql.SQL] = []
         params: list[Any] = []
 
@@ -91,9 +77,6 @@ class PostgresOrderRepository(IOrderRepository):
                 conditions.append(sql.SQL("status = %s"))
                 params.append(filter_dto.status.value)
 
-        base_count: sql.SQL | sql.Composed = sql.SQL(
-            "SELECT count(*) as count FROM orders"
-        )
         base_select: sql.SQL | sql.Composed = sql.SQL(
             "SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at "
             "FROM orders"
@@ -101,41 +84,19 @@ class PostgresOrderRepository(IOrderRepository):
 
         if conditions:
             where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(conditions)
-            base_count = base_count + where_clause
             base_select = base_select + where_clause
 
-        count_query = base_count
+        offset = filter_dto.offset if filter_dto else 0
+        limit = filter_dto.limit if filter_dto else 50
+
         select_query = base_select + sql.SQL(
             " ORDER BY created_at DESC LIMIT %s OFFSET %s"
         )
 
-        with (
-            self._pool.connection() as conn,
-            conn.cursor(row_factory=dict_row) as cur,
-        ):
-            cur.execute(count_query, params)
-            total = int((cur.fetchone() or {}).get("count", 0))
-
-            offset = filter_dto.offset if filter_dto else 0
-            limit = filter_dto.limit if filter_dto else 50
-
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(select_query, [*params, limit, offset])
             rows = cur.fetchall()
-
-            orders = [
-                Order(
-                    id=row["id"],
-                    user_id=row["user_id"],
-                    product_id=row["product_id"],
-                    quantity=row["quantity"],
-                    unit_price=Decimal(str(row["unit_price"])),
-                    total_amount=Decimal(str(row["total_amount"])),
-                    status=OrderStatus(row["status"]),
-                    created_at=row["created_at"],
-                )
-                for row in rows
-            ]
-            return orders, total
+            return [self._row_to_order(r) for r in rows]
 
     def save(self, order: Order) -> Order:
         with self._pool.connection() as conn, conn.cursor() as cur:

@@ -69,7 +69,6 @@ class OrderResponse(BaseModel):
 
 class OrderListResponse(BaseModel):
     items: list[OrderResponse]
-    total: int
     offset: int
     limit: int
 
@@ -77,7 +76,6 @@ class OrderListResponse(BaseModel):
     def from_dto(cls, dto: OrderListResponseDto) -> "OrderListResponse":
         return cls(
             items=[OrderResponse.from_dto(o) for o in dto.items],
-            total=dto.total,
             offset=dto.offset,
             limit=dto.limit,
         )

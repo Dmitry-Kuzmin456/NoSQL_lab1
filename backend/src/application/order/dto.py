@@ -24,12 +24,10 @@ class OrderFilterDto:
             return False
         return not (self.status is not None and order.status != self.status)
 
-    def apply(self, orders: list[Order]) -> tuple[list[Order], int]:
+    def apply(self, orders: list[Order]) -> list[Order]:
         sorted_orders = sorted(orders, key=lambda o: o.created_at, reverse=True)
         filtered = [o for o in sorted_orders if self.matches(o)]
-        total = len(filtered)
-        paginated = filtered[self.offset : self.offset + self.limit]
-        return paginated, total
+        return filtered[self.offset : self.offset + self.limit]
 
 
 @dataclass(frozen=True)
@@ -60,6 +58,5 @@ class OrderResponseDto:
 @dataclass(frozen=True)
 class OrderListResponseDto:
     items: list[OrderResponseDto]
-    total: int
     offset: int
     limit: int

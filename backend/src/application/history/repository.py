@@ -18,13 +18,8 @@ class IHistoryRepository(ABC):
         user_id: UUID,
         offset: int = 0,
         limit: int = 20,
-    ) -> tuple[list[OperationEvent], int]:
+    ) -> list[OperationEvent]:
         """Получить события пользователя с пагинацией."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def count_user_events(self, user_id: UUID) -> int:
-        """Получить общее количество событий пользователя."""
         raise NotImplementedError
 
     @abstractmethod

@@ -62,10 +62,9 @@ class ProductService:
         if filter_dto is None:
             filter_dto = ProductFilterDto()
 
-        items, total = self._product_repository.list(filter_dto=filter_dto)
+        items = self._product_repository.list(filter_dto=filter_dto)
         return ProductListResponseDto(
             items=[ProductResponseDto.from_domain(p) for p in items],
-            total=total,
             offset=filter_dto.offset,
             limit=filter_dto.limit,
         )

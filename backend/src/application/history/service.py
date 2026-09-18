@@ -33,7 +33,7 @@ class HistoryService:
         limit: int = 20,
     ) -> UserHistoryResponseDto:
         """Получить историю действий пользователя с пагинацией."""
-        events, total = self._history_repository.get_user_events(
+        events = self._history_repository.get_user_events(
             user_id=user_id,
             offset=offset,
             limit=limit,
@@ -41,7 +41,6 @@ class HistoryService:
         return UserHistoryResponseDto.from_events(
             user_id=user_id,
             events=events,
-            total=total,
             offset=offset,
             limit=limit,
         )

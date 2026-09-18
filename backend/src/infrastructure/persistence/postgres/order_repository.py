@@ -65,7 +65,7 @@ class PostgresOrderRepository(IOrderRepository):
     def list(
         self,
         filter_dto: OrderFilterDto | None = None,
-    ) -> tuple[list[Order], int]:
+    ) -> list[Order]:
         conditions: list[sql.SQL] = []
         params: list[Any] = []
 
@@ -77,9 +77,6 @@ class PostgresOrderRepository(IOrderRepository):
                 conditions.append(sql.SQL("status = %s"))
                 params.append(filter_dto.status.value)
 
-        base_count: sql.SQL | sql.Composed = sql.SQL(
-            "SELECT count(*) as count FROM orders"
-        )
         base_select: sql.SQL | sql.Composed = sql.SQL(
             "SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at "
             "FROM orders"
@@ -87,24 +84,19 @@ class PostgresOrderRepository(IOrderRepository):
 
         if conditions:
             where_clause = sql.SQL(" WHERE ") + sql.SQL(" AND ").join(conditions)
-            base_count = base_count + where_clause
             base_select = base_select + where_clause
 
-        count_query = base_count
+        offset = filter_dto.offset if filter_dto else 0
+        limit = filter_dto.limit if filter_dto else 50
+
         select_query = base_select + sql.SQL(
             " ORDER BY created_at DESC LIMIT %s OFFSET %s"
         )
 
         with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
-            cur.execute(count_query, params)
-            total = int((cur.fetchone() or {}).get("count", 0))
-
-            offset = filter_dto.offset if filter_dto else 0
-            limit = filter_dto.limit if filter_dto else 50
-
             cur.execute(select_query, [*params, limit, offset])
             rows = cur.fetchall()
-            return [self._row_to_order(r) for r in rows], total
+            return [self._row_to_order(r) for r in rows]
 
     def save(self, order: Order) -> Order:
         with self._pool.connection() as conn, conn.cursor() as cur:

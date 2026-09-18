@@ -28,7 +28,7 @@ class IOrderRepository(ABC):
     def list(
         self,
         filter_dto: OrderFilterDto | None = None,
-    ) -> tuple[list[Order], int]:
+    ) -> list[Order]:
         """Получить список заказов с фильтрацией."""
         raise NotImplementedError
 

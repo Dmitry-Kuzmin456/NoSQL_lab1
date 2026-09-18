@@ -87,10 +87,9 @@ class OrderService:
         if filter_dto is None:
             filter_dto = OrderFilterDto()
 
-        items, total = self._order_repository.list(filter_dto=filter_dto)
+        items = self._order_repository.list(filter_dto=filter_dto)
         return OrderListResponseDto(
             items=[OrderResponseDto.from_domain(o) for o in items],
-            total=total,
             offset=filter_dto.offset,
             limit=filter_dto.limit,
         )

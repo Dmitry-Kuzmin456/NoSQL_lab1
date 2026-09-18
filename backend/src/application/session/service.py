@@ -17,7 +17,7 @@ class SessionService:
         self._session_repository = session_repository
 
     def create_session(self, user_id: UUID, ttl_days: int = 30) -> SessionResponseDto:
-        refresh_token = secrets.token_urlsafe(64)
+        refresh_token = self._generate_unique_refresh_token()
         expires_at = datetime.now(UTC) + timedelta(days=ttl_days)
 
         session = Session(
@@ -42,7 +42,7 @@ class SessionService:
 
         self._session_repository.delete_by_refresh_token(refresh_token)
 
-        new_refresh_token = secrets.token_urlsafe(64)
+        new_refresh_token = self._generate_unique_refresh_token()
         new_expires_at = datetime.now(UTC) + timedelta(days=ttl_days)
         new_session = Session(
             user_id=session.user_id,
@@ -52,6 +52,12 @@ class SessionService:
 
         saved_session = self._session_repository.save(new_session)
         return SessionResponseDto.from_domain(saved_session)
+
+    def _generate_unique_refresh_token(self) -> str:
+        refresh_token = secrets.token_urlsafe(64)
+        while self._session_repository.get_by_refresh_token(refresh_token) is not None:
+            refresh_token = secrets.token_urlsafe(64)
+        return refresh_token
 
     def get_by_refresh_token(self, refresh_token: str) -> SessionResponseDto:
         session = self._session_repository.get_by_refresh_token(refresh_token)

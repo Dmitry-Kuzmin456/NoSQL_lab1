@@ -35,7 +35,6 @@ class RecoveryResponse(BaseModel):
     user_id: UUID
     created_at: datetime
     expires_at: datetime
-    is_used: bool
     is_expired: bool
 
     @classmethod
@@ -45,7 +44,6 @@ class RecoveryResponse(BaseModel):
             user_id=dto.user_id,
             created_at=dto.created_at,
             expires_at=dto.expires_at,
-            is_used=dto.is_used,
             is_expired=dto.is_expired,
         )
 

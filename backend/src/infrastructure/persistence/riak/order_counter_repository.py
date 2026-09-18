@@ -4,7 +4,7 @@ from application.order.counter_repository import IOrderCounterRepository
 
 
 class RiakOrderCounterRepository(IOrderCounterRepository):
-    """Реализация распределенного счетчика заказов на базе Riak PN-Counter CRDT."""
+    """Репозиторий счетчиков заказов для Riak KV."""
 
     def increment(self, user_id: UUID, amount: int = 1) -> int:
         raise NotImplementedError

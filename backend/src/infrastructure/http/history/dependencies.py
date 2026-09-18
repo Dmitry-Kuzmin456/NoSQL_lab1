@@ -15,9 +15,7 @@ from infrastructure.persistence.riak.history_cache_repository import (
     RiakHistoryCacheRepository,
 )
 
-_postgres_history_repository: PostgresHistoryRepository = (
-    PostgresHistoryRepository()
-)
+_postgres_history_repository: PostgresHistoryRepository = PostgresHistoryRepository()
 _riak_history_cache_repository: RiakHistoryCacheRepository = (
     RiakHistoryCacheRepository()
 )

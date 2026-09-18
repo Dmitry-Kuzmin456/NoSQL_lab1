@@ -5,7 +5,7 @@ from domain.cart import Cart
 
 
 class RiakCartRepository(ICartRepository):
-    """Реализация репозитория корзины на базе Riak Map CRDT."""
+    """Репозиторий корзины для Riak KV."""
 
     def get_by_user_id(self, user_id: UUID) -> Cart | None:
         raise NotImplementedError

@@ -79,7 +79,5 @@ class SessionService:
     def get_user_sessions(self, user_id: UUID) -> list[SessionResponseDto]:
         sessions = self._session_repository.list_by_user_id(user_id)
         return [
-            SessionResponseDto.from_domain(s)
-            for s in sessions
-            if not s.is_expired()
+            SessionResponseDto.from_domain(s) for s in sessions if not s.is_expired()
         ]

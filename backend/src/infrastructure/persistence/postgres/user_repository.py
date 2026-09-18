@@ -5,7 +5,7 @@ from domain.user import User
 
 
 class PostgresUserRepository(IUserRepository):
-    """Реализация репозитория пользователей для PostgreSQL (System of Record)."""
+    """Репозиторий пользователей для PostgreSQL."""
 
     def get_by_id(self, user_id: UUID) -> User | None:
         raise NotImplementedError

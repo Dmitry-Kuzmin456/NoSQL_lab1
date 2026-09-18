@@ -9,9 +9,7 @@ from infrastructure.persistence.riak.recovery_token_repository import (
     RiakRecoveryTokenRepository,
 )
 
-_recovery_token_repository: IRecoveryTokenRepository = (
-    RiakRecoveryTokenRepository()
-)
+_recovery_token_repository: IRecoveryTokenRepository = RiakRecoveryTokenRepository()
 
 
 def get_recovery_token_repository() -> IRecoveryTokenRepository:

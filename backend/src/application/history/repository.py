@@ -9,7 +9,7 @@ class IHistoryRepository(ABC):
 
     @abstractmethod
     def add_event(self, event: OperationEvent) -> None:
-        """Зафиксировать новое событие в истории операций."""
+        """Зафиксировать событие в истории."""
         raise NotImplementedError
 
     @abstractmethod
@@ -19,7 +19,7 @@ class IHistoryRepository(ABC):
         offset: int = 0,
         limit: int = 20,
     ) -> tuple[list[OperationEvent], int]:
-        """Получить срез событий пользователя с пагинацией и общее количество событий."""
+        """Получить события пользователя с пагинацией."""
         raise NotImplementedError
 
     @abstractmethod

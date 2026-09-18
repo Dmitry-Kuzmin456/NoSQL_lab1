@@ -5,7 +5,7 @@ from domain.teacher import Teacher
 
 
 class PostgresTeacherRepository(ITeacherRepository):
-    """Реализация репозитория преподавателей для PostgreSQL."""
+    """Репозиторий преподавателей для PostgreSQL."""
 
     def get_by_id(self, teacher_id: UUID) -> Teacher | None:
         raise NotImplementedError

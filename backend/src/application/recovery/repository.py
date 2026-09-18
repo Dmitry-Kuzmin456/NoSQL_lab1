@@ -4,7 +4,7 @@ from domain.recovery_token import RecoveryToken
 
 
 class IRecoveryTokenRepository(ABC):
-    """Интерфейс токенов восстановления на базе Riak KV (Bucket: 'recovery_tokens', Key: token)."""
+    """Интерфейс репозитория токенов восстановления."""
 
     @abstractmethod
     def save(self, recovery_token: RecoveryToken) -> RecoveryToken:
@@ -13,10 +13,10 @@ class IRecoveryTokenRepository(ABC):
 
     @abstractmethod
     def get_by_token(self, token: str) -> RecoveryToken | None:
-        """Получить токен восстановления по значению (O(1))."""
+        """Получить токен восстановления по значению."""
         raise NotImplementedError
 
     @abstractmethod
     def delete_by_token(self, token: str) -> bool:
-        """Удалить токен восстановления по значению."""
+        """Удалить токен восстановления."""
         raise NotImplementedError

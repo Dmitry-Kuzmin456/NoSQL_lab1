@@ -24,7 +24,6 @@ class CompositeHistoryRepository(IHistoryRepository):
         self._cache_capacity = cache_capacity
 
     def add_event(self, event: OperationEvent) -> None:
-        """Сохранение в PostgreSQL + прозрачное обновление кэша в Riak KV."""
         self._postgres_repo.save(event)
         self._riak_repo.append_event(event, max_capacity=self._cache_capacity)
 
@@ -34,7 +33,6 @@ class CompositeHistoryRepository(IHistoryRepository):
         offset: int = 0,
         limit: int = 20,
     ) -> tuple[list[OperationEvent], int]:
-        """Прозрачное чтение из кэша Riak KV при offset=0 с обращением к PostgreSQL при пагинации."""
         total = self._postgres_repo.count_by_user_id(user_id)
         if offset == 0:
             cached = self._riak_repo.get_cached_events(user_id, limit=limit)

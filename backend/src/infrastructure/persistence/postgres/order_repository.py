@@ -6,7 +6,7 @@ from domain.order import Order, OrderStatus
 
 
 class PostgresOrderRepository(IOrderRepository):
-    """Реализация репозитория заказов для PostgreSQL."""
+    """Репозиторий заказов для PostgreSQL."""
 
     def get_by_id(self, order_id: UUID) -> Order | None:
         raise NotImplementedError

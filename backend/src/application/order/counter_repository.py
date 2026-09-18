@@ -3,29 +3,29 @@ from uuid import UUID
 
 
 class IOrderCounterRepository(ABC):
-    """Специализированный интерфейс счетчика заказов пользователей на базе Riak PN-Counter CRDT."""
+    """Интерфейс счетчика заказов."""
 
     @abstractmethod
     def increment(self, user_id: UUID, amount: int = 1) -> int:
-        """Атомарно инкрементировать счетчик созданных заказов конкретного пользователя (O(1))."""
+        """Инкрементировать счетчик заказов пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def decrement(self, user_id: UUID, amount: int = 1) -> int:
-        """Атомарно декрементировать счетчик заказов пользователя (O(1))."""
+        """Декрементировать счетчик заказов пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def get_by_user_id(self, user_id: UUID) -> int:
-        """Получить текущее количество созданных заказов конкретного пользователя (O(1))."""
+        """Получить количество заказов пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def get_total_count(self) -> int:
-        """Получить суммарное количество заказов по всем пользователям."""
+        """Получить общее количество заказов."""
         raise NotImplementedError
 
     @abstractmethod
     def delete_by_user_id(self, user_id: UUID) -> bool:
-        """Удалить счетчик заказов пользователя (DELETE /counters/{user_id})."""
+        """Удалить счетчик заказов пользователя."""
         raise NotImplementedError

@@ -5,7 +5,7 @@ from domain.favourites import FavouriteProduct, Favourites
 
 
 class RiakFavouritesRepository(IFavouritesRepository):
-    """Реализация репозитория избранного на базе Riak OR-Set / Map CRDT."""
+    """Репозиторий избранного для Riak KV."""
 
     def get_by_user_id(self, user_id: UUID) -> Favourites | None:
         raise NotImplementedError

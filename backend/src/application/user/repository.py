@@ -5,14 +5,16 @@ from domain.user import User
 
 
 class IUserRepository(ABC):
+    """Интерфейс репозитория пользователей."""
+
     @abstractmethod
     def get_by_id(self, user_id: UUID) -> User | None:
-        """Получить пользователя по UUID."""
+        """Получить пользователя по ID."""
         raise NotImplementedError
 
     @abstractmethod
     def exists_by_id(self, user_id: UUID) -> bool:
-        """Проверить существование пользователя по UUID без загрузки объекта."""
+        """Проверить существование пользователя."""
         raise NotImplementedError
 
     @abstractmethod
@@ -22,7 +24,7 @@ class IUserRepository(ABC):
 
     @abstractmethod
     def exists_by_email(self, email: str) -> bool:
-        """Проверить занятость email без вычитки сущности пользователя."""
+        """Проверить существование пользователя с данным email."""
         raise NotImplementedError
 
     @abstractmethod
@@ -32,10 +34,10 @@ class IUserRepository(ABC):
 
     @abstractmethod
     def save(self, user: User) -> User:
-        """Сохранить или обновить пользователя."""
+        """Сохранить пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def delete(self, user_id: UUID) -> bool:
-        """Удалить пользователя по UUID."""
+        """Удалить пользователя."""
         raise NotImplementedError

@@ -27,7 +27,9 @@ def get_counter_repository() -> IOrderCounterRepository:
 
 
 OrderRepositoryDep = Annotated[IOrderRepository, Depends(get_order_repository)]
-CounterRepositoryDep = Annotated[IOrderCounterRepository, Depends(get_counter_repository)]
+CounterRepositoryDep = Annotated[
+    IOrderCounterRepository, Depends(get_counter_repository)
+]
 
 
 def get_order_service(

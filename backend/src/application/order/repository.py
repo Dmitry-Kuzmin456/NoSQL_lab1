@@ -7,6 +7,8 @@ from .dto import OrderFilterDto
 
 
 class IOrderRepository(ABC):
+    """Интерфейс репозитория заказов."""
+
     @abstractmethod
     def get_by_id(self, order_id: UUID) -> Order | None:
         """Получить заказ по ID."""
@@ -14,12 +16,12 @@ class IOrderRepository(ABC):
 
     @abstractmethod
     def exists_by_id(self, order_id: UUID) -> bool:
-        """Проверить существование заказа по ID без загрузки его полей."""
+        """Проверить существование заказа."""
         raise NotImplementedError
 
     @abstractmethod
     def get_by_user_id(self, user_id: UUID) -> list[Order]:
-        """Получить все заказы пользователя по user_id."""
+        """Получить заказы пользователя."""
         raise NotImplementedError
 
     @abstractmethod
@@ -27,12 +29,12 @@ class IOrderRepository(ABC):
         self,
         filter_dto: OrderFilterDto | None = None,
     ) -> tuple[list[Order], int]:
-        """Получить список заказов с фильтрацией и пагинацией."""
+        """Получить список заказов с фильтрацией."""
         raise NotImplementedError
 
     @abstractmethod
     def save(self, order: Order) -> Order:
-        """Сохранить или обновить заказ."""
+        """Сохранить заказ."""
         raise NotImplementedError
 
     @abstractmethod
@@ -42,5 +44,5 @@ class IOrderRepository(ABC):
         new_status: OrderStatus,
         expected_status: OrderStatus | None = None,
     ) -> bool:
-        """Обновить статус заказа без предварительной загрузки сущности."""
+        """Обновить статус заказа."""
         raise NotImplementedError

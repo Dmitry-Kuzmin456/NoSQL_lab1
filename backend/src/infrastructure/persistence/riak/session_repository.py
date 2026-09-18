@@ -5,7 +5,7 @@ from domain.session import Session
 
 
 class RiakSessionRepository(ISessionRepository):
-    """Реализация репозитория сессий и refresh токенов на базе Riak KV + 2i Secondary Index."""
+    """Репозиторий сессий для Riak KV."""
 
     def save(self, session: Session) -> Session:
         raise NotImplementedError

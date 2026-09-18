@@ -5,16 +5,16 @@ from domain.cart import Cart
 
 
 class ICartRepository(ABC):
-    """Интерфейс корзины покупателя на базе Riak Map CRDT."""
+    """Интерфейс репозитория корзины."""
 
     @abstractmethod
     def get_by_user_id(self, user_id: UUID) -> Cart | None:
-        """Получить корзину пользователя по ключу user_id (O(1))."""
+        """Получить корзину пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def has_product(self, user_id: UUID, product_id: UUID) -> bool:
-        """Проверить наличие конкретного товара в корзине пользователя."""
+        """Проверить наличие товара в корзине пользователя."""
         raise NotImplementedError
 
     @abstractmethod
@@ -24,7 +24,7 @@ class ICartRepository(ABC):
         product_id: UUID,
         quantity: int,
     ) -> bool:
-        """Обновить количество товара внутри Map CRDT без перезаписи всей корзины."""
+        """Установить количество товара в корзине."""
         raise NotImplementedError
 
     @abstractmethod
@@ -34,22 +34,22 @@ class ICartRepository(ABC):
         product_id: UUID,
         quantity: int,
     ) -> bool:
-        """Добавить товар в корзину или изменить его количество без загрузки всей корзины."""
+        """Добавить товар в корзину или обновить его количество."""
         raise NotImplementedError
 
     @abstractmethod
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
-        """Удалить позицию из корзины (CRDT Map field remove)."""
+        """Удалить товар из корзины."""
         raise NotImplementedError
 
     @abstractmethod
     def clear_cart(self, user_id: UUID) -> bool:
-        """Очистить корзину пользователя (DELETE /carts/{user_id})."""
+        """Очистить корзину пользователя."""
         raise NotImplementedError
 
     @abstractmethod
     def save(self, cart: Cart) -> Cart:
-        """Сохранить или обновить корзину целиком."""
+        """Сохранить корзину."""
         raise NotImplementedError
 
     @abstractmethod

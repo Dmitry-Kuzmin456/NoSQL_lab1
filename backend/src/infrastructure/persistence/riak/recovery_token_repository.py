@@ -3,7 +3,7 @@ from domain.recovery_token import RecoveryToken
 
 
 class RiakRecoveryTokenRepository(IRecoveryTokenRepository):
-    """Реализация репозитория токенов восстановления на базе Riak KV."""
+    """Репозиторий токенов восстановления для Riak KV."""
 
     def save(self, recovery_token: RecoveryToken) -> RecoveryToken:
         raise NotImplementedError

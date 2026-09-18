@@ -4,7 +4,7 @@ from domain.history import OperationEvent
 
 
 class RiakHistoryCacheRepository:
-    """Реализация кэша истории операций на базе Riak KV (Capped Ring-Buffer по ключу user_id)."""
+    """Кэш-репозиторий истории для Riak KV."""
 
     def append_event(self, event: OperationEvent, max_capacity: int = 20) -> None:
         raise NotImplementedError

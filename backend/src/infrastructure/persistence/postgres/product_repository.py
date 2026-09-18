@@ -6,7 +6,7 @@ from domain.product import Product
 
 
 class PostgresProductRepository(IProductRepository):
-    """Реализация репозитория товаров для PostgreSQL."""
+    """Репозиторий товаров для PostgreSQL."""
 
     def get_by_id(self, product_id: UUID) -> Product | None:
         raise NotImplementedError

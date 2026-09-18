@@ -4,7 +4,7 @@ from domain.history import OperationEvent
 
 
 class PostgresHistoryRepository:
-    """Реализация постоянного реляционного хранилища истории операций для PostgreSQL."""
+    """Репозиторий истории операций для PostgreSQL."""
 
     def save(self, event: OperationEvent) -> None:
         raise NotImplementedError

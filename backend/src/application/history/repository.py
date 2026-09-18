@@ -5,25 +5,11 @@ from domain.history import OperationEvent
 
 
 class IHistoryRepository(ABC):
-    """Интерфейс репозитория истории операций (композитный фасад)."""
-
-    @abstractmethod
-    def append_event(self, event: OperationEvent, max_capacity: int = 20) -> None:
-        """Добавить событие в историю и обновить кэш Riak KV."""
-        raise NotImplementedError
+    """Интерфейс репозитория истории операций."""
 
     @abstractmethod
     def add_event(self, event: OperationEvent) -> None:
-        """Атомарно зафиксировать событие (сохранение в PostgreSQL + обновление кэша в Riak KV)."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def get_cached_user_events(
-        self,
-        user_id: UUID,
-        limit: int = 20,
-    ) -> list[OperationEvent]:
-        """Метод кэширования: прямое O(1) перенаправление запроса в Riak KV."""
+        """Зафиксировать новое событие в истории операций."""
         raise NotImplementedError
 
     @abstractmethod
@@ -33,7 +19,7 @@ class IHistoryRepository(ABC):
         offset: int = 0,
         limit: int = 20,
     ) -> tuple[list[OperationEvent], int]:
-        """Получить события пользователя (для offset=0 перенаправляется на кэш Riak KV)."""
+        """Получить срез событий пользователя с пагинацией и общее количество событий."""
         raise NotImplementedError
 
     @abstractmethod
@@ -48,7 +34,7 @@ class IHistoryRepository(ABC):
 
     @abstractmethod
     def clear_user_history(self, user_id: UUID) -> bool:
-        """Очистить историю пользователя в PostgreSQL и Riak KV."""
+        """Очистить историю действий пользователя."""
         raise NotImplementedError
 
     @abstractmethod

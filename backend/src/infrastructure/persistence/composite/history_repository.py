@@ -22,26 +22,16 @@ class CompositeHistoryRepository(IHistoryRepository):
         self,
         postgres_repo: PostgresHistoryRepository,
         riak_repo: RiakHistoryCacheRepository,
+        cache_capacity: int = 20,
     ) -> None:
         self._postgres_repo = postgres_repo
         self._riak_repo = riak_repo
-
-    def append_event(self, event: OperationEvent, max_capacity: int = 20) -> None:
-        """Сохранение в PostgreSQL + обновление кэша в Riak KV."""
-        self._postgres_repo.save(event)
-        self._riak_repo.append_event(event, max_capacity=max_capacity)
+        self._cache_capacity = cache_capacity
 
     def add_event(self, event: OperationEvent) -> None:
-        """Сохранение в PostgreSQL + обновление кэша в Riak KV."""
-        self.append_event(event, max_capacity=20)
-
-    def get_cached_user_events(
-        self,
-        user_id: UUID,
-        limit: int = 20,
-    ) -> list[OperationEvent]:
-        """Специализированный метод кэширования: прямое перенаправление в Riak KV."""
-        return self._riak_repo.get_cached_events(user_id=user_id, limit=limit)
+        """Сохранение в PostgreSQL + прозрачное обновление кэша в Riak KV."""
+        self._postgres_repo.save(event)
+        self._riak_repo.append_event(event, max_capacity=self._cache_capacity)
 
     def get_user_events(
         self,
@@ -49,17 +39,28 @@ class CompositeHistoryRepository(IHistoryRepository):
         offset: int = 0,
         limit: int = 20,
     ) -> tuple[list[OperationEvent], int]:
-        """Получить события пользователя (для offset=0 срез берется из Riak KV)."""
-        raise NotImplementedError
+        """Прозрачное чтение из кэша Riak KV при offset=0 с обращением к PostgreSQL при пагинации."""
+        total = self._postgres_repo.count_by_user_id(user_id)
+        if offset == 0:
+            cached = self._riak_repo.get_cached_events(user_id, limit=limit)
+            if cached:
+                return cached, total
+
+        events, total = self._postgres_repo.list_by_user_id(
+            user_id=user_id, offset=offset, limit=limit
+        )
+        return events, total
 
     def count_user_events(self, user_id: UUID) -> int:
-        raise NotImplementedError
+        return self._postgres_repo.count_by_user_id(user_id)
 
     def exists_by_user_id(self, user_id: UUID) -> bool:
-        raise NotImplementedError
+        return self._riak_repo.exists(user_id) or (self.count_user_events(user_id) > 0)
 
     def clear_user_history(self, user_id: UUID) -> bool:
-        raise NotImplementedError
+        self._riak_repo.clear(user_id)
+        return self._postgres_repo.delete_by_user_id(user_id)
 
     def delete_by_user_id(self, user_id: UUID) -> bool:
-        raise NotImplementedError
+        self._riak_repo.clear(user_id)
+        return self._postgres_repo.delete_by_user_id(user_id)

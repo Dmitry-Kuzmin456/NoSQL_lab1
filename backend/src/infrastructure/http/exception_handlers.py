@@ -12,7 +12,7 @@ def setup_exception_handlers(app: FastAPI) -> None:
 
     @app.exception_handler(ApplicationException)
     async def application_exception_handler(
-        request: Request,
+        _: Request,
         exc: ApplicationException,
     ) -> JSONResponse:
         response = JSONResponse(

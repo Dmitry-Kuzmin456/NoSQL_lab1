@@ -6,13 +6,13 @@ from application.user.hasher import IPasswordHasher
 from application.user.repository import IUserRepository
 from application.user.service import UserService
 from infrastructure.event_bus.dependencies import EventBusDep
-from infrastructure.persistence.in_memory.user_repository import (
-    InMemoryUserRepository,
+from infrastructure.persistence.postgres.user_repository import (
+    PostgresUserRepository,
 )
 from infrastructure.security.password_hasher import BcryptPasswordHasher
 
 _password_hasher: IPasswordHasher = BcryptPasswordHasher(rounds=12)
-_user_repository: IUserRepository = InMemoryUserRepository()
+_user_repository: IUserRepository = PostgresUserRepository()
 
 
 def get_user_repository() -> IUserRepository:

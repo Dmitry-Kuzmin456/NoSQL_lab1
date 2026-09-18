@@ -8,7 +8,6 @@ from .dto import SessionResponseDto
 from .exceptions import (
     SessionExpiredException,
     SessionNotFoundException,
-    SessionRevokedException,
 )
 from .repository import ISessionRepository
 
@@ -18,7 +17,7 @@ class SessionService:
         self._session_repository = session_repository
 
     def create_session(self, user_id: UUID, ttl_days: int = 30) -> SessionResponseDto:
-        refresh_token = secrets.token_urlsafe(64)
+        refresh_token = self._generate_unique_refresh_token()
         expires_at = datetime.now(UTC) + timedelta(days=ttl_days)
 
         session = Session(
@@ -37,60 +36,48 @@ class SessionService:
         if session is None:
             raise SessionNotFoundException(refresh_token)
 
-        if session.is_revoked:
-            raise SessionRevokedException()
-
         if session.is_expired():
+            self._session_repository.delete_by_refresh_token(refresh_token)
             raise SessionExpiredException()
 
-        new_refresh_token = secrets.token_urlsafe(64)
-        new_expires_at = datetime.now(UTC) + timedelta(days=ttl_days)
-        session.rotate_refresh_token(new_refresh_token, new_expires_at)
+        self._session_repository.delete_by_refresh_token(refresh_token)
 
-        saved_session = self._session_repository.save(session)
+        new_refresh_token = self._generate_unique_refresh_token()
+        new_expires_at = datetime.now(UTC) + timedelta(days=ttl_days)
+        new_session = Session(
+            user_id=session.user_id,
+            refresh_token=new_refresh_token,
+            expires_at=new_expires_at,
+        )
+
+        saved_session = self._session_repository.save(new_session)
         return SessionResponseDto.from_domain(saved_session)
 
-    def get_by_id(self, session_id: UUID) -> SessionResponseDto:
-        session = self._session_repository.get_by_id(session_id)
-        if session is None:
-            raise SessionNotFoundException(session_id)
-
-        if session.is_revoked:
-            raise SessionRevokedException()
-
-        if session.is_expired():
-            raise SessionExpiredException()
-
-        return SessionResponseDto.from_domain(session)
+    def _generate_unique_refresh_token(self) -> str:
+        refresh_token = secrets.token_urlsafe(64)
+        while self._session_repository.get_by_refresh_token(refresh_token) is not None:
+            refresh_token = secrets.token_urlsafe(64)
+        return refresh_token
 
     def get_by_refresh_token(self, refresh_token: str) -> SessionResponseDto:
         session = self._session_repository.get_by_refresh_token(refresh_token)
         if session is None:
             raise SessionNotFoundException(refresh_token)
 
-        if session.is_revoked:
-            raise SessionRevokedException()
-
         if session.is_expired():
             raise SessionExpiredException()
 
         return SessionResponseDto.from_domain(session)
 
-    def revoke_session(self, session_id: UUID) -> None:
-        if not self._session_repository.revoke(session_id):
-            raise SessionNotFoundException(session_id)
-
-    def revoke_by_refresh_token(self, refresh_token: str) -> None:
-        if not self._session_repository.revoke_by_refresh_token(refresh_token):
+    def delete_by_refresh_token(self, refresh_token: str) -> None:
+        if not self._session_repository.delete_by_refresh_token(refresh_token):
             raise SessionNotFoundException(refresh_token)
 
-    def revoke_all_user_sessions(self, user_id: UUID) -> int:
-        return self._session_repository.revoke_all_for_user(user_id)
+    def delete_all_user_sessions(self, user_id: UUID) -> int:
+        return self._session_repository.delete_all_for_user(user_id)
 
     def get_user_sessions(self, user_id: UUID) -> list[SessionResponseDto]:
         sessions = self._session_repository.list_by_user_id(user_id)
         return [
-            SessionResponseDto.from_domain(s)
-            for s in sessions
-            if not s.is_expired() and not s.is_revoked
+            SessionResponseDto.from_domain(s) for s in sessions if not s.is_expired()
         ]

@@ -16,7 +16,6 @@ class RecoveryResponseDto:
     user_id: UUID
     created_at: datetime
     expires_at: datetime
-    is_used: bool
     is_expired: bool
 
     @classmethod
@@ -26,7 +25,6 @@ class RecoveryResponseDto:
             user_id=recovery_token.user_id,
             created_at=recovery_token.created_at,
             expires_at=recovery_token.expires_at,
-            is_used=recovery_token.is_used,
             is_expired=recovery_token.is_expired(),
         )
 

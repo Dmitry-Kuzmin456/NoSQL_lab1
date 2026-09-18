@@ -6,11 +6,11 @@ from application.favourites.repository import IFavouritesRepository
 from application.favourites.service import FavouritesService
 from infrastructure.event_bus.dependencies import EventBusDep
 from infrastructure.http.product.dependencies import ProductServiceDep
-from infrastructure.persistence.in_memory.favourites_repository import (
-    InMemoryFavouritesRepository,
+from infrastructure.persistence.riak.favourites_repository import (
+    RiakFavouritesRepository,
 )
 
-_favourites_repository: IFavouritesRepository = InMemoryFavouritesRepository()
+_favourites_repository: IFavouritesRepository = RiakFavouritesRepository()
 
 
 def get_favourites_repository() -> IFavouritesRepository:

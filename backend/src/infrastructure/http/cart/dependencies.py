@@ -6,11 +6,9 @@ from application.cart.repository import ICartRepository
 from application.cart.service import CartService
 from infrastructure.event_bus.dependencies import EventBusDep
 from infrastructure.http.product.dependencies import ProductServiceDep
-from infrastructure.persistence.in_memory.cart_repository import (
-    InMemoryCartRepository,
-)
+from infrastructure.persistence.riak.cart_repository import RiakCartRepository
 
-_cart_repository: ICartRepository = InMemoryCartRepository()
+_cart_repository: ICartRepository = RiakCartRepository()
 
 
 def get_cart_repository() -> ICartRepository:

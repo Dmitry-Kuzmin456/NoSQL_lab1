@@ -16,8 +16,8 @@ from infrastructure.http.user.dependencies import (
     PasswordHasherDep,
     UserServiceDep,
 )
-from infrastructure.persistence.in_memory.session_repository import (
-    InMemorySessionRepository,
+from infrastructure.persistence.riak.session_repository import (
+    RiakSessionRepository,
 )
 from infrastructure.security.jwt_service import JwtTokenService
 
@@ -26,7 +26,7 @@ _token_service: ITokenService = JwtTokenService(
     algorithm=settings.auth.jwt_algorithm,
     expire_minutes=settings.auth.access_token_expire_minutes,
 )
-_session_repository: ISessionRepository = InMemorySessionRepository()
+_session_repository: ISessionRepository = RiakSessionRepository()
 
 
 def get_token_service() -> ITokenService:

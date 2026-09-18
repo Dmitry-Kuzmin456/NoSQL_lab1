@@ -8,7 +8,7 @@ from .repository import IHistoryRepository
 
 
 class HistoryService:
-    """Прикладной сервис истории действий пользователей (Append-Only подход)."""
+    """Сервис истории действий пользователей."""
 
     def __init__(
         self,
@@ -19,11 +19,11 @@ class HistoryService:
         event_bus.subscribe(OperationEvent, self.handle_event)
 
     def handle_event(self, event: OperationEvent) -> None:
-        """Обработчик события OperationEvent из шины событий."""
+        """Обработчик события из шины событий."""
         self.record_event(event)
 
     def record_event(self, event: OperationEvent) -> None:
-        """Зафиксировать событие в истории БЕЗ загрузки всей истории в память."""
+        """Зафиксировать событие в истории."""
         self._history_repository.add_event(event)
 
     def get_by_user_id(
@@ -32,7 +32,7 @@ class HistoryService:
         offset: int = 0,
         limit: int = 20,
     ) -> UserHistoryResponseDto:
-        """Получить срез действий пользователя с пагинацией."""
+        """Получить историю действий пользователя с пагинацией."""
         events, total = self._history_repository.get_user_events(
             user_id=user_id,
             offset=offset,
@@ -48,4 +48,4 @@ class HistoryService:
 
     def clear_user_history(self, user_id: UUID) -> bool:
         """Очистить историю действий пользователя."""
-        return self._history_repository.delete_by_user_id(user_id)
+        return self._history_repository.clear(user_id)

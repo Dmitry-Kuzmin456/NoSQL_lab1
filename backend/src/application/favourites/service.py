@@ -2,7 +2,7 @@ from uuid import UUID
 
 from application.event_bus import IEventBus
 from application.product.service import ProductService
-from domain.favourites import Favourites
+from domain.favourites import FavouriteProduct, Favourites
 from domain.history import OperationEvent, OperationType
 
 from .dto import AddFavouriteDto, FavouritesResponseDto
@@ -34,11 +34,14 @@ class FavouritesService:
         self._product_service.ensure_exists(dto.product_id)
 
         acting_user_id = added_by_user_id or user_id
-        self._favourites_repository.add_or_update_item(
-            user_id=user_id,
+        item = FavouriteProduct(
             product_id=dto.product_id,
             added_user_id=acting_user_id,
             note=dto.note,
+        )
+        self._favourites_repository.add_or_update_item(
+            user_id=user_id,
+            item=item,
         )
 
         self._event_bus.publish(
@@ -76,7 +79,7 @@ class FavouritesService:
         return self._favourites_repository.is_favourite(user_id, product_id)
 
     def clear(self, user_id: UUID) -> FavouritesResponseDto:
-        self._favourites_repository.clear_favourites(user_id)
+        self._favourites_repository.clear(user_id)
 
         self._event_bus.publish(
             OperationEvent(

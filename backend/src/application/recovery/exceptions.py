@@ -25,10 +25,3 @@ class RecoveryTokenExpiredException(RecoveryTokenException):
 
     def __init__(self) -> None:
         super().__init__("Срок действия токена восстановления истек.")
-
-
-class RecoveryTokenAlreadyUsedException(RecoveryTokenException):
-    status_code: int = 400
-
-    def __init__(self) -> None:
-        super().__init__("Токен восстановления уже был использован.")

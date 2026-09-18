@@ -12,12 +12,6 @@ class RecoveryToken:
     expires_at: datetime = field(
         default_factory=lambda: datetime.now(UTC) + timedelta(minutes=15)
     )
-    is_used: bool = False
 
     def is_expired(self) -> bool:
-        if self.is_used:
-            return True
         return datetime.now(UTC) > self.expires_at
-
-    def mark_as_used(self) -> None:
-        self.is_used = True

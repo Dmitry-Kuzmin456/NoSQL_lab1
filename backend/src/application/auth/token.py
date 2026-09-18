@@ -12,10 +12,10 @@ class ITokenService(ABC):
         user_id: UUID,
         role: UserRole,
     ) -> str:
-        """Create a signed access token (JWT) containing user_id and role."""
+        """Создать токен доступа."""
         ...
 
     @abstractmethod
     def verify_access_token(self, token: str) -> dict[str, Any]:
-        """Verify and decode an access token, returning its payload claims."""
+        """Проверить токен доступа."""
         ...

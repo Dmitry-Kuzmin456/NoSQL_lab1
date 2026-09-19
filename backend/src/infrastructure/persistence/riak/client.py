@@ -21,6 +21,10 @@ class RiakObject:
     indexes: dict[str, str | int] = field(default_factory=dict)
 
 
+def _build_kv_url(bucket: str, key: str, bucket_type: str = "default") -> str:
+    return f"/types/{bucket_type}/buckets/{bucket}/keys/{key}"
+
+
 class RiakClient:
     """HTTP-клиент для Riak KV."""
 
@@ -44,18 +48,13 @@ class RiakClient:
             logger.warning("Riak ping failed: %s", exc)
             return False
 
-    def _build_kv_url(self, bucket: str, key: str, bucket_type: str = "default") -> str:
-        if bucket_type and bucket_type != "default":
-            return f"/types/{bucket_type}/buckets/{bucket}/keys/{key}"
-        return f"/buckets/{bucket}/keys/{key}"
-
     def get(
         self,
         bucket: str,
         key: str,
         bucket_type: str = "default",
     ) -> RiakObject | None:
-        url = self._build_kv_url(bucket, key, bucket_type)
+        url = _build_kv_url(bucket, key, bucket_type)
         try:
             response = self._client.get(url)
             if response.status_code == 404:
@@ -101,7 +100,7 @@ class RiakClient:
         vclock: str | None = None,
         indexes: dict[str, str | int] | None = None,
     ) -> RiakObject:
-        url = self._build_kv_url(bucket, key, bucket_type)
+        url = _build_kv_url(bucket, key, bucket_type)
         headers: dict[str, str] = {"Content-Type": content_type}
 
         if vclock:
@@ -136,7 +135,7 @@ class RiakClient:
             raise
 
     def delete(self, bucket: str, key: str, bucket_type: str = "default") -> bool:
-        url = self._build_kv_url(bucket, key, bucket_type)
+        url = _build_kv_url(bucket, key, bucket_type)
         try:
             response = self._client.delete(url)
             if response.status_code in (204, 404):
@@ -240,7 +239,9 @@ class RiakClient:
         bucket_type: str = "sets",
     ) -> set[str]:
         url = self._build_datatype_url(bucket, key, bucket_type)
-        payload = {"add": elements} if isinstance(elements, str) else {"add_all": elements}
+        payload = (
+            {"add": elements} if isinstance(elements, str) else {"add_all": elements}
+        )
         try:
             response = self._client.post(
                 url,
@@ -261,7 +262,11 @@ class RiakClient:
         bucket_type: str = "sets",
     ) -> set[str]:
         url = self._build_datatype_url(bucket, key, bucket_type)
-        payload = {"remove": elements} if isinstance(elements, str) else {"remove_all": elements}
+        payload = (
+            {"remove": elements}
+            if isinstance(elements, str)
+            else {"remove_all": elements}
+        )
         try:
             response = self._client.post(
                 url,

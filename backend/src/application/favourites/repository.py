@@ -23,11 +23,6 @@ class IFavouritesRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def clear(self, user_id: UUID) -> bool:
-        """Очистить список избранного пользователя."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def save(self, favourites: Favourites) -> Favourites:
-        """Сохранить список избранного."""
+    def delete_by_user_id(self, user_id: UUID) -> bool:
+        """Удалить список избранного пользователя."""
         raise NotImplementedError

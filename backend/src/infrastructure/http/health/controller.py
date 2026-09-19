@@ -23,5 +23,7 @@ def riak_health() -> dict[str, str | int]:
     is_ok = get_riak_client().ping()
     return {
         "riak": "ok" if is_ok else "unreachable",
-        "status_code": status.HTTP_200_OK if is_ok else status.HTTP_503_SERVICE_UNAVAILABLE,
+        "status_code": (
+            status.HTTP_200_OK if is_ok else status.HTTP_503_SERVICE_UNAVAILABLE
+        ),
     }

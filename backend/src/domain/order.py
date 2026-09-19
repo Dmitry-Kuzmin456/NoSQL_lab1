@@ -2,7 +2,42 @@ from dataclasses import dataclass, field
 from datetime import UTC, datetime
 from decimal import Decimal
 from enum import StrEnum
+from typing import Any
 from uuid import UUID, uuid4
+
+
+@dataclass(frozen=True)
+class ProductSnapshot:
+    id: UUID
+    name: str
+    description: str
+    price: Decimal
+
+    def to_dict(self) -> dict[str, Any]:
+        return {
+            "id": str(self.id),
+            "name": self.name,
+            "description": self.description,
+            "price": f"{self.price:.2f}",
+        }
+
+    @classmethod
+    def from_dict(cls, data: dict[str, Any]) -> "ProductSnapshot":
+        return cls(
+            id=UUID(str(data["id"])),
+            name=str(data.get("name", "")),
+            description=str(data.get("description", "")),
+            price=Decimal(str(data.get("price", "0.00"))),
+        )
+
+    @classmethod
+    def from_product(cls, product: Any) -> "ProductSnapshot":
+        return cls(
+            id=product.id,
+            name=product.name,
+            description=product.description,
+            price=product.price,
+        )
 
 
 class OrderStatus(StrEnum):
@@ -18,6 +53,7 @@ class Order:
     product_id: UUID
     quantity: int
     unit_price: Decimal
+    product_snapshot: ProductSnapshot
     id: UUID = field(default_factory=uuid4)
     status: OrderStatus = OrderStatus.CREATED
     total_amount: Decimal = field(default=Decimal("0.00"))

@@ -3,7 +3,24 @@ from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
-from domain.order import Order, OrderStatus
+from domain.order import Order, OrderStatus, ProductSnapshot
+
+
+@dataclass(frozen=True)
+class ProductSnapshotDto:
+    id: UUID
+    name: str
+    description: str
+    price: Decimal
+
+    @classmethod
+    def from_domain(cls, snapshot: ProductSnapshot) -> "ProductSnapshotDto":
+        return cls(
+            id=snapshot.id,
+            name=snapshot.name,
+            description=snapshot.description,
+            price=snapshot.price,
+        )
 
 
 @dataclass(frozen=True)
@@ -40,6 +57,7 @@ class OrderResponseDto:
     total_amount: Decimal
     status: OrderStatus
     created_at: datetime
+    product_snapshot: ProductSnapshotDto
 
     @classmethod
     def from_domain(cls, order: Order) -> "OrderResponseDto":
@@ -52,6 +70,7 @@ class OrderResponseDto:
             total_amount=order.total_amount,
             status=order.status,
             created_at=order.created_at,
+            product_snapshot=ProductSnapshotDto.from_domain(order.product_snapshot),
         )
 
 

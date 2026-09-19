@@ -3189,6 +3189,8 @@ components:
           type: string
           format: date-time
           title: Created At
+        product_snapshot:
+          $ref: '#/components/schemas/ProductSnapshotResponse'
       type: object
       required:
       - id
@@ -3199,6 +3201,7 @@ components:
       - total_amount
       - status
       - created_at
+      - product_snapshot
       title: OrderResponse
     OrderStatus:
       type: string
@@ -3266,6 +3269,33 @@ components:
       - quantity
       - is_in_stock
       title: ProductResponse
+    ProductSnapshotResponse:
+      properties:
+        id:
+          type: string
+          format: uuid
+          title: Id
+          description: ID товара на момент заказа
+        name:
+          type: string
+          title: Name
+          description: Название товара на момент заказа
+        description:
+          type: string
+          title: Description
+          description: Описание товара на момент заказа
+        price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Price
+          description: Цена товара на момент заказа
+      type: object
+      required:
+      - id
+      - name
+      - description
+      - price
+      title: ProductSnapshotResponse
     RecoveryResponse:
       properties:
         token:

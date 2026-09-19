@@ -1,6 +1,6 @@
 import json
 import logging
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from typing import Any
 
 import httpx
@@ -15,10 +15,10 @@ class RiakObject:
     bucket: str
     key: str
     data: Any
-    bucket_type: str = "default"
-    content_type: str = "application/json"
-    vclock: str | None = None
-    indexes: dict[str, str | int] = field(default_factory=dict)
+    bucket_type: str
+    content_type: str
+    vclock: str | None
+    indexes: dict[str, str | int]
 
 
 def _build_kv_url(bucket: str, key: str, bucket_type: str = "default") -> str:

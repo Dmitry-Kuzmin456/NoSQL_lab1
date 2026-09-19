@@ -8,7 +8,6 @@ class FavouriteProduct:
     product_id: UUID
     added_user_id: UUID
     updated_at: datetime = field(default_factory=lambda: datetime.now(UTC))
-    note: str | None = None
 
 
 @dataclass

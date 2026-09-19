@@ -37,19 +37,15 @@ class FavouritesService:
         item = FavouriteProduct(
             product_id=dto.product_id,
             added_user_id=acting_user_id,
-            note=dto.note,
         )
-        self._favourites_repository.add_or_update_item(
-            user_id=user_id,
-            item=item,
-        )
+        if not self._favourites_repository.update_item(user_id=user_id, item=item):
+            self._favourites_repository.add_item(user_id=user_id, item=item)
 
         self._event_bus.publish(
             OperationEvent(
                 user_id=user_id,
                 action=OperationType.ADD_FAVOURITE,
                 target_id=dto.product_id,
-                details={"note": dto.note or ""},
             )
         )
 

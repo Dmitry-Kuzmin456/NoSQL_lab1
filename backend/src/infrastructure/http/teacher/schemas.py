@@ -16,16 +16,10 @@ class AddStudentRequest(BaseModel):
 
 class AddProductToStudentsRequest(BaseModel):
     product_id: UUID = Field(..., description="ID рекомендуемого товара")
-    note: str | None = Field(
-        default=None,
-        max_length=500,
-        description="Заметка/рекомендация от преподавателя",
-    )
 
     def to_dto(self) -> AddProductToStudentsDto:
         return AddProductToStudentsDto(
             product_id=self.product_id,
-            note=self.note,
         )
 
 

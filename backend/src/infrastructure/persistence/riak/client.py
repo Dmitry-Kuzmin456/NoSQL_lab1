@@ -116,15 +116,25 @@ class RiakClient:
         key: str,
         amount: int = 1,
         bucket_type: str = "counters",
+        return_body: bool = True,
     ) -> int:
         url = _build_datatype_url(bucket, key, bucket_type)
-        self._request(
+        if return_body:
+            url = f"{url}?returnbody=true"
+        response = self._request(
             "POST",
             url,
             json={"increment": amount},
             headers={"Content-Type": "application/json"},
         )
-        return self.counter_get(bucket, key, bucket_type)
+        if return_body:
+            if response.status_code == 200:
+                try:
+                    return int(response.json().get("value", 0))
+                except (ValueError, TypeError):
+                    pass
+            return self.counter_get(bucket, key, bucket_type)
+        return 0
 
     def counter_get(
         self,
@@ -144,18 +154,28 @@ class RiakClient:
         key: str,
         elements: str | list[str],
         bucket_type: str = "sets",
+        return_body: bool = False,
     ) -> set[str]:
         url = _build_datatype_url(bucket, key, bucket_type)
+        if return_body:
+            url = f"{url}?returnbody=true"
         payload = (
             {"add": elements} if isinstance(elements, str) else {"add_all": elements}
         )
-        self._request(
+        response = self._request(
             "POST",
             url,
             json=payload,
             headers={"Content-Type": "application/json"},
         )
-        return self.set_get(bucket, key, bucket_type)
+        if return_body:
+            if response.status_code == 200:
+                try:
+                    return set(response.json().get("value", []))
+                except (ValueError, TypeError):
+                    pass
+            return self.set_get(bucket, key, bucket_type)
+        return set()
 
     def set_remove(
         self,
@@ -163,20 +183,30 @@ class RiakClient:
         key: str,
         elements: str | list[str],
         bucket_type: str = "sets",
+        return_body: bool = False,
     ) -> set[str]:
         url = _build_datatype_url(bucket, key, bucket_type)
+        if return_body:
+            url = f"{url}?returnbody=true"
         payload = (
             {"remove": elements}
             if isinstance(elements, str)
             else {"remove_all": elements}
         )
-        self._request(
+        response = self._request(
             "POST",
             url,
             json=payload,
             headers={"Content-Type": "application/json"},
         )
-        return self.set_get(bucket, key, bucket_type)
+        if return_body:
+            if response.status_code == 200:
+                try:
+                    return set(response.json().get("value", []))
+                except (ValueError, TypeError):
+                    pass
+            return self.set_get(bucket, key, bucket_type)
+        return set()
 
     def set_get(
         self,
@@ -196,15 +226,27 @@ class RiakClient:
         key: str,
         update_spec: dict[str, Any],
         bucket_type: str = "maps",
+        return_body: bool = False,
     ) -> dict[str, Any]:
         url = _build_datatype_url(bucket, key, bucket_type)
-        self._request(
+        if return_body:
+            url = f"{url}?returnbody=true"
+        response = self._request(
             "POST",
             url,
             json={"update": update_spec},
             headers={"Content-Type": "application/json"},
         )
-        return self.map_get(bucket, key, bucket_type) or {}
+        if return_body:
+            if response.status_code == 200:
+                try:
+                    val = response.json().get("value")
+                    if isinstance(val, dict):
+                        return val
+                except (ValueError, TypeError):
+                    pass
+            return self.map_get(bucket, key, bucket_type) or {}
+        return {}
 
     def map_get(
         self,

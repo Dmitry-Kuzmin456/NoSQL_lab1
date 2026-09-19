@@ -32,7 +32,9 @@ class CompositeHistoryRepository(IHistoryRepository):
         try:
             self._riak_repo.clear(event.user_id)
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to invalidate history cache for user %s: %s", event.user_id, exc)
+            logger.warning(
+                "Failed to invalidate history cache for user %s: %s", event.user_id, exc
+            )
 
     def get_user_events(
         self,
@@ -47,7 +49,9 @@ class CompositeHistoryRepository(IHistoryRepository):
                 if cached is not None:
                     return cached
             except Exception as exc:  # noqa: BLE001
-                logger.warning("Failed to read history cache for user %s: %s", user_id, exc)
+                logger.warning(
+                    "Failed to read history cache for user %s: %s", user_id, exc
+                )
 
         events = self._postgres_repo.list_by_user_id(
             user_id=user_id,
@@ -59,7 +63,9 @@ class CompositeHistoryRepository(IHistoryRepository):
             try:
                 self._riak_repo.set_cached_events(user_id, events)
             except Exception as exc:  # noqa: BLE001
-                logger.warning("Failed to populate history cache for user %s: %s", user_id, exc)
+                logger.warning(
+                    "Failed to populate history cache for user %s: %s", user_id, exc
+                )
 
         return events
 
@@ -69,5 +75,7 @@ class CompositeHistoryRepository(IHistoryRepository):
         try:
             self._riak_repo.clear(user_id)
         except Exception as exc:  # noqa: BLE001
-            logger.warning("Failed to clear history cache for user %s: %s", user_id, exc)
+            logger.warning(
+                "Failed to clear history cache for user %s: %s", user_id, exc
+            )
         return deleted

@@ -163,9 +163,9 @@ def setup_docker_test_containers() -> Generator[None]:
     """Гарантирует, что тестовые контейнеры PostgreSQL и Riak KV запущены и готовы к работе."""
     if not _is_postgres_ready() or not _is_riak_ready():
         # Start docker-compose.test.yml
-        compose_file = (
-            os.path.abspath(
-                os.path.join(os.path.dirname(__file__), "..", "..", "docker-compose.test.yml")
+        compose_file = os.path.abspath(
+            os.path.join(
+                os.path.dirname(__file__), "..", "..", "docker-compose.test.yml"
             )
         )
         if os.path.exists(compose_file):
@@ -264,12 +264,8 @@ def clean_db_and_riak_between_tests() -> Generator[None]:
 
 @dataclass
 class RepositoriesContainer:
-    user_repo: PostgresUserRepository = field(
-        default_factory=PostgresUserRepository
-    )
-    session_repo: RiakSessionRepository = field(
-        default_factory=RiakSessionRepository
-    )
+    user_repo: PostgresUserRepository = field(default_factory=PostgresUserRepository)
+    session_repo: RiakSessionRepository = field(default_factory=RiakSessionRepository)
     product_repo: PostgresProductRepository = field(
         default_factory=PostgresProductRepository
     )
@@ -277,9 +273,7 @@ class RepositoriesContainer:
     favourites_repo: RiakFavouritesRepository = field(
         default_factory=RiakFavouritesRepository
     )
-    order_repo: PostgresOrderRepository = field(
-        default_factory=PostgresOrderRepository
-    )
+    order_repo: PostgresOrderRepository = field(default_factory=PostgresOrderRepository)
     counter_repo: RiakOrderCounterRepository = field(
         default_factory=RiakOrderCounterRepository
     )

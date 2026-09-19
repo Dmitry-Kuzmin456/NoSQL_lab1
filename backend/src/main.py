@@ -23,6 +23,7 @@ from infrastructure.http.recovery.controller import router as recovery_router
 from infrastructure.http.teacher.controller import router as teacher_router
 from infrastructure.http.user.controller import router as user_router
 from infrastructure.persistence.postgres.connection import close_postgres_pool, init_db
+from infrastructure.persistence.riak.client import close_riak_client
 
 
 @asynccontextmanager
@@ -30,6 +31,7 @@ async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     init_db()
     yield
     close_postgres_pool()
+    close_riak_client()
 
 
 class App(FastAPI):

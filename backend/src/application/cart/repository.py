@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from datetime import datetime
 from uuid import UUID
 
 from domain.cart import Cart
@@ -13,8 +14,19 @@ class ICartRepository(ABC):
         pass
 
     @abstractmethod
-    def save(self, cart: Cart) -> Cart:
-        """Сохранить корзину."""
+    def set_item_quantity(
+        self,
+        user_id: UUID,
+        product_id: UUID,
+        quantity: int,
+        updated_at: datetime | None = None,
+    ) -> bool:
+        """Установить количество товара в корзине."""
+        pass
+
+    @abstractmethod
+    def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
+        """Удалить товар из корзины."""
         pass
 
     @abstractmethod

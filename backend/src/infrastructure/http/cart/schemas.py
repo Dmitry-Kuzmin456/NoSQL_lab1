@@ -4,24 +4,10 @@ from uuid import UUID
 from pydantic import BaseModel, Field
 
 from application.cart.dto import (
-    AddCartProductDto,
     CartItemResponseDto,
     CartResponseDto,
     UpdateCartProductDto,
 )
-
-
-class AddCartItemRequest(BaseModel):
-    product_id: UUID = Field(..., description="ID добавляемого товара")
-    quantity: int = Field(
-        default=1, gt=0, description="Количество товара (должно быть > 0)"
-    )
-
-    def to_dto(self) -> AddCartProductDto:
-        return AddCartProductDto(
-            product_id=self.product_id,
-            quantity=self.quantity,
-        )
 
 
 class UpdateCartItemRequest(BaseModel):

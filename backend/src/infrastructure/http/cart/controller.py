@@ -8,7 +8,6 @@ from infrastructure.http.middleware.authentication_middleware import CurrentUser
 
 from .dependencies import CartServiceDep
 from .schemas import (
-    AddCartItemRequest,
     CartResponse,
     UpdateCartItemRequest,
 )
@@ -18,18 +17,6 @@ router = APIRouter(tags=["Cart"])
 
 def _get_cart(user_id: UUID, service: CartServiceDep) -> CartResponse:
     dto = service.get_by_user_id(user_id)
-    return CartResponse.from_dto(dto)
-
-
-def _add_product(
-    user_id: UUID,
-    request: AddCartItemRequest,
-    service: CartServiceDep,
-) -> CartResponse:
-    dto = service.add_product(
-        user_id=user_id,
-        dto=request.to_dto(),
-    )
     return CartResponse.from_dto(dto)
 
 
@@ -89,36 +76,6 @@ def get_cart_by_user_id(
     service: CartServiceDep,
 ) -> CartResponse:
     return _get_cart(user_id, service)
-
-
-@router.post(
-    "/users/me/cart/items",
-    dependencies=[require_roles()],
-    response_model=CartResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Добавить товар в корзину текущего пользователя",
-)
-def add_item_to_cart_me(
-    request: AddCartItemRequest,
-    current_user: CurrentUserDep,
-    service: CartServiceDep,
-) -> CartResponse:
-    return _add_product(current_user.id, request, service)
-
-
-@router.post(
-    "/users/{user_id}/cart/items",
-    dependencies=[require_roles(UserRole.ADMIN)],
-    response_model=CartResponse,
-    status_code=status.HTTP_200_OK,
-    summary="Добавить товар в корзину пользователя по ID (Admin)",
-)
-def add_item_to_cart_by_user_id(
-    user_id: UUID,
-    request: AddCartItemRequest,
-    service: CartServiceDep,
-) -> CartResponse:
-    return _add_product(user_id, request, service)
 
 
 @router.patch(

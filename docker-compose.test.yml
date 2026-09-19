@@ -1,0 +1,36 @@
+services:
+  postgres-test:
+    image: postgres:16-alpine
+    container_name: nosql_postgres_test
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: nosql_store_test
+    ports:
+      - "5433:5432"
+    volumes:
+      - ./backend/scripts/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres -d nosql_store_test"]
+      interval: 2s
+      timeout: 3s
+      retries: 20
+
+  riak-test:
+    image: basho/riak-kv:ubuntu-2.2.3
+    container_name: nosql_riak_test
+    platform: linux/amd64
+    environment:
+      CLUSTER_NAME: riakkv
+    labels:
+      com.basho.riak.cluster.name: riakkv
+    ports:
+      - "8088:8087"
+      - "8099:8098"
+    volumes:
+      - ./backend/scripts/init_riak.sh:/etc/riak/init_riak.sh:ro
+    healthcheck:
+      test: ["CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1"]
+      interval: 3s
+      timeout: 3s
+      retries: 30

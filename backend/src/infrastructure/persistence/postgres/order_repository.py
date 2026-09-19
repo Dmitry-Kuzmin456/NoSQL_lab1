@@ -30,7 +30,7 @@ class PostgresOrderRepository(IOrderRepository):
                 parsed = json.loads(raw_snapshot)
                 if isinstance(parsed, dict) and parsed:
                     snapshot = ProductSnapshot.from_dict(parsed)
-            except Exception:
+            except (json.JSONDecodeError, ValueError, TypeError, KeyError):
                 snapshot = None
 
         if snapshot is None:

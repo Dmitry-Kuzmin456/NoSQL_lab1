@@ -75,9 +75,6 @@ class FavouritesService:
         favourites = self._get_or_create(user_id)
         return FavouritesResponseDto.from_domain(favourites)
 
-    def is_in_favourites(self, user_id: UUID, product_id: UUID) -> bool:
-        return self._favourites_repository.is_favourite(user_id, product_id)
-
     def clear(self, user_id: UUID) -> FavouritesResponseDto:
         self._favourites_repository.clear(user_id)
 

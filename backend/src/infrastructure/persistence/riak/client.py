@@ -78,39 +78,31 @@ class RiakClient:
             logger.error("Riak get error (%s/%s): %s", bucket, key, exc)
             raise
 
-    def put(
-        self,
-        bucket: str,
-        key: str,
-        data: Any,
-        bucket_type: str = "default",
-        vclock: str | None = None,
-        indexes: dict[str, str | int] | None = None,
-    ) -> RiakObject:
-        url = _build_kv_url(bucket, key, bucket_type)
+    def put(self, obj: RiakObject) -> RiakObject:
+        url = _build_kv_url(obj.bucket, obj.key, obj.bucket_type)
         headers: dict[str, str] = {"Content-Type": "application/json"}
 
-        if vclock:
-            headers["X-Riak-Vclock"] = vclock
+        if obj.vclock:
+            headers["X-Riak-Vclock"] = obj.vclock
 
-        if indexes:
-            for idx_name, idx_val in indexes.items():
+        if obj.indexes:
+            for idx_name, idx_val in obj.indexes.items():
                 headers[f"x-riak-index-{idx_name}"] = str(idx_val)
 
         try:
-            response = self._client.put(url, json=data, headers=headers)
+            response = self._client.put(url, json=obj.data, headers=headers)
             response.raise_for_status()
-            returned_vclock = response.headers.get("x-riak-vclock", vclock)
+            returned_vclock = response.headers.get("x-riak-vclock", obj.vclock)
             return RiakObject(
-                bucket=bucket,
-                key=key,
-                data=data,
-                bucket_type=bucket_type,
+                bucket=obj.bucket,
+                key=obj.key,
+                data=obj.data,
+                bucket_type=obj.bucket_type,
                 vclock=returned_vclock,
-                indexes=indexes or {},
+                indexes=obj.indexes,
             )
         except httpx.RequestError as exc:
-            logger.error("Riak put error (%s/%s): %s", bucket, key, exc)
+            logger.error("Riak put error (%s/%s): %s", obj.bucket, obj.key, exc)
             raise
 
     def delete(self, bucket: str, key: str, bucket_type: str = "default") -> bool:

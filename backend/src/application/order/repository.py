@@ -46,3 +46,13 @@ class IOrderRepository(ABC):
     ) -> bool:
         """Обновить статус заказа."""
         raise NotImplementedError
+
+    @abstractmethod
+    def update_status_and_get(
+        self,
+        order_id: UUID,
+        new_status: OrderStatus,
+        expected_status: OrderStatus | None = None,
+    ) -> Order | None:
+        """Обновить статус заказа и вернуть обновленный заказ в одном запросе."""
+        raise NotImplementedError

@@ -25,8 +25,24 @@ class ICartRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def set_item_quantity_and_get(
+        self,
+        user_id: UUID,
+        product_id: UUID,
+        quantity: int,
+        updated_at: datetime | None = None,
+    ) -> Cart:
+        """Установить количество товара в корзине и вернуть обновленную корзину в одном запросе."""
+        raise NotImplementedError
+
+    @abstractmethod
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из корзины."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_item_and_get(self, user_id: UUID, product_id: UUID) -> Cart:
+        """Удалить товар из корзины и вернуть обновленную корзину в одном запросе."""
         raise NotImplementedError
 
     @abstractmethod

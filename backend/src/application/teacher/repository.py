@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from uuid import UUID
 
 from domain.teacher import Teacher
+from domain.user import User
 
 
 class ITeacherRepository(ABC):
@@ -10,6 +11,11 @@ class ITeacherRepository(ABC):
     @abstractmethod
     def get_by_id(self, teacher_id: UUID) -> Teacher | None:
         """Получить преподавателя по ID."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_students(self, teacher_id: UUID) -> list[User]:
+        """Получить список прикрепленных студентов преподавателя одним запросом."""
         raise NotImplementedError
 
     @abstractmethod

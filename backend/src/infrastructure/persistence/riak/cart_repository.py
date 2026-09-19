@@ -81,6 +81,9 @@ class RiakCartRepository(ICartRepository):
         updated_at: datetime | None = None,
     ) -> bool:
         """Установить количество товара в CRDT карте корзины."""
+        if quantity <= 0:
+            return self.remove_item(user_id, product_id)
+
         dt = updated_at or datetime.now(UTC)
         field_name = f"{product_id}_map"
         update_spec = {
@@ -108,6 +111,9 @@ class RiakCartRepository(ICartRepository):
         updated_at: datetime | None = None,
     ) -> Cart:
         """Установить количество товара в CRDT карте корзины и вернуть обновленную корзину."""
+        if quantity <= 0:
+            return self.remove_item_and_get(user_id, product_id)
+
         dt = updated_at or datetime.now(UTC)
         field_name = f"{product_id}_map"
         update_spec = {
@@ -131,11 +137,10 @@ class RiakCartRepository(ICartRepository):
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из CRDT карты корзины."""
         field_name = f"{product_id}_map"
-        update_spec = {field_name: "remove"}
-        self._client.map_update(
+        self._client.map_remove(
             bucket=self._bucket,
             key=str(user_id),
-            update_spec=update_spec,
+            fields=field_name,
             bucket_type=self._bucket_type,
             return_body=False,
         )
@@ -144,11 +149,10 @@ class RiakCartRepository(ICartRepository):
     def remove_item_and_get(self, user_id: UUID, product_id: UUID) -> Cart:
         """Удалить товар из CRDT карты корзины и вернуть обновленную корзину."""
         field_name = f"{product_id}_map"
-        update_spec = {field_name: "remove"}
-        data = self._client.map_update(
+        data = self._client.map_remove(
             bucket=self._bucket,
             key=str(user_id),
-            update_spec=update_spec,
+            fields=field_name,
             bucket_type=self._bucket_type,
             return_body=True,
         )

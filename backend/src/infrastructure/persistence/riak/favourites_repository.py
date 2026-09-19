@@ -124,11 +124,10 @@ class RiakFavouritesRepository(IFavouritesRepository):
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из избранного через операцию remove поля CRDT Map."""
         field_name = f"{product_id}_map"
-        update_spec = {field_name: "remove"}
-        self._client.map_update(
+        self._client.map_remove(
             bucket=self._bucket,
             key=str(user_id),
-            update_spec=update_spec,
+            fields=field_name,
             bucket_type=self._bucket_type,
             return_body=False,
         )
@@ -137,11 +136,10 @@ class RiakFavouritesRepository(IFavouritesRepository):
     def remove_item_and_get(self, user_id: UUID, product_id: UUID) -> Favourites:
         """Удалить товар из избранного и вернуть обновленный список."""
         field_name = f"{product_id}_map"
-        update_spec = {field_name: "remove"}
-        data = self._client.map_update(
+        data = self._client.map_remove(
             bucket=self._bucket,
             key=str(user_id),
-            update_spec=update_spec,
+            fields=field_name,
             bucket_type=self._bucket_type,
             return_body=True,
         )

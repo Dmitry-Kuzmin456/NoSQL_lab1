@@ -57,7 +57,6 @@ class RiakHistoryCacheRepository:
             key=str(user_id),
             data=payload,
             bucket_type=self._bucket_type,
-            vclock=None,
         )
         self._client.put(obj)
 

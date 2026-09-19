@@ -49,7 +49,6 @@ class RiakRecoveryTokenRepository(IRecoveryTokenRepository):
             key=recovery_token.token,
             data=self._token_to_dict(recovery_token),
             bucket_type=self._bucket_type,
-            vclock=None,
         )
         self._client.put(obj)
         return recovery_token

@@ -329,18 +329,12 @@ class RiakClient:
             raise
 
 
-_riak_client: RiakClient | None = None
+_client = RiakClient()
 
 
 def get_riak_client() -> RiakClient:
-    global _riak_client
-    if _riak_client is None:
-        _riak_client = RiakClient()
-    return _riak_client
+    return _client
 
 
 def close_riak_client() -> None:
-    global _riak_client
-    if _riak_client is not None:
-        _riak_client.close()
-        _riak_client = None
+    _client.close()

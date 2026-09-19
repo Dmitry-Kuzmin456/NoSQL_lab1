@@ -31,7 +31,7 @@ class SessionService:
 
     def refresh_session(
         self, refresh_token: str, ttl_days: int = 30
-     ) -> SessionResponseDto:
+    ) -> SessionResponseDto:
         session = self._session_repository.get_by_refresh_token(refresh_token)
         if session is None:
             raise SessionNotFoundException(refresh_token)

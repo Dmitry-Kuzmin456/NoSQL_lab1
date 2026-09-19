@@ -56,8 +56,6 @@ class RiakClient:
         self,
         method: str,
         url: str,
-        op_name: str,
-        target: str = "",
         **kwargs: Any,
     ) -> httpx.Response:
         try:
@@ -66,7 +64,7 @@ class RiakClient:
                 response.raise_for_status()
             return response
         except httpx.HTTPError as exc:
-            logger.error("Riak %s error (%s): %s", op_name, target, exc)
+            logger.error("Riak error [%s %s]: %s", method, url, exc)
             raise
 
     def ping(self) -> bool:
@@ -84,7 +82,7 @@ class RiakClient:
         bucket_type: str = "default",
     ) -> RiakObject | None:
         url = _build_kv_url(bucket, key, bucket_type)
-        response = self._request("GET", url, "get", f"{bucket}/{key}")
+        response = self._request("GET", url)
         if response.status_code == 404:
             return None
 
@@ -118,8 +116,6 @@ class RiakClient:
         response = self._request(
             "PUT",
             url,
-            "put",
-            f"{obj.bucket}/{obj.key}",
             json=obj.data,
             headers=headers,
         )
@@ -135,7 +131,7 @@ class RiakClient:
 
     def delete(self, bucket: str, key: str, bucket_type: str = "default") -> bool:
         url = _build_kv_url(bucket, key, bucket_type)
-        response = self._request("DELETE", url, "delete", f"{bucket}/{key}")
+        response = self._request("DELETE", url)
         return response.status_code in (204, 404) or response.is_success
 
     def query_index_exact(
@@ -146,7 +142,7 @@ class RiakClient:
         bucket_type: str = "default",
     ) -> list[str]:
         url = _build_index_url(bucket, index_name, [value], bucket_type=bucket_type)
-        response = self._request("GET", url, "2i", f"{bucket}/{index_name}")
+        response = self._request("GET", url)
         if response.status_code == 404:
             return []
         return response.json().get("keys", [])
@@ -162,7 +158,7 @@ class RiakClient:
         url = _build_index_url(
             bucket, index_name, [start_val, end_val], bucket_type=bucket_type
         )
-        response = self._request("GET", url, "2i range", f"{bucket}/{index_name}")
+        response = self._request("GET", url)
         if response.status_code == 404:
             return []
         return response.json().get("keys", [])
@@ -178,8 +174,6 @@ class RiakClient:
         self._request(
             "POST",
             url,
-            "counter increment",
-            f"{bucket}/{key}",
             json={"increment": amount},
             headers={"Content-Type": "application/json"},
         )
@@ -192,7 +186,7 @@ class RiakClient:
         bucket_type: str = "counters",
     ) -> int:
         url = _build_datatype_url(bucket, key, bucket_type)
-        response = self._request("GET", url, "counter get", f"{bucket}/{key}")
+        response = self._request("GET", url)
         if response.status_code == 404:
             return 0
         return int(response.json().get("value", 0))
@@ -211,8 +205,6 @@ class RiakClient:
         self._request(
             "POST",
             url,
-            "set add",
-            f"{bucket}/{key}",
             json=payload,
             headers={"Content-Type": "application/json"},
         )
@@ -234,8 +226,6 @@ class RiakClient:
         self._request(
             "POST",
             url,
-            "set remove",
-            f"{bucket}/{key}",
             json=payload,
             headers={"Content-Type": "application/json"},
         )
@@ -248,7 +238,7 @@ class RiakClient:
         bucket_type: str = "sets",
     ) -> set[str]:
         url = _build_datatype_url(bucket, key, bucket_type)
-        response = self._request("GET", url, "set get", f"{bucket}/{key}")
+        response = self._request("GET", url)
         if response.status_code == 404:
             return set()
         return set(response.json().get("value", []))
@@ -264,8 +254,6 @@ class RiakClient:
         self._request(
             "POST",
             url,
-            "map update",
-            f"{bucket}/{key}",
             json={"update": update_spec},
             headers={"Content-Type": "application/json"},
         )
@@ -278,7 +266,7 @@ class RiakClient:
         bucket_type: str = "maps",
     ) -> dict[str, Any] | None:
         url = _build_datatype_url(bucket, key, bucket_type)
-        response = self._request("GET", url, "map get", f"{bucket}/{key}")
+        response = self._request("GET", url)
         if response.status_code == 404:
             return None
         return response.json().get("value", {})

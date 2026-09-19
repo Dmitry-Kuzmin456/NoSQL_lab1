@@ -125,9 +125,6 @@ class UserService:
         )
 
     def reset_password(self, user_id: UUID, new_password: str) -> None:
-        if not self._user_repository.exists_by_id(user_id):
-            raise UserNotFoundException(user_id)
-
         if len(new_password) < 6:
             raise WeakNewPasswordException()
 
@@ -144,6 +141,6 @@ class UserService:
         )
 
     def delete_user(self, user_id: UUID) -> bool:
-        if not self._user_repository.exists_by_id(user_id):
+        if not self._user_repository.delete(user_id):
             raise UserNotFoundException(user_id)
-        return self._user_repository.delete(user_id)
+        return True

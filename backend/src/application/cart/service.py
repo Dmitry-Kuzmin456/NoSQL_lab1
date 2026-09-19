@@ -42,10 +42,10 @@ class CartService:
         dto: UpdateCartProductDto,
     ) -> CartResponseDto:
         if dto.quantity <= 0:
-            self._cart_repository.remove_item(user_id, dto.product_id)
+            cart = self._cart_repository.remove_item_and_get(user_id, dto.product_id)
         else:
             self._product_service.ensure_exists(dto.product_id)
-            self._cart_repository.set_item_quantity(
+            cart = self._cart_repository.set_item_quantity_and_get(
                 user_id=user_id,
                 product_id=dto.product_id,
                 quantity=dto.quantity,
@@ -60,7 +60,6 @@ class CartService:
             )
         )
 
-        cart = self._get_or_create(user_id)
         return CartResponseDto.from_domain(cart)
 
     def remove_product(
@@ -72,7 +71,7 @@ class CartService:
         if not cart.has_product(product_id):
             raise CartProductNotFoundException(product_id)
 
-        self._cart_repository.remove_item(user_id, product_id)
+        updated_cart = self._cart_repository.remove_item_and_get(user_id, product_id)
 
         self._event_bus.publish(
             OperationEvent(
@@ -82,8 +81,7 @@ class CartService:
             )
         )
 
-        cart = self._get_or_create(user_id)
-        return CartResponseDto.from_domain(cart)
+        return CartResponseDto.from_domain(updated_cart)
 
     def clear(self, user_id: UUID) -> CartResponseDto:
         self._cart_repository.delete_by_user_id(user_id)

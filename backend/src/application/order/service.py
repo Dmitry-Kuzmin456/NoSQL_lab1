@@ -37,9 +37,7 @@ class OrderService:
         if dto.quantity <= 0:
             raise InvalidOrderQuantityException()
 
-        product = self._product_service.get_by_id(dto.product_id)
-
-        self._product_service.reserve_stock(dto.product_id, dto.quantity)
+        product = self._product_service.reserve_stock(dto.product_id, dto.quantity)
 
         order = Order(
             user_id=user_id,
@@ -127,9 +125,10 @@ class OrderService:
                 f"Отмена доступна только для заказов в статусе CREATED (до одобрения)."
             )
 
-        if not self._order_repository.update_status(
+        updated_order = self._order_repository.update_status_and_get(
             order_id, OrderStatus.CANCELLED, expected_status=OrderStatus.CREATED
-        ):
+        )
+        if updated_order is None:
             order = self._order_repository.get_by_id(order_id)
             curr_status = order.status if order else "UNKNOWN"
             raise InvalidOrderStatusException(
@@ -137,78 +136,71 @@ class OrderService:
                 f"Отмена доступна только для заказов в статусе CREATED (до одобрения)."
             )
 
-        order = self._order_repository.get_by_id(order_id)
-        assert order is not None
-
-        self._product_service.restore_stock(order.product_id, order.quantity)
+        self._product_service.restore_stock(
+            updated_order.product_id, updated_order.quantity
+        )
 
         self._event_bus.publish(
             OperationEvent(
-                user_id=order.user_id,
+                user_id=updated_order.user_id,
                 action=OperationType.CANCEL_ORDER,
-                target_id=order.id,
+                target_id=updated_order.id,
                 details={
-                    "product_id": str(order.product_id),
-                    "quantity": order.quantity,
+                    "product_id": str(updated_order.product_id),
+                    "quantity": updated_order.quantity,
                 },
             )
         )
 
-        return OrderResponseDto.from_domain(order)
+        return OrderResponseDto.from_domain(updated_order)
 
     def approve(self, order_id: UUID) -> OrderResponseDto:
-        if not self._order_repository.exists_by_id(order_id):
-            raise OrderNotFoundException(order_id)
-
-        if not self._order_repository.update_status(
+        updated_order = self._order_repository.update_status_and_get(
             order_id, OrderStatus.APPROVED, expected_status=OrderStatus.CREATED
-        ):
+        )
+        if updated_order is None:
             order = self._order_repository.get_by_id(order_id)
-            status = order.status if order else "UNKNOWN"
+            if order is None:
+                raise OrderNotFoundException(order_id)
             raise InvalidOrderStatusException(
-                f"Cannot approve order with status {status}"
+                f"Cannot approve order with status {order.status}"
             )
-
-        order = self._order_repository.get_by_id(order_id)
-        assert order is not None
 
         self._event_bus.publish(
             OperationEvent(
-                user_id=order.user_id,
+                user_id=updated_order.user_id,
                 action=OperationType.APPROVE_ORDER,
-                target_id=order.id,
+                target_id=updated_order.id,
             )
         )
 
-        return OrderResponseDto.from_domain(order)
+        return OrderResponseDto.from_domain(updated_order)
 
     def reject(self, order_id: UUID) -> OrderResponseDto:
-        if not self._order_repository.exists_by_id(order_id):
-            raise OrderNotFoundException(order_id)
-
-        if not self._order_repository.update_status(
+        updated_order = self._order_repository.update_status_and_get(
             order_id, OrderStatus.REJECTED, expected_status=OrderStatus.CREATED
-        ):
+        )
+        if updated_order is None:
             order = self._order_repository.get_by_id(order_id)
-            status = order.status if order else "UNKNOWN"
+            if order is None:
+                raise OrderNotFoundException(order_id)
             raise InvalidOrderStatusException(
-                f"Cannot reject order with status {status}"
+                f"Cannot reject order with status {order.status}"
             )
 
-        order = self._order_repository.get_by_id(order_id)
-        assert order is not None
-
-        self._product_service.restore_stock(order.product_id, order.quantity)
+        self._product_service.restore_stock(
+            updated_order.product_id, updated_order.quantity
+        )
 
         self._event_bus.publish(
             OperationEvent(
-                user_id=order.user_id,
+                user_id=updated_order.user_id,
                 action=OperationType.REJECT_ORDER,
-                target_id=order.id,
+                target_id=updated_order.id,
             )
         )
 
-        return OrderResponseDto.from_domain(order)
+        return OrderResponseDto.from_domain(updated_order)
 
     def get_user_orders_count(self, user_id: UUID) -> int:
         return self._counter_repository.get_by_user_id(user_id)

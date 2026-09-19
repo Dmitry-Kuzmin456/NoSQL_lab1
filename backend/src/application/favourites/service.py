@@ -36,15 +36,19 @@ class FavouritesService:
         user_id: UUID,
         dto: AddFavouriteDto,
         added_by_user_id: UUID | None = None,
+        check_product_exists: bool = True,
     ) -> FavouritesResponseDto:
-        self._product_service.ensure_exists(dto.product_id)
+        if check_product_exists:
+            self._product_service.ensure_exists(dto.product_id)
 
         acting_user_id = added_by_user_id or user_id
         item = FavouriteProduct(
             product_id=dto.product_id,
             added_user_id=acting_user_id,
         )
-        self._favourites_repository.add_item(user_id=user_id, item=item)
+        favourites = self._favourites_repository.add_item_and_get(
+            user_id=user_id, item=item
+        )
 
         self._event_bus.publish(
             OperationEvent(
@@ -54,7 +58,6 @@ class FavouritesService:
             )
         )
 
-        favourites = self._get_or_create(user_id)
         return FavouritesResponseDto.from_domain(favourites)
 
     def remove_product(
@@ -66,7 +69,9 @@ class FavouritesService:
         if not favourites.has_product(product_id):
             raise FavouriteProductNotFoundException(product_id)
 
-        self._favourites_repository.remove_item(user_id, product_id)
+        updated_favs = self._favourites_repository.remove_item_and_get(
+            user_id, product_id
+        )
 
         self._event_bus.publish(
             OperationEvent(
@@ -76,8 +81,7 @@ class FavouritesService:
             )
         )
 
-        favourites = self._get_or_create(user_id)
-        return FavouritesResponseDto.from_domain(favourites)
+        return FavouritesResponseDto.from_domain(updated_favs)
 
     def clear(self, user_id: UUID) -> FavouritesResponseDto:
         self._favourites_repository.delete_by_user_id(user_id)

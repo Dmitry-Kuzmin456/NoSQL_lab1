@@ -43,10 +43,7 @@ class RecoveryService:
         return RecoveryResponseDto.from_domain(saved_token)
 
     def _generate_unique_token(self) -> str:
-        token = secrets.token_urlsafe(32)
-        while self._recovery_token_repository.get_by_token(token) is not None:
-            token = secrets.token_urlsafe(32)
-        return token
+        return secrets.token_urlsafe(32)
 
     def validate_token(self, token: str) -> RecoveryResponseDto:
         recovery_token = self._recovery_token_repository.get_by_token(token)

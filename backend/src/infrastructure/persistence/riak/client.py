@@ -1,4 +1,3 @@
-import json
 import logging
 from dataclasses import dataclass
 from typing import Any
@@ -16,7 +15,6 @@ class RiakObject:
     key: str
     data: Any
     bucket_type: str
-    content_type: str
     vclock: str | None
     indexes: dict[str, str | int]
 
@@ -61,7 +59,6 @@ class RiakClient:
                 return None
             response.raise_for_status()
 
-            content_type = response.headers.get("content-type", "application/json")
             vclock = response.headers.get("x-riak-vclock")
 
             indexes: dict[str, str | int] = {}
@@ -69,20 +66,11 @@ class RiakClient:
                 if header_name.lower().startswith("x-riak-index-"):
                     indexes[header_name[13:]] = header_value
 
-            if "application/json" in content_type:
-                try:
-                    data = response.json()
-                except ValueError:
-                    data = response.text
-            else:
-                data = response.text
-
             return RiakObject(
                 bucket=bucket,
                 key=key,
-                data=data,
+                data=response.json(),
                 bucket_type=bucket_type,
-                content_type=content_type,
                 vclock=vclock,
                 indexes=indexes,
             )
@@ -96,12 +84,11 @@ class RiakClient:
         key: str,
         data: Any,
         bucket_type: str = "default",
-        content_type: str = "application/json",
         vclock: str | None = None,
         indexes: dict[str, str | int] | None = None,
     ) -> RiakObject:
         url = _build_kv_url(bucket, key, bucket_type)
-        headers: dict[str, str] = {"Content-Type": content_type}
+        headers: dict[str, str] = {"Content-Type": "application/json"}
 
         if vclock:
             headers["X-Riak-Vclock"] = vclock
@@ -110,15 +97,8 @@ class RiakClient:
             for idx_name, idx_val in indexes.items():
                 headers[f"x-riak-index-{idx_name}"] = str(idx_val)
 
-        if content_type == "application/json" and not isinstance(data, (str, bytes)):
-            body = json.dumps(data)
-        elif isinstance(data, str):
-            body = data
-        else:
-            body = json.dumps(data)
-
         try:
-            response = self._client.put(url, content=body, headers=headers)
+            response = self._client.put(url, json=data, headers=headers)
             response.raise_for_status()
             returned_vclock = response.headers.get("x-riak-vclock", vclock)
             return RiakObject(
@@ -126,7 +106,6 @@ class RiakClient:
                 key=key,
                 data=data,
                 bucket_type=bucket_type,
-                content_type=content_type,
                 vclock=returned_vclock,
                 indexes=indexes or {},
             )

@@ -1279,92 +1279,6 @@ paths:
       x-required-roles:
       - ADMIN
       description: '**Требуемые роли:** `ADMIN`'
-  /api/users/me/cart/items:
-    post:
-      tags:
-      - Cart
-      summary: Добавить товар в корзину текущего пользователя
-      operationId: add_item_to_cart_me_api_users_me_cart_items_post
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddCartItemRequest'
-        required: true
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartResponse'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-        '401':
-          description: Пользователь не аутентифицирован.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetailResponse'
-      security:
-      - BearerAuth: []
-      x-required-roles:
-      - AUTHENTICATED
-      description: '**Требуемые роли:** Любой авторизованный пользователь'
-  /api/users/{user_id}/cart/items:
-    post:
-      tags:
-      - Cart
-      summary: Добавить товар в корзину пользователя по ID (Admin)
-      operationId: add_item_to_cart_by_user_id_api_users__user_id__cart_items_post
-      parameters:
-      - name: user_id
-        in: path
-        required: true
-        schema:
-          type: string
-          format: uuid
-          title: User Id
-      requestBody:
-        required: true
-        content:
-          application/json:
-            schema:
-              $ref: '#/components/schemas/AddCartItemRequest'
-      responses:
-        '200':
-          description: Successful Response
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/CartResponse'
-        '422':
-          description: Validation Error
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/HTTPValidationError'
-        '401':
-          description: Пользователь не аутентифицирован.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetailResponse'
-        '403':
-          description: Недостаточно прав доступа для выполнения данной операции.
-          content:
-            application/json:
-              schema:
-                $ref: '#/components/schemas/ErrorDetailResponse'
-      security:
-      - BearerAuth: []
-      x-required-roles:
-      - ADMIN
-      description: '**Требуемые роли:** `ADMIN`'
   /api/users/me/cart/items/{product_id}:
     patch:
       tags:
@@ -2909,23 +2823,6 @@ paths:
       description: '**Требуемые роли:** `ADMIN`'
 components:
   schemas:
-    AddCartItemRequest:
-      properties:
-        product_id:
-          type: string
-          format: uuid
-          title: Product Id
-          description: ID добавляемого товара
-        quantity:
-          type: integer
-          exclusiveMinimum: 0.0
-          title: Quantity
-          description: Количество товара (должно быть > 0)
-          default: 1
-      type: object
-      required:
-      - product_id
-      title: AddCartItemRequest
     AddFavouriteRequest:
       properties:
         product_id:
@@ -2933,13 +2830,6 @@ components:
           format: uuid
           title: Product Id
           description: ID добавляемого товара
-        note:
-          anyOf:
-          - type: string
-            maxLength: 500
-          - type: 'null'
-          title: Note
-          description: Заметка к товару в избранном
       type: object
       required:
       - product_id
@@ -2951,13 +2841,6 @@ components:
           format: uuid
           title: Product Id
           description: ID рекомендуемого товара
-        note:
-          anyOf:
-          - type: string
-            maxLength: 500
-          - type: 'null'
-          title: Note
-          description: Заметка/рекомендация от преподавателя
       type: object
       required:
       - product_id
@@ -3137,11 +3020,6 @@ components:
           type: string
           format: date-time
           title: Updated At
-        note:
-          anyOf:
-          - type: string
-          - type: 'null'
-          title: Note
       type: object
       required:
       - product_id
@@ -3371,6 +3249,14 @@ components:
         is_in_stock:
           type: boolean
           title: Is In Stock
+        is_in_cart:
+          type: boolean
+          title: Is In Cart
+          default: false
+        is_in_favourites:
+          type: boolean
+          title: Is In Favourites
+          default: false
       type: object
       required:
       - id

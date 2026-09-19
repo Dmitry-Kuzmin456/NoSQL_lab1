@@ -13,13 +13,8 @@ class IFavouritesRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def is_favourite(self, user_id: UUID, product_id: UUID) -> bool:
-        """Проверить наличие товара в избранном."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def add_or_update_item(self, user_id: UUID, item: FavouriteProduct) -> bool:
-        """Добавить или обновить товар в избранном."""
+    def add_item(self, user_id: UUID, item: FavouriteProduct) -> bool:
+        """Добавить товар в избранное."""
         raise NotImplementedError
 
     @abstractmethod
@@ -28,11 +23,6 @@ class IFavouritesRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def clear(self, user_id: UUID) -> bool:
-        """Очистить список избранного пользователя."""
-        raise NotImplementedError
-
-    @abstractmethod
-    def save(self, favourites: Favourites) -> Favourites:
-        """Сохранить список избранного."""
+    def delete_by_user_id(self, user_id: UUID) -> bool:
+        """Удалить список избранного пользователя."""
         raise NotImplementedError

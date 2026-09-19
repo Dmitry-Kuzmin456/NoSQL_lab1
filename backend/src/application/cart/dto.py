@@ -6,12 +6,6 @@ from domain.cart import Cart, CartProduct
 
 
 @dataclass(frozen=True)
-class AddCartProductDto:
-    product_id: UUID
-    quantity: int = 1
-
-
-@dataclass(frozen=True)
 class UpdateCartProductDto:
     product_id: UUID
     quantity: int

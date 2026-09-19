@@ -8,7 +8,6 @@ from domain.favourites import FavouriteProduct, Favourites
 @dataclass(frozen=True)
 class AddFavouriteDto:
     product_id: UUID
-    note: str | None = None
 
 
 @dataclass(frozen=True)
@@ -16,7 +15,6 @@ class FavouriteItemResponseDto:
     product_id: UUID
     added_user_id: UUID
     updated_at: datetime
-    note: str | None
 
     @classmethod
     def from_domain(cls, item: FavouriteProduct) -> "FavouriteItemResponseDto":
@@ -24,7 +22,6 @@ class FavouriteItemResponseDto:
             product_id=item.product_id,
             added_user_id=item.added_user_id,
             updated_at=item.updated_at,
-            note=item.note,
         )
 
 

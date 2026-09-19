@@ -8,7 +8,6 @@ from domain.user import UserRole
 @dataclass(frozen=True)
 class AddProductToStudentsDto:
     product_id: UUID
-    note: str | None = None
 
 
 @dataclass(frozen=True)

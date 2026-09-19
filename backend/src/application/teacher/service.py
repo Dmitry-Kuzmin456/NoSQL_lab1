@@ -116,7 +116,7 @@ class TeacherService:
         teacher = self._get_teacher(teacher_id)
         student_ids = teacher.get_student_ids()
 
-        fav_dto = AddFavouriteDto(product_id=dto.product_id, note=dto.note)
+        fav_dto = AddFavouriteDto(product_id=dto.product_id)
         for student_id in student_ids:
             self._favourites_service.add_product(
                 user_id=student_id,

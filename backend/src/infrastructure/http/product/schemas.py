@@ -54,9 +54,16 @@ class ProductResponse(BaseModel):
     price: Decimal
     quantity: int
     is_in_stock: bool
+    is_in_cart: bool = False
+    is_in_favourites: bool = False
 
     @classmethod
-    def from_dto(cls, dto: ProductResponseDto) -> "ProductResponse":
+    def from_dto(
+        cls,
+        dto: ProductResponseDto,
+        is_in_cart: bool = False,
+        is_in_favourites: bool = False,
+    ) -> "ProductResponse":
         return cls(
             id=dto.id,
             name=dto.name,
@@ -64,6 +71,8 @@ class ProductResponse(BaseModel):
             price=dto.price,
             quantity=dto.quantity,
             is_in_stock=dto.is_in_stock,
+            is_in_cart=is_in_cart,
+            is_in_favourites=is_in_favourites,
         )
 
 

@@ -38,8 +38,7 @@ class FavouritesService:
             product_id=dto.product_id,
             added_user_id=acting_user_id,
         )
-        if not self._favourites_repository.update_item(user_id=user_id, item=item):
-            self._favourites_repository.add_item(user_id=user_id, item=item)
+        self._favourites_repository.add_item(user_id=user_id, item=item)
 
         self._event_bus.publish(
             OperationEvent(

@@ -26,12 +26,14 @@ class RiakOrderCounterRepository(IOrderCounterRepository):
             key=str(user_id),
             amount=amount,
             bucket_type=self._bucket_type,
+            return_body=True,
         )
         self._client.counter_increment(
             bucket=self._bucket,
             key=self._total_key,
             amount=amount,
             bucket_type=self._bucket_type,
+            return_body=False,
         )
         return user_count
 
@@ -42,12 +44,14 @@ class RiakOrderCounterRepository(IOrderCounterRepository):
             key=str(user_id),
             amount=-amount,
             bucket_type=self._bucket_type,
+            return_body=True,
         )
         self._client.counter_increment(
             bucket=self._bucket,
             key=self._total_key,
             amount=-amount,
             bucket_type=self._bucket_type,
+            return_body=False,
         )
         return user_count
 

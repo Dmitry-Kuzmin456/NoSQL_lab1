@@ -146,3 +146,34 @@ class PostgresOrderRepository(IOrderRepository):
                 )
             conn.commit()
             return cur.rowcount > 0
+
+    def update_status_and_get(
+        self,
+        order_id: UUID,
+        new_status: OrderStatus,
+        expected_status: OrderStatus | None = None,
+    ) -> Order | None:
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            if expected_status is not None:
+                cur.execute(
+                    """
+                    UPDATE orders SET status = %s
+                    WHERE id = %s AND status = %s
+                    RETURNING id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                    """,
+                    (new_status.value, order_id, expected_status.value),
+                )
+            else:
+                cur.execute(
+                    """
+                    UPDATE orders SET status = %s
+                    WHERE id = %s
+                    RETURNING id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                    """,
+                    (new_status.value, order_id),
+                )
+            row = cur.fetchone()
+            conn.commit()
+            if row is None:
+                return None
+            return self._row_to_order(row)

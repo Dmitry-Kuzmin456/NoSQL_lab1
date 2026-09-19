@@ -1,3 +1,4 @@
+import json
 from decimal import Decimal
 from typing import Any
 from uuid import UUID
@@ -8,7 +9,7 @@ from psycopg_pool import ConnectionPool
 
 from application.order.dto import OrderFilterDto
 from application.order.repository import IOrderRepository
-from domain.order import Order, OrderStatus
+from domain.order import Order, OrderStatus, ProductSnapshot
 from infrastructure.persistence.postgres.connection import get_postgres_pool
 
 
@@ -20,6 +21,26 @@ class PostgresOrderRepository(IOrderRepository):
 
     @staticmethod
     def _row_to_order(row: Any) -> Order:
+        raw_snapshot = row.get("product_snapshot")
+        snapshot = None
+        if isinstance(raw_snapshot, dict) and raw_snapshot:
+            snapshot = ProductSnapshot.from_dict(raw_snapshot)
+        elif isinstance(raw_snapshot, str) and raw_snapshot and raw_snapshot != "{}":
+            try:
+                parsed = json.loads(raw_snapshot)
+                if isinstance(parsed, dict) and parsed:
+                    snapshot = ProductSnapshot.from_dict(parsed)
+            except (json.JSONDecodeError, ValueError, TypeError, KeyError):
+                snapshot = None
+
+        if snapshot is None:
+            snapshot = ProductSnapshot(
+                id=row["product_id"],
+                name="",
+                description="",
+                price=Decimal(str(row["unit_price"])),
+            )
+
         return Order(
             id=row["id"],
             user_id=row["user_id"],
@@ -27,6 +48,7 @@ class PostgresOrderRepository(IOrderRepository):
             quantity=row["quantity"],
             unit_price=Decimal(str(row["unit_price"])),
             total_amount=Decimal(str(row["total_amount"])),
+            product_snapshot=snapshot,
             status=OrderStatus(row["status"]),
             created_at=row["created_at"],
         )
@@ -35,7 +57,7 @@ class PostgresOrderRepository(IOrderRepository):
         with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
-                SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                SELECT id, user_id, product_id, quantity, unit_price, total_amount, product_snapshot, status, created_at
                 FROM orders WHERE id = %s
                 """,
                 (order_id,),
@@ -54,7 +76,7 @@ class PostgresOrderRepository(IOrderRepository):
         with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
             cur.execute(
                 """
-                SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                SELECT id, user_id, product_id, quantity, unit_price, total_amount, product_snapshot, status, created_at
                 FROM orders WHERE user_id = %s ORDER BY created_at DESC
                 """,
                 (user_id,),
@@ -78,7 +100,7 @@ class PostgresOrderRepository(IOrderRepository):
                 params.append(filter_dto.status.value)
 
         base_select: sql.SQL | sql.Composed = sql.SQL(
-            "SELECT id, user_id, product_id, quantity, unit_price, total_amount, status, created_at "
+            "SELECT id, user_id, product_id, quantity, unit_price, total_amount, product_snapshot, status, created_at "
             "FROM orders"
         )
 
@@ -99,17 +121,21 @@ class PostgresOrderRepository(IOrderRepository):
             return [self._row_to_order(r) for r in rows]
 
     def save(self, order: Order) -> Order:
+        snapshot_json = json.dumps(
+            order.product_snapshot.to_dict() if order.product_snapshot else {}
+        )
         with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute(
                 """
-                INSERT INTO orders (id, user_id, product_id, quantity, unit_price, total_amount, status, created_at)
-                VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
+                INSERT INTO orders (id, user_id, product_id, quantity, unit_price, total_amount, product_snapshot, status, created_at)
+                VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s)
                 ON CONFLICT (id) DO UPDATE SET
                     user_id = EXCLUDED.user_id,
                     product_id = EXCLUDED.product_id,
                     quantity = EXCLUDED.quantity,
                     unit_price = EXCLUDED.unit_price,
                     total_amount = EXCLUDED.total_amount,
+                    product_snapshot = EXCLUDED.product_snapshot,
                     status = EXCLUDED.status,
                     created_at = EXCLUDED.created_at
                 """,
@@ -120,6 +146,7 @@ class PostgresOrderRepository(IOrderRepository):
                     order.quantity,
                     order.unit_price,
                     order.total_amount,
+                    snapshot_json,
                     order.status.value,
                     order.created_at,
                 ),
@@ -159,7 +186,7 @@ class PostgresOrderRepository(IOrderRepository):
                     """
                     UPDATE orders SET status = %s
                     WHERE id = %s AND status = %s
-                    RETURNING id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                    RETURNING id, user_id, product_id, quantity, unit_price, total_amount, product_snapshot, status, created_at
                     """,
                     (new_status.value, order_id, expected_status.value),
                 )
@@ -168,7 +195,7 @@ class PostgresOrderRepository(IOrderRepository):
                     """
                     UPDATE orders SET status = %s
                     WHERE id = %s
-                    RETURNING id, user_id, product_id, quantity, unit_price, total_amount, status, created_at
+                    RETURNING id, user_id, product_id, quantity, unit_price, total_amount, product_snapshot, status, created_at
                     """,
                     (new_status.value, order_id),
                 )

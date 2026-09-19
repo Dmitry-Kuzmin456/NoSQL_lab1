@@ -37,14 +37,15 @@ CREATE INDEX IF NOT EXISTS idx_products_quantity ON products (quantity);
 
 CREATE TABLE IF NOT EXISTS orders
 (
-    id           UUID PRIMARY KEY,
-    user_id      UUID           NOT NULL,
-    product_id   UUID           NOT NULL,
-    quantity     INTEGER        NOT NULL CHECK (quantity > 0),
-    unit_price   NUMERIC(12, 2) NOT NULL CHECK (unit_price >= 0),
-    total_amount NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
-    status       VARCHAR(50)    NOT NULL,
-    created_at   TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
+    id               UUID PRIMARY KEY,
+    user_id          UUID           NOT NULL,
+    product_id       UUID           NOT NULL,
+    quantity         INTEGER        NOT NULL CHECK (quantity > 0),
+    unit_price       NUMERIC(12, 2) NOT NULL CHECK (unit_price >= 0),
+    total_amount     NUMERIC(12, 2) NOT NULL CHECK (total_amount >= 0),
+    product_snapshot JSONB          NOT NULL,
+    status           VARCHAR(50)    NOT NULL,
+    created_at       TIMESTAMPTZ    NOT NULL DEFAULT NOW(),
     FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE,
     FOREIGN KEY (product_id) REFERENCES products (id) ON DELETE RESTRICT
 );

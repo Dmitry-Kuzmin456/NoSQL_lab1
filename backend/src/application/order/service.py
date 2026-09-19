@@ -3,7 +3,7 @@ from uuid import UUID
 from application.event_bus import IEventBus
 from application.product.service import ProductService
 from domain.history import OperationEvent, OperationType
-from domain.order import Order, OrderStatus
+from domain.order import Order, OrderStatus, ProductSnapshot
 
 from .counter_repository import IOrderCounterRepository
 from .dto import (
@@ -38,12 +38,14 @@ class OrderService:
             raise InvalidOrderQuantityException()
 
         product = self._product_service.reserve_stock(dto.product_id, dto.quantity)
+        snapshot = ProductSnapshot.from_product(product)
 
         order = Order(
             user_id=user_id,
             product_id=dto.product_id,
             quantity=dto.quantity,
             unit_price=product.price,
+            product_snapshot=snapshot,
         )
 
         saved = self._order_repository.save(order)
@@ -56,6 +58,7 @@ class OrderService:
                 target_id=saved.id,
                 details={
                     "product_id": str(saved.product_id),
+                    "product_name": product.name,
                     "quantity": saved.quantity,
                     "total_amount": f"{saved.total_amount:.2f}",
                 },

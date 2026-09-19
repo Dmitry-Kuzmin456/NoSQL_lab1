@@ -9,8 +9,25 @@ from application.order.dto import (
     OrderFilterDto,
     OrderListResponseDto,
     OrderResponseDto,
+    ProductSnapshotDto,
 )
 from domain.order import OrderStatus
+
+
+class ProductSnapshotResponse(BaseModel):
+    id: UUID = Field(..., description="ID товара на момент заказа")
+    name: str = Field(..., description="Название товара на момент заказа")
+    description: str = Field(..., description="Описание товара на момент заказа")
+    price: Decimal = Field(..., description="Цена товара на момент заказа")
+
+    @classmethod
+    def from_dto(cls, dto: ProductSnapshotDto) -> "ProductSnapshotResponse":
+        return cls(
+            id=dto.id,
+            name=dto.name,
+            description=dto.description,
+            price=dto.price,
+        )
 
 
 class CreateOrderRequest(BaseModel):
@@ -52,6 +69,7 @@ class OrderResponse(BaseModel):
     total_amount: Decimal
     status: OrderStatus
     created_at: datetime
+    product_snapshot: ProductSnapshotResponse
 
     @classmethod
     def from_dto(cls, dto: OrderResponseDto) -> "OrderResponse":
@@ -64,6 +82,7 @@ class OrderResponse(BaseModel):
             total_amount=dto.total_amount,
             status=dto.status,
             created_at=dto.created_at,
+            product_snapshot=ProductSnapshotResponse.from_dto(dto.product_snapshot),
         )
 
 

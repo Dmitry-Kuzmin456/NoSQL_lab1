@@ -56,6 +56,10 @@ class TestCheckoutFunctional:
         # Итоговая сумма: 2 * 1000 + 3 * 500 = 3500.00
         assert Decimal(str(data["total_amount"])) == Decimal("3500.00")
         assert len(data["orders"]) == 2
+        for order_item in data["orders"]:
+            assert "product_snapshot" in order_item
+            assert order_item["product_snapshot"] is not None
+            assert order_item["product_snapshot"]["id"] in (str(p1.id), str(p2.id))
 
         # 1. Корзина должна быть очищена
         cart_resp = client.get("/api/users/me/cart", headers=student_auth_headers)

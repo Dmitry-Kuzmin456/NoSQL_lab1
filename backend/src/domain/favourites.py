@@ -17,4 +17,3 @@ class Favourites:
 
     def has_product(self, product_id: UUID) -> bool:
         return any(p.product_id == product_id for p in self.products)
-

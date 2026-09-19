@@ -11,7 +11,7 @@ class ICartRepository(ABC):
     @abstractmethod
     def get_by_user_id(self, user_id: UUID) -> Cart | None:
         """Получить корзину пользователя."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def set_item_quantity(
@@ -22,14 +22,14 @@ class ICartRepository(ABC):
         updated_at: datetime | None = None,
     ) -> bool:
         """Установить количество товара в корзине."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из корзины."""
-        pass
+        raise NotImplementedError
 
     @abstractmethod
     def delete_by_user_id(self, user_id: UUID) -> bool:
         """Удалить корзину пользователя."""
-        pass
+        raise NotImplementedError

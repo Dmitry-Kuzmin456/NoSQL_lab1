@@ -45,9 +45,7 @@ class RiakHistoryCacheRepository:
             timestamp=datetime.fromisoformat(data["timestamp"]),
         )
 
-    def set_cached_events(
-        self, user_id: UUID, events: list[OperationEvent]
-    ) -> None:
+    def set_cached_events(self, user_id: UUID, events: list[OperationEvent]) -> None:
         """Сохранить события в кэш в отсортированном по убыванию времени виде."""
         sorted_events = sorted(events, key=lambda e: e.timestamp, reverse=True)
         payload = {

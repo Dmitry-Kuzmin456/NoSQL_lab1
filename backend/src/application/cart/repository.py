@@ -13,11 +13,6 @@ class ICartRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def has_product(self, user_id: UUID, product_id: UUID) -> bool:
-        """Проверить наличие товара в корзине пользователя."""
-        raise NotImplementedError
-
-    @abstractmethod
     def set_item_quantity(
         self,
         user_id: UUID,

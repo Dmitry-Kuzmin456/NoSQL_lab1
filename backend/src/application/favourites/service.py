@@ -25,6 +25,12 @@ class FavouritesService:
         favourites = self._get_or_create(user_id)
         return FavouritesResponseDto.from_domain(favourites)
 
+    def is_in_favourites(self, user_id: UUID, product_id: UUID) -> bool:
+        favourites = self._favourites_repository.get_by_user_id(user_id)
+        if favourites is None:
+            return False
+        return favourites.has_product(product_id)
+
     def add_product(
         self,
         user_id: UUID,

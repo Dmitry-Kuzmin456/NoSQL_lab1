@@ -7,6 +7,11 @@ from fastapi import APIRouter, Query, status
 from application.product.dto import ProductFilterDto
 from domain.user import UserRole
 from infrastructure.http.auth.dependencies import require_roles
+from infrastructure.http.cart.dependencies import CartServiceDep
+from infrastructure.http.favourites.dependencies import FavouritesServiceDep
+from infrastructure.http.middleware.authentication_middleware import (
+    OptionalCurrentUserDep,
+)
 from infrastructure.http.product.schemas import (
     CreateProductRequest,
     ProductListResponse,
@@ -89,9 +94,25 @@ def create_product(
 def get_product_by_id(
     product_id: UUID,
     service: ProductServiceDep,
+    cart_service: CartServiceDep,
+    favourites_service: FavouritesServiceDep,
+    current_user: OptionalCurrentUserDep,
 ) -> ProductResponse:
     product_dto = service.get_by_id(product_id)
-    return ProductResponse.from_dto(product_dto)
+    is_in_cart = False
+    is_in_favourites = False
+
+    if current_user is not None:
+        is_in_cart = cart_service.is_in_cart(current_user.id, product_id)
+        is_in_favourites = favourites_service.is_in_favourites(
+            current_user.id, product_id
+        )
+
+    return ProductResponse.from_dto(
+        product_dto,
+        is_in_cart=is_in_cart,
+        is_in_favourites=is_in_favourites,
+    )
 
 
 @router.patch(

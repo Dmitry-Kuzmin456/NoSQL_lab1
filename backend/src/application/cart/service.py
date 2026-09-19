@@ -32,6 +32,12 @@ class CartService:
         cart = self._get_or_create(user_id)
         return CartResponseDto.from_domain(cart)
 
+    def is_in_cart(self, user_id: UUID, product_id: UUID) -> bool:
+        cart = self._cart_repository.get_by_user_id(user_id)
+        if cart is None:
+            return False
+        return cart.has_product(product_id)
+
     def add_product(
         self,
         user_id: UUID,
@@ -63,10 +69,11 @@ class CartService:
         user_id: UUID,
         dto: UpdateCartProductDto,
     ) -> CartResponseDto:
-        if not self._cart_repository.has_product(user_id, dto.product_id):
+        cart = self._get_or_create(user_id)
+        if not cart.has_product(dto.product_id):
             raise CartProductNotFoundException(dto.product_id)
 
-        self._cart_repository.add_or_update_item(user_id, dto.product_id, dto.quantity)
+        self._cart_repository.set_item_quantity(user_id, dto.product_id, dto.quantity)
 
         self._event_bus.publish(
             OperationEvent(

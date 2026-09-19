@@ -350,3 +350,56 @@ class TestOrdersFunctional:
             ).status_code
             == 403
         )
+
+    def test_order_product_snapshot_immutability(
+        self,
+        client: TestClient,
+        student_auth_headers: dict[str, str],
+        sample_product: Product,
+        repos: RepositoriesContainer,
+    ) -> None:
+        """Тест: снапшот товара сохраняется в JSONB и не меняется при последующем изменении товара в каталоге."""
+        # Создаем заказ
+        response = client.post(
+            "/api/users/me/orders",
+            headers=student_auth_headers,
+            json={"product_id": str(sample_product.id), "quantity": 1},
+        )
+        assert response.status_code == 201
+        data = response.json()
+        assert "product_snapshot" in data
+        assert data["product_snapshot"] is not None
+        assert data["product_snapshot"]["id"] == str(sample_product.id)
+        assert data["product_snapshot"]["name"] == sample_product.name
+        assert data["product_snapshot"]["description"] == sample_product.description
+        assert Decimal(str(data["product_snapshot"]["price"])) == sample_product.price
+
+        order_id = data["id"]
+
+        # Меняем данные товара в каталоге (цена, имя, описание)
+        modified_product = Product(
+            id=sample_product.id,
+            name="Совершенно новое название",
+            description="Новое описание товара",
+            price=sample_product.price + Decimal("999.00"),
+            quantity=50,
+        )
+        repos.product_repo.save(modified_product)
+
+        # Проверяем, что каталог действительно изменился
+        catalog_product = repos.product_repo.get_by_id(sample_product.id)
+        assert catalog_product is not None
+        assert catalog_product.name == "Совершенно новое название"
+
+        # Получаем ранее созданный заказ и проверяем, что в снапшоте остались старые данные
+        get_resp = client.get(
+            f"/api/users/me/orders/{order_id}",
+            headers=student_auth_headers,
+        )
+        assert get_resp.status_code == 200
+        order_data = get_resp.json()
+        snapshot = order_data["product_snapshot"]
+        assert snapshot["name"] == sample_product.name
+        assert snapshot["description"] == sample_product.description
+        assert Decimal(str(snapshot["price"])) == sample_product.price
+

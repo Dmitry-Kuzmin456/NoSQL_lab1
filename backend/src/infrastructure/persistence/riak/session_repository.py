@@ -59,7 +59,6 @@ class RiakSessionRepository(ISessionRepository):
             key=session.refresh_token,
             data=self._session_to_dict(session),
             bucket_type=self._bucket_type,
-            vclock=None,
         )
         self._client.put(obj)
 

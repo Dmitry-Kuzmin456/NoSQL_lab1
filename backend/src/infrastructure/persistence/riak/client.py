@@ -14,8 +14,7 @@ class RiakObject:
     bucket: str
     key: str
     data: Any
-    bucket_type: str
-    vclock: str | None
+    bucket_type: str = "default"
 
 
 def _build_kv_url(bucket: str, key: str, bucket_type: str = "default") -> str:
@@ -80,29 +79,21 @@ class RiakClient:
             key=key,
             data=response.json(),
             bucket_type=bucket_type,
-            vclock=response.headers.get("x-riak-vclock"),
         )
 
     def put(self, obj: RiakObject) -> RiakObject:
         url = _build_kv_url(obj.bucket, obj.key, obj.bucket_type)
-        headers: dict[str, str] = {"Content-Type": "application/json"}
-
-        if obj.vclock:
-            headers["X-Riak-Vclock"] = obj.vclock
-
-        response = self._request(
+        self._request(
             "PUT",
             url,
             json=obj.data,
-            headers=headers,
+            headers={"Content-Type": "application/json"},
         )
-        returned_vclock = response.headers.get("x-riak-vclock", obj.vclock)
         return RiakObject(
             bucket=obj.bucket,
             key=obj.key,
             data=obj.data,
             bucket_type=obj.bucket_type,
-            vclock=returned_vclock,
         )
 
     def delete(self, bucket: str, key: str, bucket_type: str = "default") -> bool:

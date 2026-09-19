@@ -1,3 +1,5 @@
+import logging
+from concurrent.futures import ThreadPoolExecutor
 from uuid import UUID
 
 from application.history.repository import IHistoryRepository
@@ -9,9 +11,11 @@ from infrastructure.persistence.riak.history_cache_repository import (
     RiakHistoryCacheRepository,
 )
 
+logger = logging.getLogger(__name__)
+
 
 class CompositeHistoryRepository(IHistoryRepository):
-    """Композитный репозиторий истории операций."""
+    """Композитный репозиторий истории операций с конкурентным выполнением и асинхронным обновлением кэша."""
 
     def __init__(
         self,
@@ -22,10 +26,36 @@ class CompositeHistoryRepository(IHistoryRepository):
         self._postgres_repo = postgres_repo
         self._riak_repo = riak_repo
         self._cache_capacity = cache_capacity
+        self._executor = ThreadPoolExecutor(
+            max_workers=8,
+            thread_name_prefix="history-cache-worker",
+        )
+
+    def _refresh_cache(self, user_id: UUID) -> None:
+        """Асинхронно обновляет кэш свежими отсортированными данными из PostgreSQL."""
+        try:
+            recent_events = self._postgres_repo.list_by_user_id(
+                user_id=user_id,
+                offset=0,
+                limit=self._cache_capacity,
+            )
+            self._riak_repo.set_cached_events(user_id, recent_events)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Failed to async refresh history cache for user %s: %s",
+                user_id,
+                exc,
+            )
 
     def add_event(self, event: OperationEvent) -> None:
-        self._postgres_repo.save(event)
-        self._riak_repo.append_event(event, max_capacity=self._cache_capacity)
+        """Конкурентно сохраняет событие в PostgreSQL и инвалидирует кэш в Riak, затем обновляет кэш."""
+        fut_clear = self._executor.submit(self._riak_repo.clear, event.user_id)
+        fut_save = self._executor.submit(self._postgres_repo.save, event)
+
+        fut_save.result()
+        fut_clear.result()
+
+        self._executor.submit(self._refresh_cache, event.user_id)
 
     def get_user_events(
         self,
@@ -33,15 +63,26 @@ class CompositeHistoryRepository(IHistoryRepository):
         offset: int = 0,
         limit: int = 20,
     ) -> list[OperationEvent]:
-        if offset == 0:
+        """Получить события пользователя."""
+        if offset == 0 and limit <= self._cache_capacity:
             cached = self._riak_repo.get_cached_events(user_id, limit=limit)
-            if cached:
+            if cached is not None:
                 return cached
 
-        return self._postgres_repo.list_by_user_id(
-            user_id=user_id, offset=offset, limit=limit
+        events = self._postgres_repo.list_by_user_id(
+            user_id=user_id,
+            offset=offset,
+            limit=limit,
         )
+        return events
 
     def clear(self, user_id: UUID) -> bool:
-        self._riak_repo.clear(user_id)
-        return self._postgres_repo.delete_by_user_id(user_id)
+        """Конкурентно очищает историю в PostgreSQL и инвалидирует кэш в Riak."""
+        fut_clear = self._executor.submit(self._riak_repo.clear, user_id)
+        fut_delete = self._executor.submit(
+            self._postgres_repo.delete_by_user_id, user_id
+        )
+
+        deleted = fut_delete.result()
+        fut_clear.result()
+        return deleted

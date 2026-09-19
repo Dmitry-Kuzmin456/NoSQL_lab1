@@ -8,27 +8,28 @@ _ENV_FILE = Path(__file__).resolve().parents[3] / ".env"
 
 
 class RiakSettings(BaseModel):
-    base_url: str = "http://localhost:8087"
+    base_url: str
+    timeout: float
 
 
 class AuthSettings(BaseModel):
-    jwt_secret_key: str = "dev-secret-key-change-in-production-32bytes"
-    jwt_algorithm: str = "HS256"
-    access_token_expire_minutes: int = 15
-    refresh_token_expire_days: int = 30
-    cookie_secure: bool = False
-    cookie_httponly: bool = True
-    cookie_samesite: Literal["lax", "strict", "none"] = "lax"
+    jwt_secret_key: str
+    jwt_algorithm: str
+    access_token_expire_minutes: int
+    refresh_token_expire_days: int
+    cookie_secure: bool
+    cookie_httponly: bool
+    cookie_samesite: Literal["lax", "strict", "none"]
 
 
 class PostgresSettings(BaseModel):
-    host: str = "localhost"
-    port: int = 5432
-    user: str = "postgres"
-    password: str = "postgres"
-    db: str = "nosql_store"
-    min_connections: int = 1
-    max_connections: int = 10
+    host: str
+    port: int
+    user: str
+    password: str
+    db: str
+    min_connections: int
+    max_connections: int
 
     @property
     def conninfo(self) -> str:
@@ -36,9 +37,9 @@ class PostgresSettings(BaseModel):
 
 
 class Settings(BaseSettings):
-    riak: RiakSettings = RiakSettings()
-    postgres: PostgresSettings = PostgresSettings()
-    auth: AuthSettings = AuthSettings()
+    riak: RiakSettings
+    postgres: PostgresSettings
+    auth: AuthSettings
 
     model_config = SettingsConfigDict(
         env_file=_ENV_FILE,

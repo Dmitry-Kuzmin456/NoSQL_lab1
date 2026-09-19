@@ -38,6 +38,11 @@ class IProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def update_stock_and_get(self, product_id: UUID, delta: int) -> Product | None:
+        """Изменить остаток товара на складе и вернуть обновленный товар в одном запросе."""
+        raise NotImplementedError
+
+    @abstractmethod
     def delete(self, product_id: UUID) -> bool:
         """Удалить товар."""
         raise NotImplementedError

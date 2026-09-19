@@ -23,13 +23,7 @@ class RiakCartRepository(ICartRepository):
         self._bucket = bucket
         self._bucket_type = bucket_type
 
-    def get_by_user_id(self, user_id: UUID) -> Cart | None:
-        """Получить корзину пользователя из CRDT карты."""
-        data = self._client.map_get(
-            bucket=self._bucket,
-            key=str(user_id),
-            bucket_type=self._bucket_type,
-        )
+    def _data_to_cart(self, user_id: UUID, data: dict[str, Any] | None) -> Cart | None:
         if not isinstance(data, dict):
             return None
 
@@ -43,6 +37,15 @@ class RiakCartRepository(ICartRepository):
             if cart_products
             else None
         )
+
+    def get_by_user_id(self, user_id: UUID) -> Cart | None:
+        """Получить корзину пользователя из CRDT карты."""
+        data = self._client.map_get(
+            bucket=self._bucket,
+            key=str(user_id),
+            bucket_type=self._bucket_type,
+        )
+        return self._data_to_cart(user_id, data)
 
     @staticmethod
     def _parse_updated_at(raw: Any) -> datetime:
@@ -93,8 +96,37 @@ class RiakCartRepository(ICartRepository):
             key=str(user_id),
             update_spec=update_spec,
             bucket_type=self._bucket_type,
+            return_body=False,
         )
         return True
+
+    def set_item_quantity_and_get(
+        self,
+        user_id: UUID,
+        product_id: UUID,
+        quantity: int,
+        updated_at: datetime | None = None,
+    ) -> Cart:
+        """Установить количество товара в CRDT карте корзины и вернуть обновленную корзину."""
+        dt = updated_at or datetime.now(UTC)
+        field_name = f"{product_id}_map"
+        update_spec = {
+            field_name: {
+                "update": {
+                    "quantity_register": str(quantity),
+                    "updated_at_register": dt.isoformat(),
+                }
+            }
+        }
+        data = self._client.map_update(
+            bucket=self._bucket,
+            key=str(user_id),
+            update_spec=update_spec,
+            bucket_type=self._bucket_type,
+            return_body=True,
+        )
+        cart = self._data_to_cart(user_id, data)
+        return cart if cart is not None else Cart(user_id=user_id)
 
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из CRDT карты корзины."""
@@ -105,8 +137,23 @@ class RiakCartRepository(ICartRepository):
             key=str(user_id),
             update_spec=update_spec,
             bucket_type=self._bucket_type,
+            return_body=False,
         )
         return True
+
+    def remove_item_and_get(self, user_id: UUID, product_id: UUID) -> Cart:
+        """Удалить товар из CRDT карты корзины и вернуть обновленную корзину."""
+        field_name = f"{product_id}_map"
+        update_spec = {field_name: "remove"}
+        data = self._client.map_update(
+            bucket=self._bucket,
+            key=str(user_id),
+            update_spec=update_spec,
+            bucket_type=self._bucket_type,
+            return_body=True,
+        )
+        cart = self._data_to_cart(user_id, data)
+        return cart if cart is not None else Cart(user_id=user_id)
 
     def delete_by_user_id(self, user_id: UUID) -> bool:
         """Удалить CRDT карту корзины пользователя."""

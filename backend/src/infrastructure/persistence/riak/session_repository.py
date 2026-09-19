@@ -68,6 +68,7 @@ class RiakSessionRepository(ISessionRepository):
             key=str(session.user_id),
             elements=session.refresh_token,
             bucket_type=self._sets_bucket_type,
+            return_body=False,
         )
         return session
 
@@ -90,24 +91,33 @@ class RiakSessionRepository(ISessionRepository):
             bucket_type=self._sets_bucket_type,
         )
         sessions: list[Session] = []
+        stale_tokens: list[str] = []
         for token in tokens:
             session = self.get_by_refresh_token(token)
             if session is not None:
                 sessions.append(session)
             else:
-                self._client.set_remove(
-                    bucket=self._user_sessions_bucket,
-                    key=str(user_id),
-                    elements=token,
-                    bucket_type=self._sets_bucket_type,
-                )
+                stale_tokens.append(token)
+
+        if stale_tokens:
+            self._client.set_remove(
+                bucket=self._user_sessions_bucket,
+                key=str(user_id),
+                elements=stale_tokens,
+                bucket_type=self._sets_bucket_type,
+                return_body=False,
+            )
         return sessions
 
-    def delete_by_refresh_token(self, refresh_token: str) -> bool:
+    def delete_by_refresh_token(
+        self, refresh_token: str, user_id: UUID | None = None
+    ) -> bool:
         """Удалить сессию по refresh токену."""
-        session = self.get_by_refresh_token(refresh_token)
-        if session is None:
-            return False
+        if user_id is None:
+            session = self.get_by_refresh_token(refresh_token)
+            if session is None:
+                return False
+            user_id = session.user_id
 
         deleted = self._client.delete(
             bucket=self._bucket,
@@ -116,9 +126,10 @@ class RiakSessionRepository(ISessionRepository):
         )
         self._client.set_remove(
             bucket=self._user_sessions_bucket,
-            key=str(session.user_id),
+            key=str(user_id),
             elements=refresh_token,
             bucket_type=self._sets_bucket_type,
+            return_body=False,
         )
         return deleted
 
@@ -129,6 +140,9 @@ class RiakSessionRepository(ISessionRepository):
             key=str(user_id),
             bucket_type=self._sets_bucket_type,
         )
+        if not tokens:
+            return 0
+
         count = 0
         for token in tokens:
             if self._client.delete(
@@ -137,10 +151,10 @@ class RiakSessionRepository(ISessionRepository):
                 bucket_type=self._bucket_type,
             ):
                 count += 1
-            self._client.set_remove(
-                bucket=self._user_sessions_bucket,
-                key=str(user_id),
-                elements=token,
-                bucket_type=self._sets_bucket_type,
-            )
+
+        self._client.delete(
+            bucket=self._user_sessions_bucket,
+            key=str(user_id),
+            bucket_type=self._sets_bucket_type,
+        )
         return count

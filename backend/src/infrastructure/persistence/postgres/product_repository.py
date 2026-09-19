@@ -119,6 +119,23 @@ class PostgresProductRepository(IProductRepository):
             conn.commit()
             return cur.rowcount > 0
 
+    def update_stock_and_get(self, product_id: UUID, delta: int) -> Product | None:
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                """
+                UPDATE products
+                SET quantity = quantity + %s
+                WHERE id = %s AND (quantity + %s) >= 0
+                RETURNING id, name, description, price, quantity
+                """,
+                (delta, product_id, delta),
+            )
+            row = cur.fetchone()
+            conn.commit()
+            if row is None:
+                return None
+            return self._row_to_product(row)
+
     def delete(self, product_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute("DELETE FROM products WHERE id = %s", (product_id,))

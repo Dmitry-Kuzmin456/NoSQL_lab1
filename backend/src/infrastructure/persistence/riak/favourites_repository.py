@@ -23,13 +23,9 @@ class RiakFavouritesRepository(IFavouritesRepository):
         self._bucket = bucket
         self._bucket_type = bucket_type
 
-    def get_by_user_id(self, user_id: UUID) -> Favourites | None:
-        """Получить список избранного пользователя из CRDT карты."""
-        data = self._client.map_get(
-            bucket=self._bucket,
-            key=str(user_id),
-            bucket_type=self._bucket_type,
-        )
+    def _data_to_favourites(
+        self, user_id: UUID, data: dict[str, Any] | None
+    ) -> Favourites | None:
         if not isinstance(data, dict):
             return None
 
@@ -39,6 +35,15 @@ class RiakFavouritesRepository(IFavouritesRepository):
             if (item := self._parse_favourite_product(key, val, user_id)) is not None
         ]
         return Favourites(user_id=user_id, products=products) if products else None
+
+    def get_by_user_id(self, user_id: UUID) -> Favourites | None:
+        """Получить список избранного пользователя из CRDT карты."""
+        data = self._client.map_get(
+            bucket=self._bucket,
+            key=str(user_id),
+            bucket_type=self._bucket_type,
+        )
+        return self._data_to_favourites(user_id, data)
 
     @staticmethod
     def _parse_updated_at(raw: Any) -> datetime:
@@ -91,8 +96,30 @@ class RiakFavouritesRepository(IFavouritesRepository):
             key=str(user_id),
             update_spec=update_spec,
             bucket_type=self._bucket_type,
+            return_body=False,
         )
         return True
+
+    def add_item_and_get(self, user_id: UUID, item: FavouriteProduct) -> Favourites:
+        """Добавить товар в избранное и вернуть обновленный список."""
+        field_name = f"{item.product_id}_map"
+        update_spec = {
+            field_name: {
+                "update": {
+                    "added_user_id_register": str(item.added_user_id),
+                    "updated_at_register": item.updated_at.isoformat(),
+                }
+            }
+        }
+        data = self._client.map_update(
+            bucket=self._bucket,
+            key=str(user_id),
+            update_spec=update_spec,
+            bucket_type=self._bucket_type,
+            return_body=True,
+        )
+        favs = self._data_to_favourites(user_id, data)
+        return favs if favs is not None else Favourites(user_id=user_id)
 
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из избранного через операцию remove поля CRDT Map."""
@@ -103,8 +130,23 @@ class RiakFavouritesRepository(IFavouritesRepository):
             key=str(user_id),
             update_spec=update_spec,
             bucket_type=self._bucket_type,
+            return_body=False,
         )
         return True
+
+    def remove_item_and_get(self, user_id: UUID, product_id: UUID) -> Favourites:
+        """Удалить товар из избранного и вернуть обновленный список."""
+        field_name = f"{product_id}_map"
+        update_spec = {field_name: "remove"}
+        data = self._client.map_update(
+            bucket=self._bucket,
+            key=str(user_id),
+            update_spec=update_spec,
+            bucket_type=self._bucket_type,
+            return_body=True,
+        )
+        favs = self._data_to_favourites(user_id, data)
+        return favs if favs is not None else Favourites(user_id=user_id)
 
     def delete_by_user_id(self, user_id: UUID) -> bool:
         """Удалить CRDT карту избранного пользователя."""

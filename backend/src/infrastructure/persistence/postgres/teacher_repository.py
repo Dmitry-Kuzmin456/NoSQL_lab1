@@ -5,7 +5,7 @@ from psycopg_pool import ConnectionPool
 
 from application.teacher.repository import ITeacherRepository
 from domain.teacher import Teacher
-from domain.user import UserRole
+from domain.user import User, UserRole
 from infrastructure.persistence.postgres.connection import get_postgres_pool
 
 
@@ -43,6 +43,33 @@ class PostgresTeacherRepository(ITeacherRepository):
                 role=UserRole(user_row["role"]),
                 student_ids=student_ids,
             )
+
+    def get_students(self, teacher_id: UUID) -> list[User]:
+        with (
+            self._pool.connection() as conn,
+            conn.cursor(row_factory=dict_row) as cur,
+        ):
+            cur.execute(
+                """
+                SELECT u.id, u.name, u.email, u.password_hash, u.role
+                FROM users u
+                         JOIN teacher_students ts ON u.id = ts.student_id
+                WHERE ts.teacher_id = %s
+                ORDER BY u.name
+                """,
+                (teacher_id,),
+            )
+            rows = cur.fetchall()
+            return [
+                User(
+                    id=row["id"],
+                    name=row["name"],
+                    email=row["email"],
+                    password_hash=row["password_hash"],
+                    role=UserRole(row["role"]),
+                )
+                for row in rows
+            ]
 
     def exists_by_id(self, teacher_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:

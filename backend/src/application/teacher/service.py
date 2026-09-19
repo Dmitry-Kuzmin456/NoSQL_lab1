@@ -6,7 +6,6 @@ from application.favourites.dto import AddFavouriteDto
 from application.favourites.service import FavouritesService
 from application.product.service import ProductService
 from application.user.dto import UserResponseDto
-from application.user.exceptions import UserNotFoundException
 from application.user.service import UserService
 from domain.history import OperationEvent, OperationType
 from domain.teacher import Teacher
@@ -49,19 +48,10 @@ class TeacherService:
         return TeacherResponseDto.from_domain(teacher)
 
     def get_students(self, teacher_id: UUID) -> list[UserResponseDto]:
-        teacher = self._get_teacher(teacher_id)
-        students: list[UserResponseDto] = []
-        for student_id in teacher.get_student_ids():
-            try:
-                student = self._user_service.get_by_id(student_id)
-                students.append(student)
-            except UserNotFoundException:
-                logger.warning(
-                    "Ученик '%s' прикреплен к преподавателю '%s', но не найден в системе",
-                    student_id,
-                    teacher_id,
-                )
-        return students
+        if not self._teacher_repository.exists_by_id(teacher_id):
+            raise TeacherNotFoundException(teacher_id)
+        students = self._teacher_repository.get_students(teacher_id)
+        return [UserResponseDto.from_domain(s) for s in students]
 
     def add_student(self, teacher_id: UUID, student_id: UUID) -> TeacherResponseDto:
         if teacher_id == student_id:
@@ -89,10 +79,9 @@ class TeacherService:
         return TeacherResponseDto.from_domain(teacher)
 
     def remove_student(self, teacher_id: UUID, student_id: UUID) -> TeacherResponseDto:
-        if not self._teacher_repository.exists_by_id(teacher_id):
-            raise TeacherNotFoundException(teacher_id)
-
         if not self._teacher_repository.unassign_student(teacher_id, student_id):
+            if not self._teacher_repository.exists_by_id(teacher_id):
+                raise TeacherNotFoundException(teacher_id)
             raise StudentNotAssignedException(student_id)
 
         self._event_bus.publish(
@@ -122,6 +111,7 @@ class TeacherService:
                 user_id=student_id,
                 dto=fav_dto,
                 added_by_user_id=teacher_id,
+                check_product_exists=False,
             )
 
         return BatchAddProductResultDto(

@@ -47,15 +47,22 @@ class CompositeHistoryRepository(IHistoryRepository):
                 exc,
             )
 
+    def _invalidate_and_refresh_cache(self, user_id: UUID) -> None:
+        """Инвалидирует старый кэш и асинхронно обновляет его свежими данными из PostgreSQL."""
+        try:
+            self._riak_repo.clear(user_id)
+            self._refresh_cache(user_id)
+        except Exception as exc:  # noqa: BLE001
+            logger.warning(
+                "Failed to async invalidate and refresh history cache for user %s: %s",
+                user_id,
+                exc,
+            )
+
     def add_event(self, event: OperationEvent) -> None:
-        """Конкурентно сохраняет событие в PostgreSQL и инвалидирует кэш в Riak, затем обновляет кэш."""
-        fut_clear = self._executor.submit(self._riak_repo.clear, event.user_id)
-        fut_save = self._executor.submit(self._postgres_repo.save, event)
-
-        fut_save.result()
-        fut_clear.result()
-
-        self._executor.submit(self._refresh_cache, event.user_id)
+        """Сохраняет событие в PostgreSQL и асинхронно инвалидирует/обновляет кэш в Riak."""
+        self._postgres_repo.save(event)
+        self._executor.submit(self._invalidate_and_refresh_cache, event.user_id)
 
     def get_user_events(
         self,

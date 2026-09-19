@@ -37,10 +37,14 @@ class SessionService:
             raise SessionNotFoundException(refresh_token)
 
         if session.is_expired():
-            self._session_repository.delete_by_refresh_token(refresh_token)
+            self._session_repository.delete_by_refresh_token(
+                refresh_token, user_id=session.user_id
+            )
             raise SessionExpiredException()
 
-        self._session_repository.delete_by_refresh_token(refresh_token)
+        self._session_repository.delete_by_refresh_token(
+            refresh_token, user_id=session.user_id
+        )
 
         new_refresh_token = self._generate_unique_refresh_token()
         new_expires_at = datetime.now(UTC) + timedelta(days=ttl_days)
@@ -54,10 +58,7 @@ class SessionService:
         return SessionResponseDto.from_domain(saved_session)
 
     def _generate_unique_refresh_token(self) -> str:
-        refresh_token = secrets.token_urlsafe(64)
-        while self._session_repository.get_by_refresh_token(refresh_token) is not None:
-            refresh_token = secrets.token_urlsafe(64)
-        return refresh_token
+        return secrets.token_urlsafe(64)
 
     def get_by_refresh_token(self, refresh_token: str) -> SessionResponseDto:
         session = self._session_repository.get_by_refresh_token(refresh_token)

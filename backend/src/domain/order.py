@@ -30,18 +30,3 @@ class Order:
             raise ValueError("Unit price cannot be negative")
         if self.total_amount == Decimal("0.00"):
             self.total_amount = self.unit_price * Decimal(self.quantity)
-
-    def cancel(self) -> None:
-        if self.status != OrderStatus.CREATED:
-            raise ValueError(f"Cannot cancel order with status {self.status}")
-        self.status = OrderStatus.CANCELLED
-
-    def approve(self) -> None:
-        if self.status != OrderStatus.CREATED:
-            raise ValueError(f"Cannot approve order with status {self.status}")
-        self.status = OrderStatus.APPROVED
-
-    def reject(self) -> None:
-        if self.status != OrderStatus.CREATED:
-            raise ValueError(f"Cannot reject order with status {self.status}")
-        self.status = OrderStatus.REJECTED

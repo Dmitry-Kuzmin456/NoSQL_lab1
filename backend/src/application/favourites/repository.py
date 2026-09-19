@@ -18,8 +18,18 @@ class IFavouritesRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def add_item_and_get(self, user_id: UUID, item: FavouriteProduct) -> Favourites:
+        """Добавить товар в избранное и вернуть обновленный список в одном запросе."""
+        raise NotImplementedError
+
+    @abstractmethod
     def remove_item(self, user_id: UUID, product_id: UUID) -> bool:
         """Удалить товар из избранного."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_item_and_get(self, user_id: UUID, product_id: UUID) -> Favourites:
+        """Удалить товар из избранного и вернуть обновленный список в одном запросе."""
         raise NotImplementedError
 
     @abstractmethod

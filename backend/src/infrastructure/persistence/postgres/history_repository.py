@@ -34,12 +34,6 @@ class PostgresHistoryRepository:
                 """
                 INSERT INTO operation_history (id, user_id, action, target_id, details, timestamp)
                 VALUES (%s, %s, %s, %s, %s, %s)
-                ON CONFLICT (id) DO UPDATE SET
-                    user_id = EXCLUDED.user_id,
-                    action = EXCLUDED.action,
-                    target_id = EXCLUDED.target_id,
-                    details = EXCLUDED.details,
-                    timestamp = EXCLUDED.timestamp
                 """,
                 (
                     event.id,

@@ -23,7 +23,9 @@ class ISessionRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def delete_by_refresh_token(self, refresh_token: str) -> bool:
+    def delete_by_refresh_token(
+        self, refresh_token: str, user_id: UUID | None = None
+    ) -> bool:
         """Удалить сессию по refresh токену."""
         raise NotImplementedError
 

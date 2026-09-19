@@ -23,6 +23,20 @@ def _build_kv_url(bucket: str, key: str, bucket_type: str = "default") -> str:
     return f"/types/{bucket_type}/buckets/{bucket}/keys/{key}"
 
 
+def _build_index_url(
+    bucket: str,
+    index_name: str,
+    values: list[str | int],
+    bucket_type: str = "default",
+) -> str:
+    val_path = "/".join(str(v) for v in values)
+    return f"/types/{bucket_type}/buckets/{bucket}/index/{index_name}/{val_path}"
+
+
+def _build_datatype_url(bucket: str, key: str, bucket_type: str) -> str:
+    return f"/types/{bucket_type}/buckets/{bucket}/datatypes/{key}"
+
+
 class RiakClient:
     """HTTP-клиент для Riak KV."""
 
@@ -37,6 +51,23 @@ class RiakClient:
 
     def close(self) -> None:
         self._client.close()
+
+    def _request(
+        self,
+        method: str,
+        url: str,
+        op_name: str,
+        target: str = "",
+        **kwargs: Any,
+    ) -> httpx.Response:
+        try:
+            response = self._client.request(method, url, **kwargs)
+            if response.status_code != 404:
+                response.raise_for_status()
+            return response
+        except httpx.HTTPError as exc:
+            logger.error("Riak %s error (%s): %s", op_name, target, exc)
+            raise
 
     def ping(self) -> bool:
         try:
@@ -53,30 +84,25 @@ class RiakClient:
         bucket_type: str = "default",
     ) -> RiakObject | None:
         url = _build_kv_url(bucket, key, bucket_type)
-        try:
-            response = self._client.get(url)
-            if response.status_code == 404:
-                return None
-            response.raise_for_status()
+        response = self._request("GET", url, "get", f"{bucket}/{key}")
+        if response.status_code == 404:
+            return None
 
-            vclock = response.headers.get("x-riak-vclock")
+        vclock = response.headers.get("x-riak-vclock")
+        indexes: dict[str, str | int] = {
+            k[13:]: v
+            for k, v in response.headers.items()
+            if k.lower().startswith("x-riak-index-")
+        }
 
-            indexes: dict[str, str | int] = {}
-            for header_name, header_value in response.headers.items():
-                if header_name.lower().startswith("x-riak-index-"):
-                    indexes[header_name[13:]] = header_value
-
-            return RiakObject(
-                bucket=bucket,
-                key=key,
-                data=response.json(),
-                bucket_type=bucket_type,
-                vclock=vclock,
-                indexes=indexes,
-            )
-        except httpx.RequestError as exc:
-            logger.error("Riak get error (%s/%s): %s", bucket, key, exc)
-            raise
+        return RiakObject(
+            bucket=bucket,
+            key=key,
+            data=response.json(),
+            bucket_type=bucket_type,
+            vclock=vclock,
+            indexes=indexes,
+        )
 
     def put(self, obj: RiakObject) -> RiakObject:
         url = _build_kv_url(obj.bucket, obj.key, obj.bucket_type)
@@ -89,33 +115,28 @@ class RiakClient:
             for idx_name, idx_val in obj.indexes.items():
                 headers[f"x-riak-index-{idx_name}"] = str(idx_val)
 
-        try:
-            response = self._client.put(url, json=obj.data, headers=headers)
-            response.raise_for_status()
-            returned_vclock = response.headers.get("x-riak-vclock", obj.vclock)
-            return RiakObject(
-                bucket=obj.bucket,
-                key=obj.key,
-                data=obj.data,
-                bucket_type=obj.bucket_type,
-                vclock=returned_vclock,
-                indexes=obj.indexes,
-            )
-        except httpx.RequestError as exc:
-            logger.error("Riak put error (%s/%s): %s", obj.bucket, obj.key, exc)
-            raise
+        response = self._request(
+            "PUT",
+            url,
+            "put",
+            f"{obj.bucket}/{obj.key}",
+            json=obj.data,
+            headers=headers,
+        )
+        returned_vclock = response.headers.get("x-riak-vclock", obj.vclock)
+        return RiakObject(
+            bucket=obj.bucket,
+            key=obj.key,
+            data=obj.data,
+            bucket_type=obj.bucket_type,
+            vclock=returned_vclock,
+            indexes=obj.indexes,
+        )
 
     def delete(self, bucket: str, key: str, bucket_type: str = "default") -> bool:
         url = _build_kv_url(bucket, key, bucket_type)
-        try:
-            response = self._client.delete(url)
-            if response.status_code in (204, 404):
-                return True
-            response.raise_for_status()
-            return True
-        except httpx.RequestError as exc:
-            logger.error("Riak delete error (%s/%s): %s", bucket, key, exc)
-            raise
+        response = self._request("DELETE", url, "delete", f"{bucket}/{key}")
+        return response.status_code in (204, 404) or response.is_success
 
     def query_index_exact(
         self,
@@ -124,20 +145,11 @@ class RiakClient:
         value: str | int,
         bucket_type: str = "default",
     ) -> list[str]:
-        if bucket_type and bucket_type != "default":
-            url = f"/types/{bucket_type}/buckets/{bucket}/index/{index_name}/{value}"
-        else:
-            url = f"/buckets/{bucket}/index/{index_name}/{value}"
-
-        try:
-            response = self._client.get(url)
-            if response.status_code == 404:
-                return []
-            response.raise_for_status()
-            return response.json().get("keys", [])
-        except httpx.RequestError as exc:
-            logger.error("Riak 2i error (%s/%s): %s", bucket, index_name, exc)
-            raise
+        url = _build_index_url(bucket, index_name, [value], bucket_type=bucket_type)
+        response = self._request("GET", url, "2i", f"{bucket}/{index_name}")
+        if response.status_code == 404:
+            return []
+        return response.json().get("keys", [])
 
     def query_index_range(
         self,
@@ -147,23 +159,13 @@ class RiakClient:
         end_val: str | int,
         bucket_type: str = "default",
     ) -> list[str]:
-        if bucket_type and bucket_type != "default":
-            url = f"/types/{bucket_type}/buckets/{bucket}/index/{index_name}/{start_val}/{end_val}"
-        else:
-            url = f"/buckets/{bucket}/index/{index_name}/{start_val}/{end_val}"
-
-        try:
-            response = self._client.get(url)
-            if response.status_code == 404:
-                return []
-            response.raise_for_status()
-            return response.json().get("keys", [])
-        except httpx.RequestError as exc:
-            logger.error("Riak 2i range error (%s/%s): %s", bucket, index_name, exc)
-            raise
-
-    def _build_datatype_url(self, bucket: str, key: str, bucket_type: str) -> str:
-        return f"/types/{bucket_type}/buckets/{bucket}/datatypes/{key}"
+        url = _build_index_url(
+            bucket, index_name, [start_val, end_val], bucket_type=bucket_type
+        )
+        response = self._request("GET", url, "2i range", f"{bucket}/{index_name}")
+        if response.status_code == 404:
+            return []
+        return response.json().get("keys", [])
 
     def counter_increment(
         self,
@@ -172,18 +174,16 @@ class RiakClient:
         amount: int = 1,
         bucket_type: str = "counters",
     ) -> int:
-        url = self._build_datatype_url(bucket, key, bucket_type)
-        try:
-            response = self._client.post(
-                url,
-                json={"increment": amount},
-                headers={"Content-Type": "application/json"},
-            )
-            response.raise_for_status()
-            return self.counter_get(bucket, key, bucket_type)
-        except httpx.RequestError as exc:
-            logger.error("Riak counter error (%s/%s): %s", bucket, key, exc)
-            raise
+        url = _build_datatype_url(bucket, key, bucket_type)
+        self._request(
+            "POST",
+            url,
+            "counter increment",
+            f"{bucket}/{key}",
+            json={"increment": amount},
+            headers={"Content-Type": "application/json"},
+        )
+        return self.counter_get(bucket, key, bucket_type)
 
     def counter_get(
         self,
@@ -191,16 +191,11 @@ class RiakClient:
         key: str,
         bucket_type: str = "counters",
     ) -> int:
-        url = self._build_datatype_url(bucket, key, bucket_type)
-        try:
-            response = self._client.get(url)
-            if response.status_code == 404:
-                return 0
-            response.raise_for_status()
-            return int(response.json().get("value", 0))
-        except httpx.RequestError as exc:
-            logger.error("Riak counter get error (%s/%s): %s", bucket, key, exc)
-            raise
+        url = _build_datatype_url(bucket, key, bucket_type)
+        response = self._request("GET", url, "counter get", f"{bucket}/{key}")
+        if response.status_code == 404:
+            return 0
+        return int(response.json().get("value", 0))
 
     def set_add(
         self,
@@ -209,21 +204,19 @@ class RiakClient:
         elements: str | list[str],
         bucket_type: str = "sets",
     ) -> set[str]:
-        url = self._build_datatype_url(bucket, key, bucket_type)
+        url = _build_datatype_url(bucket, key, bucket_type)
         payload = (
             {"add": elements} if isinstance(elements, str) else {"add_all": elements}
         )
-        try:
-            response = self._client.post(
-                url,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-            )
-            response.raise_for_status()
-            return self.set_get(bucket, key, bucket_type)
-        except httpx.RequestError as exc:
-            logger.error("Riak set add error (%s/%s): %s", bucket, key, exc)
-            raise
+        self._request(
+            "POST",
+            url,
+            "set add",
+            f"{bucket}/{key}",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        return self.set_get(bucket, key, bucket_type)
 
     def set_remove(
         self,
@@ -232,23 +225,21 @@ class RiakClient:
         elements: str | list[str],
         bucket_type: str = "sets",
     ) -> set[str]:
-        url = self._build_datatype_url(bucket, key, bucket_type)
+        url = _build_datatype_url(bucket, key, bucket_type)
         payload = (
             {"remove": elements}
             if isinstance(elements, str)
             else {"remove_all": elements}
         )
-        try:
-            response = self._client.post(
-                url,
-                json=payload,
-                headers={"Content-Type": "application/json"},
-            )
-            response.raise_for_status()
-            return self.set_get(bucket, key, bucket_type)
-        except httpx.RequestError as exc:
-            logger.error("Riak set remove error (%s/%s): %s", bucket, key, exc)
-            raise
+        self._request(
+            "POST",
+            url,
+            "set remove",
+            f"{bucket}/{key}",
+            json=payload,
+            headers={"Content-Type": "application/json"},
+        )
+        return self.set_get(bucket, key, bucket_type)
 
     def set_get(
         self,
@@ -256,16 +247,11 @@ class RiakClient:
         key: str,
         bucket_type: str = "sets",
     ) -> set[str]:
-        url = self._build_datatype_url(bucket, key, bucket_type)
-        try:
-            response = self._client.get(url)
-            if response.status_code == 404:
-                return set()
-            response.raise_for_status()
-            return set(response.json().get("value", []))
-        except httpx.RequestError as exc:
-            logger.error("Riak set get error (%s/%s): %s", bucket, key, exc)
-            raise
+        url = _build_datatype_url(bucket, key, bucket_type)
+        response = self._request("GET", url, "set get", f"{bucket}/{key}")
+        if response.status_code == 404:
+            return set()
+        return set(response.json().get("value", []))
 
     def map_update(
         self,
@@ -274,18 +260,16 @@ class RiakClient:
         update_spec: dict[str, Any],
         bucket_type: str = "maps",
     ) -> dict[str, Any]:
-        url = self._build_datatype_url(bucket, key, bucket_type)
-        try:
-            response = self._client.post(
-                url,
-                json={"update": update_spec},
-                headers={"Content-Type": "application/json"},
-            )
-            response.raise_for_status()
-            return self.map_get(bucket, key, bucket_type) or {}
-        except httpx.RequestError as exc:
-            logger.error("Riak map update error (%s/%s): %s", bucket, key, exc)
-            raise
+        url = _build_datatype_url(bucket, key, bucket_type)
+        self._request(
+            "POST",
+            url,
+            "map update",
+            f"{bucket}/{key}",
+            json={"update": update_spec},
+            headers={"Content-Type": "application/json"},
+        )
+        return self.map_get(bucket, key, bucket_type) or {}
 
     def map_get(
         self,
@@ -293,16 +277,11 @@ class RiakClient:
         key: str,
         bucket_type: str = "maps",
     ) -> dict[str, Any] | None:
-        url = self._build_datatype_url(bucket, key, bucket_type)
-        try:
-            response = self._client.get(url)
-            if response.status_code == 404:
-                return None
-            response.raise_for_status()
-            return response.json().get("value", {})
-        except httpx.RequestError as exc:
-            logger.error("Riak map get error (%s/%s): %s", bucket, key, exc)
-            raise
+        url = _build_datatype_url(bucket, key, bucket_type)
+        response = self._request("GET", url, "map get", f"{bucket}/{key}")
+        if response.status_code == 404:
+            return None
+        return response.json().get("value", {})
 
 
 _client = RiakClient()

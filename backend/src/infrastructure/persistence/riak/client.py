@@ -148,6 +148,42 @@ class RiakClient:
             return 0
         return int(response.json().get("value", 0))
 
+    def _extract_set_value(
+        self,
+        response: httpx.Response,
+        bucket: str,
+        key: str,
+        bucket_type: str,
+        return_body: bool,
+    ) -> set[str]:
+        if return_body:
+            if response.status_code == 200:
+                try:
+                    return set(response.json().get("value", []))
+                except (ValueError, TypeError):
+                    pass
+            return self.set_get(bucket, key, bucket_type)
+        return set()
+
+    def _extract_map_value(
+        self,
+        response: httpx.Response,
+        bucket: str,
+        key: str,
+        bucket_type: str,
+        return_body: bool,
+    ) -> dict[str, Any]:
+        if return_body:
+            if response.status_code == 200:
+                try:
+                    val = response.json().get("value")
+                    if isinstance(val, dict):
+                        return val
+                except (ValueError, TypeError):
+                    pass
+            return self.map_get(bucket, key, bucket_type) or {}
+        return {}
+
     def set_add(
         self,
         bucket: str,
@@ -168,14 +204,13 @@ class RiakClient:
             json=payload,
             headers={"Content-Type": "application/json"},
         )
-        if return_body:
-            if response.status_code == 200:
-                try:
-                    return set(response.json().get("value", []))
-                except (ValueError, TypeError):
-                    pass
-            return self.set_get(bucket, key, bucket_type)
-        return set()
+        return self._extract_set_value(
+            response=response,
+            bucket=bucket,
+            key=key,
+            bucket_type=bucket_type,
+            return_body=return_body,
+        )
 
     def set_remove(
         self,
@@ -199,14 +234,13 @@ class RiakClient:
             json=payload,
             headers={"Content-Type": "application/json"},
         )
-        if return_body:
-            if response.status_code == 200:
-                try:
-                    return set(response.json().get("value", []))
-                except (ValueError, TypeError):
-                    pass
-            return self.set_get(bucket, key, bucket_type)
-        return set()
+        return self._extract_set_value(
+            response=response,
+            bucket=bucket,
+            key=key,
+            bucket_type=bucket_type,
+            return_body=return_body,
+        )
 
     def set_get(
         self,
@@ -237,16 +271,39 @@ class RiakClient:
             json={"update": update_spec},
             headers={"Content-Type": "application/json"},
         )
+        return self._extract_map_value(
+            response=response,
+            bucket=bucket,
+            key=key,
+            bucket_type=bucket_type,
+            return_body=return_body,
+        )
+
+    def map_remove(
+        self,
+        bucket: str,
+        key: str,
+        fields: str | list[str],
+        bucket_type: str = "maps",
+        return_body: bool = False,
+    ) -> dict[str, Any]:
+        url = _build_datatype_url(bucket, key, bucket_type)
         if return_body:
-            if response.status_code == 200:
-                try:
-                    val = response.json().get("value")
-                    if isinstance(val, dict):
-                        return val
-                except (ValueError, TypeError):
-                    pass
-            return self.map_get(bucket, key, bucket_type) or {}
-        return {}
+            url = f"{url}?returnbody=true"
+        field_list = [fields] if isinstance(fields, str) else list(fields)
+        response = self._request(
+            "POST",
+            url,
+            json={"remove": field_list},
+            headers={"Content-Type": "application/json"},
+        )
+        return self._extract_map_value(
+            response=response,
+            bucket=bucket,
+            key=key,
+            bucket_type=bucket_type,
+            return_body=return_body,
+        )
 
     def map_get(
         self,

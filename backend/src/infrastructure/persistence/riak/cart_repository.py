@@ -1,4 +1,5 @@
 from datetime import UTC, datetime
+from typing import Any
 from uuid import UUID
 
 from application.cart.repository import ICartRepository
@@ -29,38 +30,45 @@ class RiakCartRepository(ICartRepository):
             key=str(user_id),
             bucket_type=self._bucket_type,
         )
-        if not data or not isinstance(data, dict):
+        if not isinstance(data, dict):
             return None
 
-        cart_products: list[CartProduct] = []
-        for key, val in data.items():
-            if key.endswith("_map") and isinstance(val, dict):
-                product_id_str = key[:-4]
-                try:
-                    product_id = UUID(product_id_str)
-                    qty_raw = val.get("quantity_register")
-                    quantity = int(qty_raw) if isinstance(qty_raw, str | int) else 1
-                    updated_at_raw = val.get("updated_at_register")
-                    updated_at = (
-                        datetime.fromisoformat(updated_at_raw)
-                        if isinstance(updated_at_raw, str)
-                        else datetime.now(UTC)
-                    )
-                    cart_products.append(
-                        CartProduct(
-                            product_id=product_id,
-                            quantity=quantity,
-                            updated_at=updated_at,
-                        )
-                    )
-                except (ValueError, TypeError):
-                    continue
-
+        cart_products = [
+            item
+            for key, val in data.items()
+            if (item := self._parse_cart_product(key, val)) is not None
+        ]
         return (
             Cart(user_id=user_id, cart_products=cart_products)
             if cart_products
             else None
         )
+
+    @staticmethod
+    def _parse_updated_at(raw: Any) -> datetime:
+        if isinstance(raw, str):
+            try:
+                return datetime.fromisoformat(raw)
+            except ValueError:
+                pass
+        return datetime.now(UTC)
+
+    @classmethod
+    def _parse_cart_product(cls, key: str, val: Any) -> CartProduct | None:
+        if not key.endswith("_map") or not isinstance(val, dict):
+            return None
+        try:
+            product_id = UUID(key[:-4])
+            qty_raw = val.get("quantity_register")
+            quantity = int(qty_raw) if isinstance(qty_raw, str | int) else 1
+            updated_at = cls._parse_updated_at(val.get("updated_at_register"))
+            return CartProduct(
+                product_id=product_id,
+                quantity=quantity,
+                updated_at=updated_at,
+            )
+        except (ValueError, TypeError):
+            return None
 
     def set_item_quantity(
         self,

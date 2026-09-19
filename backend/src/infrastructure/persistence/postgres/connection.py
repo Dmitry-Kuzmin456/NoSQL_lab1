@@ -33,13 +33,13 @@ def close_postgres_pool() -> None:
         _pool = None
 
 
-def init_db(pool: ConnectionPool | None = None) -> None:
+def init_db() -> None:
     if not _INIT_SQL.exists():
         logger.warning("PostgreSQL init script not found at %s", _INIT_SQL)
         return
 
-    p = pool or get_postgres_pool()
-    with p.connection() as conn, conn.cursor() as cur:
+    pool = get_postgres_pool()
+    with pool.connection() as conn, conn.cursor() as cur:
         cur.execute(_INIT_SQL.read_bytes())
         conn.commit()
     logger.info("PostgreSQL schema initialized from %s", _INIT_SQL.name)

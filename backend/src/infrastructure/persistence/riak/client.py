@@ -16,21 +16,10 @@ class RiakObject:
     data: Any
     bucket_type: str
     vclock: str | None
-    indexes: dict[str, str | int]
 
 
 def _build_kv_url(bucket: str, key: str, bucket_type: str = "default") -> str:
     return f"/types/{bucket_type}/buckets/{bucket}/keys/{key}"
-
-
-def _build_index_url(
-    bucket: str,
-    index_name: str,
-    values: list[str | int],
-    bucket_type: str = "default",
-) -> str:
-    val_path = "/".join(str(v) for v in values)
-    return f"/types/{bucket_type}/buckets/{bucket}/index/{index_name}/{val_path}"
 
 
 def _build_datatype_url(bucket: str, key: str, bucket_type: str) -> str:
@@ -86,20 +75,12 @@ class RiakClient:
         if response.status_code == 404:
             return None
 
-        vclock = response.headers.get("x-riak-vclock")
-        indexes: dict[str, str | int] = {
-            k[13:]: v
-            for k, v in response.headers.items()
-            if k.lower().startswith("x-riak-index-")
-        }
-
         return RiakObject(
             bucket=bucket,
             key=key,
             data=response.json(),
             bucket_type=bucket_type,
-            vclock=vclock,
-            indexes=indexes,
+            vclock=response.headers.get("x-riak-vclock"),
         )
 
     def put(self, obj: RiakObject) -> RiakObject:
@@ -108,10 +89,6 @@ class RiakClient:
 
         if obj.vclock:
             headers["X-Riak-Vclock"] = obj.vclock
-
-        if obj.indexes:
-            for idx_name, idx_val in obj.indexes.items():
-                headers[f"x-riak-index-{idx_name}"] = str(idx_val)
 
         response = self._request(
             "PUT",
@@ -126,42 +103,12 @@ class RiakClient:
             data=obj.data,
             bucket_type=obj.bucket_type,
             vclock=returned_vclock,
-            indexes=obj.indexes,
         )
 
     def delete(self, bucket: str, key: str, bucket_type: str = "default") -> bool:
         url = _build_kv_url(bucket, key, bucket_type)
         response = self._request("DELETE", url)
         return response.status_code in (204, 404) or response.is_success
-
-    def query_index_exact(
-        self,
-        bucket: str,
-        index_name: str,
-        value: str | int,
-        bucket_type: str = "default",
-    ) -> list[str]:
-        url = _build_index_url(bucket, index_name, [value], bucket_type=bucket_type)
-        response = self._request("GET", url)
-        if response.status_code == 404:
-            return []
-        return response.json().get("keys", [])
-
-    def query_index_range(
-        self,
-        bucket: str,
-        index_name: str,
-        start_val: str | int,
-        end_val: str | int,
-        bucket_type: str = "default",
-    ) -> list[str]:
-        url = _build_index_url(
-            bucket, index_name, [start_val, end_val], bucket_type=bucket_type
-        )
-        response = self._request("GET", url)
-        if response.status_code == 404:
-            return []
-        return response.json().get("keys", [])
 
     def counter_increment(
         self,

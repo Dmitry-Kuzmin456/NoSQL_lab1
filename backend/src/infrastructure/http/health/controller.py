@@ -1,7 +1,6 @@
-import httpx
 from fastapi import APIRouter, status
 
-from infrastructure.environment.settings import settings
+from infrastructure.persistence.riak.client import get_riak_client
 
 router = APIRouter(prefix="/health", tags=["Health"])
 
@@ -21,12 +20,10 @@ def health() -> dict[str, str]:
     status_code=status.HTTP_200_OK,
 )
 def riak_health() -> dict[str, str | int]:
-    url = f"{settings.riak.base_url.rstrip('/')}/ping"
-    try:
-        response = httpx.get(url, timeout=5.0)
-    except httpx.RequestError as exc:
-        return {"riak": "unreachable", "detail": str(exc)}
+    is_ok = get_riak_client().ping()
     return {
-        "riak": "ok" if response.status_code == 200 else "error",
-        "status_code": response.status_code,
+        "riak": "ok" if is_ok else "unreachable",
+        "status_code": (
+            status.HTTP_200_OK if is_ok else status.HTTP_503_SERVICE_UNAVAILABLE
+        ),
     }

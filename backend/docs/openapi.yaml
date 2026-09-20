@@ -2890,6 +2890,32 @@ components:
           type: string
           format: date-time
           title: Updated At
+        product:
+          anyOf:
+          - $ref: '#/components/schemas/ProductResponse'
+          - type: 'null'
+        unit_price:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Unit Price
+          description: Цена за единицу товара
+          default: '0.00'
+        subtotal:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Subtotal
+          description: Подытог по позиции (цена * кол-во)
+          default: '0.00'
+        is_available:
+          type: boolean
+          title: Is Available
+          description: Доступен ли товар на складе в запрашиваемом количестве
+          default: true
+        available_stock:
+          type: integer
+          title: Available Stock
+          description: Текущий остаток на складе
+          default: 0
       type: object
       required:
       - product_id
@@ -2910,6 +2936,17 @@ components:
         total_items:
           type: integer
           title: Total Items
+        total_amount:
+          type: string
+          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
+          title: Total Amount
+          description: Общая стоимость товаров в корзине
+          default: '0.00'
+        has_unavailable_items:
+          type: boolean
+          title: Has Unavailable Items
+          description: Есть ли в корзине недоступные товары
+          default: false
       type: object
       required:
       - user_id
@@ -3020,6 +3057,15 @@ components:
           type: string
           format: date-time
           title: Updated At
+        product:
+          anyOf:
+          - $ref: '#/components/schemas/ProductResponse'
+          - type: 'null'
+        is_available:
+          type: boolean
+          title: Is Available
+          description: Существует ли товар в каталоге
+          default: true
       type: object
       required:
       - product_id
@@ -3421,6 +3467,12 @@ components:
             format: uuid
           type: array
           title: Student Ids
+        students:
+          items:
+            $ref: '#/components/schemas/UserResponse'
+          type: array
+          title: Students
+          description: Полные профили прикрепленных учеников
         total_students:
           type: integer
           title: Total Students

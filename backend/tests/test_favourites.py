@@ -53,12 +53,16 @@ class TestFavouritesFunctional:
         fav_item = data["products"][0]
         assert fav_item["product_id"] == str(sample_product.id)
         assert fav_item["added_user_id"] == str(student_user.id)
+        assert fav_item["product"] is not None
+        assert fav_item["product"]["name"] == sample_product.name
+        assert fav_item["is_available"] is True
 
         # 2. Удаляем из избранного
         del_resp = client.delete(
             f"/api/users/me/favourites/{sample_product.id}",
             headers=student_auth_headers,
         )
+
         assert del_resp.status_code == 200
         assert del_resp.json()["total_count"] == 0
         assert del_resp.json()["products"] == []

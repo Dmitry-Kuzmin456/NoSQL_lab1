@@ -8,6 +8,7 @@ from application.teacher.dto import (
     TeacherResponseDto,
 )
 from domain.user import UserRole
+from infrastructure.http.user.schemas import UserResponse
 
 
 class AddStudentRequest(BaseModel):
@@ -29,6 +30,9 @@ class TeacherResponse(BaseModel):
     email: str
     role: UserRole
     student_ids: list[UUID]
+    students: list[UserResponse] = Field(
+        default_factory=list, description="Полные профили прикрепленных учеников"
+    )
     total_students: int
 
     @classmethod
@@ -39,8 +43,10 @@ class TeacherResponse(BaseModel):
             email=dto.email,
             role=dto.role,
             student_ids=dto.student_ids,
+            students=[UserResponse.from_dto(s) for s in dto.students],
             total_students=dto.total_students,
         )
+
 
 
 class BatchAddProductResponse(BaseModel):

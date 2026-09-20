@@ -2894,12 +2894,6 @@ components:
           anyOf:
           - $ref: '#/components/schemas/ProductResponse'
           - type: 'null'
-        unit_price:
-          type: string
-          pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$
-          title: Unit Price
-          description: Цена за единицу товара
-          default: '0.00'
         subtotal:
           type: string
           pattern: ^(?!^[-+.]*$)[+-]?0*\d*\.?\d*$

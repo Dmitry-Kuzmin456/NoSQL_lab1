@@ -60,7 +60,6 @@ class CartService:
                         quantity=item.quantity,
                         updated_at=item.updated_at,
                         product=prod_dto,
-                        unit_price=prod_dto.price,
                         subtotal=subtotal,
                         is_available=is_available,
                         available_stock=prod_dto.quantity,
@@ -74,7 +73,6 @@ class CartService:
                         quantity=item.quantity,
                         updated_at=item.updated_at,
                         product=None,
-                        unit_price=Decimal("0.00"),
                         subtotal=Decimal("0.00"),
                         is_available=False,
                         available_stock=0,
@@ -163,4 +161,3 @@ class CartService:
         if cart is None:
             cart = Cart(user_id=user_id)
         return cart
-

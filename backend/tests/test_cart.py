@@ -51,7 +51,7 @@ class TestCartFunctional:
         assert item1["product_id"] == str(sample_product.id)
         assert item1["quantity"] == 2
         assert item1["product"]["name"] == sample_product.name
-        assert Decimal(str(item1["unit_price"])) == Decimal("1500.00")
+        assert Decimal(str(item1["product"]["price"])) == Decimal("1500.00")
         assert Decimal(str(item1["subtotal"])) == Decimal("3000.00")
         assert item1["is_available"] is True
         assert item1["available_stock"] == 10
@@ -68,7 +68,6 @@ class TestCartFunctional:
         assert Decimal(str(data2["total_amount"])) == Decimal("7500.00")
         assert data2["items"][0]["quantity"] == 5
         assert Decimal(str(data2["items"][0]["subtotal"])) == Decimal("7500.00")
-
 
     def test_update_cart_quantity_zero_removes_item(
         self,

@@ -55,12 +55,13 @@ class TestServicesHydration:
         item_map = {item.product_id: item for item in cart_dto.items}
         assert item_map[sample_product.id].product is not None
         assert item_map[sample_product.id].product.name == sample_product.name
-        assert item_map[sample_product.id].unit_price == Decimal("1500.00")
+        assert item_map[sample_product.id].product.price == Decimal("1500.00")
         assert item_map[sample_product.id].subtotal == Decimal("3000.00")
         assert item_map[sample_product.id].is_available is True
         assert item_map[sample_product.id].available_stock == 10
 
-        assert item_map[p2.id].unit_price == Decimal("500.00")
+        assert item_map[p2.id].product is not None
+        assert item_map[p2.id].product.price == Decimal("500.00")
         assert item_map[p2.id].subtotal == Decimal("500.00")
 
     def test_cart_service_orphan_and_out_of_stock_products(
@@ -78,7 +79,6 @@ class TestServicesHydration:
 
         # Добавляем в Riak товар с количеством больше, чем на складе (на складе 10, заказываем 15)
         repos.cart_repo.set_item_quantity(student_user.id, sample_product.id, 15)
-
 
         cart_dto = cart_service.get_by_user_id(student_user.id)
         assert cart_dto.has_unavailable_items is True
@@ -104,7 +104,9 @@ class TestServicesHydration:
         sample_product: Product,
     ) -> None:
         product_service = ProductService(repos.product_repo)
-        fav_service = FavouritesService(repos.favourites_repo, product_service, repos.event_bus)
+        fav_service = FavouritesService(
+            repos.favourites_repo, product_service, repos.event_bus
+        )
 
         # Добавляем существующий товар
         fav_dto = fav_service.add_product(
@@ -141,7 +143,9 @@ class TestServicesHydration:
     ) -> None:
         user_service = UserService(repos.user_repo, None, repos.event_bus)  # type: ignore[arg-type]
         product_service = ProductService(repos.product_repo)
-        fav_service = FavouritesService(repos.favourites_repo, product_service, repos.event_bus)
+        fav_service = FavouritesService(
+            repos.favourites_repo, product_service, repos.event_bus
+        )
         teacher_service = TeacherService(
             repos.teacher_repo,
             user_service,

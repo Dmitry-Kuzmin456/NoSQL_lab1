@@ -13,6 +13,11 @@ class IUserRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def get_by_ids(self, user_ids: list[UUID]) -> list[User]:
+        """Получить список пользователей по их ID."""
+        raise NotImplementedError
+
+    @abstractmethod
     def exists_by_id(self, user_id: UUID) -> bool:
         """Проверить существование пользователя."""
         raise NotImplementedError

@@ -449,3 +449,27 @@ class TestUsersFunctional:
             headers=admin_auth_headers,
         )
         assert response.status_code == 404
+
+    def test_repository_get_by_ids(
+        self,
+        repos: RepositoriesContainer,
+        student_user: User,
+        teacher_user: User,
+    ) -> None:
+        """Проверка пакетного получения пользователей через get_by_ids."""
+        # Пустой список
+        assert repos.user_repo.get_by_ids([]) == []
+
+        # Несколько существующих пользователей
+        found = repos.user_repo.get_by_ids([student_user.id, teacher_user.id])
+        assert len(found) == 2
+        found_ids = {u.id for u in found}
+        assert student_user.id in found_ids
+        assert teacher_user.id in found_ids
+
+        # Смесь существующих и несуществующего ID
+        non_existent_id = uuid4()
+        found_mixed = repos.user_repo.get_by_ids([student_user.id, non_existent_id])
+        assert len(found_mixed) == 1
+        assert found_mixed[0].id == student_user.id
+

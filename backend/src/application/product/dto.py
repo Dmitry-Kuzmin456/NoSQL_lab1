@@ -21,12 +21,25 @@ class ProductUpdateDto:
     quantity: int | None = None
 
 
+from enum import StrEnum
+
+
+class ProductSortBy(StrEnum):
+    POPULARITY = "popularity"
+    PRICE_ASC = "price_asc"
+    PRICE_DESC = "price_desc"
+    NAME_ASC = "name_asc"
+    NAME_DESC = "name_desc"
+    NEWEST = "newest"
+
+
 @dataclass(frozen=True)
 class ProductFilterDto:
     query: str | None = None
     min_price: Decimal | None = None
     max_price: Decimal | None = None
     in_stock_only: bool = False
+    sort_by: ProductSortBy = ProductSortBy.POPULARITY
     offset: int = 0
     limit: int = 50
 

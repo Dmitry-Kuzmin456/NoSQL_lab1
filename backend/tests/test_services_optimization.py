@@ -8,7 +8,6 @@ from application.favourites.service import FavouritesService
 from application.product.service import ProductService
 from application.teacher.service import TeacherService
 from application.user.service import UserService
-from domain.cart import CartProduct
 from domain.favourites import FavouriteProduct
 from domain.product import Product
 from domain.user import User, UserRole

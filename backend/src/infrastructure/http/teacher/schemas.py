@@ -48,7 +48,6 @@ class TeacherResponse(BaseModel):
         )
 
 
-
 class BatchAddProductResponse(BaseModel):
     product_id: UUID
     affected_students: int

@@ -25,7 +25,9 @@ class FavouriteItemResponse(BaseModel):
     added_user_id: UUID
     updated_at: datetime
     product: ProductResponse | None = None
-    is_available: bool = Field(default=True, description="Существует ли товар в каталоге")
+    is_available: bool = Field(
+        default=True, description="Существует ли товар в каталоге"
+    )
 
     @classmethod
     def from_dto(cls, dto: FavouriteItemResponseDto) -> "FavouriteItemResponse":
@@ -50,4 +52,3 @@ class FavouritesResponse(BaseModel):
             products=[FavouriteItemResponse.from_dto(p) for p in dto.products],
             total_count=dto.total_count,
         )
-

@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
@@ -19,7 +19,6 @@ class CartItemResponseDto:
     quantity: int
     updated_at: datetime
     product: ProductResponseDto | None = None
-    unit_price: Decimal = Decimal("0.00")
     subtotal: Decimal = Decimal("0.00")
     is_available: bool = True
     available_stock: int = 0
@@ -31,7 +30,6 @@ class CartItemResponseDto:
         product: ProductResponseDto | None = None,
         is_available: bool = True,
         available_stock: int = 0,
-        unit_price: Decimal = Decimal("0.00"),
         subtotal: Decimal = Decimal("0.00"),
     ) -> "CartItemResponseDto":
         return cls(
@@ -39,7 +37,6 @@ class CartItemResponseDto:
             quantity=item.quantity,
             updated_at=item.updated_at,
             product=product,
-            unit_price=unit_price,
             subtotal=subtotal,
             is_available=is_available,
             available_stock=available_stock,
@@ -71,4 +68,3 @@ class CartResponseDto:
             total_amount=total_amount,
             has_unavailable_items=has_unavailable_items,
         )
-

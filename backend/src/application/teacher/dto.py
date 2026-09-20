@@ -44,4 +44,3 @@ class TeacherResponseDto:
             total_students=len(student_list),
             students=students if students is not None else [],
         )
-

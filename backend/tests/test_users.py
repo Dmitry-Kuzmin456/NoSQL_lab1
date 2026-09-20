@@ -472,4 +472,3 @@ class TestUsersFunctional:
         found_mixed = repos.user_repo.get_by_ids([student_user.id, non_existent_id])
         assert len(found_mixed) == 1
         assert found_mixed[0].id == student_user.id
-

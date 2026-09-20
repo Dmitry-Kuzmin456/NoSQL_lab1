@@ -48,10 +48,11 @@ class FavouritesResponseDto:
         products: list[FavouriteItemResponseDto] | None = None,
     ) -> "FavouritesResponseDto":
         if products is None:
-            products = [FavouriteItemResponseDto.from_domain(p) for p in favourites.products]
+            products = [
+                FavouriteItemResponseDto.from_domain(p) for p in favourites.products
+            ]
         return cls(
             user_id=favourites.user_id,
             products=products,
             total_count=len(products),
         )
-

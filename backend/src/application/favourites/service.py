@@ -140,4 +140,3 @@ class FavouritesService:
         if favourites is None:
             favourites = Favourites(user_id=user_id)
         return favourites
-

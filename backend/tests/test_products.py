@@ -408,7 +408,8 @@ class TestProductsFunctional:
 
         # Смесь существующих и несуществующего ID
         non_existent_id = uuid4()
-        found_mixed = repos.product_repo.get_by_ids([sample_product.id, non_existent_id])
+        found_mixed = repos.product_repo.get_by_ids(
+            [sample_product.id, non_existent_id]
+        )
         assert len(found_mixed) == 1
         assert found_mixed[0].id == sample_product.id
-

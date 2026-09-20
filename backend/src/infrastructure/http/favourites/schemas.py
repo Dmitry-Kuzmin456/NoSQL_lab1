@@ -8,6 +8,7 @@ from application.favourites.dto import (
     FavouriteItemResponseDto,
     FavouritesResponseDto,
 )
+from infrastructure.http.product.schemas import ProductResponse
 
 
 class AddFavouriteRequest(BaseModel):
@@ -23,6 +24,10 @@ class FavouriteItemResponse(BaseModel):
     product_id: UUID
     added_user_id: UUID
     updated_at: datetime
+    product: ProductResponse | None = None
+    is_available: bool = Field(
+        default=True, description="Существует ли товар в каталоге"
+    )
 
     @classmethod
     def from_dto(cls, dto: FavouriteItemResponseDto) -> "FavouriteItemResponse":
@@ -30,6 +35,8 @@ class FavouriteItemResponse(BaseModel):
             product_id=dto.product_id,
             added_user_id=dto.added_user_id,
             updated_at=dto.updated_at,
+            product=ProductResponse.from_dto(dto.product) if dto.product else None,
+            is_available=dto.is_available,
         )
 
 

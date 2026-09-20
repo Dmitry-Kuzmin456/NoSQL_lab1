@@ -36,6 +36,17 @@ class PostgresUserRepository(IUserRepository):
                 return None
             return self._row_to_user(row)
 
+    def get_by_ids(self, user_ids: list[UUID]) -> list[User]:
+        if not user_ids:
+            return []
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                "SELECT id, name, email, password_hash, role FROM users WHERE id = ANY(%s)",
+                (user_ids,),
+            )
+            rows = cur.fetchall()
+            return [self._row_to_user(r) for r in rows]
+
     def exists_by_id(self, user_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute("SELECT 1 FROM users WHERE id = %s", (user_id,))

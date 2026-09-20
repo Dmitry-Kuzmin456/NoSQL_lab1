@@ -15,6 +15,11 @@ class IProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def get_by_ids(self, product_ids: list[UUID]) -> list[Product]:
+        """Получить список товаров по их ID."""
+        raise NotImplementedError
+
+    @abstractmethod
     def exists_by_id(self, product_id: UUID) -> bool:
         """Проверить существование товара."""
         raise NotImplementedError

@@ -39,6 +39,17 @@ class PostgresProductRepository(IProductRepository):
                 return None
             return self._row_to_product(row)
 
+    def get_by_ids(self, product_ids: list[UUID]) -> list[Product]:
+        if not product_ids:
+            return []
+        with self._pool.connection() as conn, conn.cursor(row_factory=dict_row) as cur:
+            cur.execute(
+                "SELECT id, name, description, price, quantity FROM products WHERE id = ANY(%s)",
+                (product_ids,),
+            )
+            rows = cur.fetchall()
+            return [self._row_to_product(r) for r in rows]
+
     def exists_by_id(self, product_id: UUID) -> bool:
         with self._pool.connection() as conn, conn.cursor() as cur:
             cur.execute("SELECT 1 FROM products WHERE id = %s", (product_id,))

@@ -402,4 +402,3 @@ class TestOrdersFunctional:
         assert snapshot["name"] == sample_product.name
         assert snapshot["description"] == sample_product.description
         assert Decimal(str(snapshot["price"])) == sample_product.price
-

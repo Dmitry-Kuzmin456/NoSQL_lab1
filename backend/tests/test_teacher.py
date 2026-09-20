@@ -46,8 +46,13 @@ class TestTeacherFunctional:
             json={"student_id": str(student_user.id)},
         )
         assert add_resp.status_code == 200
-        assert str(student_user.id) in add_resp.json()["student_ids"]
-        assert add_resp.json()["total_students"] == 1
+        teacher_data = add_resp.json()
+        assert str(student_user.id) in teacher_data["student_ids"]
+        assert teacher_data["total_students"] == 1
+        assert len(teacher_data["students"]) == 1
+        assert teacher_data["students"][0]["id"] == str(student_user.id)
+        assert teacher_data["students"][0]["name"] == student_user.name
+        assert teacher_data["students"][0]["email"] == student_user.email
 
         # 2. Получаем подробный список студентов
         students_resp = client.get(
@@ -58,6 +63,7 @@ class TestTeacherFunctional:
         students = students_resp.json()
         assert len(students) == 1
         assert students[0]["id"] == str(student_user.id)
+
         assert students[0]["name"] == student_user.name
         assert students[0]["email"] == student_user.email
 

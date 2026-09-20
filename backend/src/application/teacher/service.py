@@ -43,9 +43,14 @@ class TeacherService:
         self._favourites_service = favourites_service
         self._event_bus = event_bus
 
+    def _build_teacher_dto(self, teacher: Teacher) -> TeacherResponseDto:
+        students = self._teacher_repository.get_students(teacher.id)
+        students_dto = [UserResponseDto.from_domain(s) for s in students]
+        return TeacherResponseDto.from_domain(teacher, students=students_dto)
+
     def get_teacher(self, teacher_id: UUID) -> TeacherResponseDto:
         teacher = self._get_teacher(teacher_id)
-        return TeacherResponseDto.from_domain(teacher)
+        return self._build_teacher_dto(teacher)
 
     def get_students(self, teacher_id: UUID) -> list[UserResponseDto]:
         if not self._teacher_repository.exists_by_id(teacher_id):
@@ -76,7 +81,7 @@ class TeacherService:
         )
 
         teacher = self._get_teacher(teacher_id)
-        return TeacherResponseDto.from_domain(teacher)
+        return self._build_teacher_dto(teacher)
 
     def remove_student(self, teacher_id: UUID, student_id: UUID) -> TeacherResponseDto:
         if not self._teacher_repository.unassign_student(teacher_id, student_id):
@@ -93,7 +98,7 @@ class TeacherService:
         )
 
         teacher = self._get_teacher(teacher_id)
-        return TeacherResponseDto.from_domain(teacher)
+        return self._build_teacher_dto(teacher)
 
     def add_product_to_all_students(
         self,

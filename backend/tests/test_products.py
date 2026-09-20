@@ -381,3 +381,35 @@ class TestProductsFunctional:
             headers=admin_auth_headers,
         )
         assert response.status_code == 404
+
+    def test_repository_get_by_ids(
+        self,
+        repos: RepositoriesContainer,
+        sample_product: Product,
+    ) -> None:
+        """Проверка пакетного получения товаров через get_by_ids."""
+        p2 = Product(
+            name="Второй товар",
+            description="Описание второго товара",
+            price=Decimal("2000.00"),
+            quantity=5,
+        )
+        repos.product_repo.save(p2)
+
+        # Пустой список
+        assert repos.product_repo.get_by_ids([]) == []
+
+        # Несколько существующих товаров
+        found = repos.product_repo.get_by_ids([sample_product.id, p2.id])
+        assert len(found) == 2
+        found_ids = {p.id for p in found}
+        assert sample_product.id in found_ids
+        assert p2.id in found_ids
+
+        # Смесь существующих и несуществующего ID
+        non_existent_id = uuid4()
+        found_mixed = repos.product_repo.get_by_ids(
+            [sample_product.id, non_existent_id]
+        )
+        assert len(found_mixed) == 1
+        assert found_mixed[0].id == sample_product.id

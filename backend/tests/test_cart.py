@@ -1,3 +1,4 @@
+from decimal import Decimal
 from uuid import uuid4
 
 from fastapi.testclient import TestClient
@@ -43,9 +44,17 @@ class TestCartFunctional:
         assert resp1.status_code == 200
         data1 = resp1.json()
         assert data1["total_items"] == 2
+        assert Decimal(str(data1["total_amount"])) == Decimal("3000.00")
+        assert not data1["has_unavailable_items"]
         assert len(data1["items"]) == 1
-        assert data1["items"][0]["product_id"] == str(sample_product.id)
-        assert data1["items"][0]["quantity"] == 2
+        item1 = data1["items"][0]
+        assert item1["product_id"] == str(sample_product.id)
+        assert item1["quantity"] == 2
+        assert item1["product"]["name"] == sample_product.name
+        assert Decimal(str(item1["product"]["price"])) == Decimal("1500.00")
+        assert Decimal(str(item1["subtotal"])) == Decimal("3000.00")
+        assert item1["is_available"] is True
+        assert item1["available_stock"] == 10
 
         # 2. Обновляем до 5 шт
         resp2 = client.patch(
@@ -56,7 +65,9 @@ class TestCartFunctional:
         assert resp2.status_code == 200
         data2 = resp2.json()
         assert data2["total_items"] == 5
+        assert Decimal(str(data2["total_amount"])) == Decimal("7500.00")
         assert data2["items"][0]["quantity"] == 5
+        assert Decimal(str(data2["items"][0]["subtotal"])) == Decimal("7500.00")
 
     def test_update_cart_quantity_zero_removes_item(
         self,

@@ -64,6 +64,12 @@ class UserService:
             raise UserNotFoundException(user_id)
         return UserResponseDto.from_domain(user)
 
+    def get_by_ids(self, user_ids: list[UUID]) -> dict[UUID, UserResponseDto]:
+        if not user_ids:
+            return {}
+        users = self._user_repository.get_by_ids(user_ids)
+        return {u.id: UserResponseDto.from_domain(u) for u in users}
+
     def exists_by_id(self, user_id: UUID) -> bool:
         return self._user_repository.exists_by_id(user_id)
 

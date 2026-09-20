@@ -5,7 +5,7 @@ from application.product.service import ProductService
 from domain.favourites import FavouriteProduct, Favourites
 from domain.history import OperationEvent, OperationType
 
-from .dto import AddFavouriteDto, FavouritesResponseDto
+from .dto import AddFavouriteDto, FavouriteItemResponseDto, FavouritesResponseDto
 from .exceptions import FavouriteProductNotFoundException
 from .repository import IFavouritesRepository
 
@@ -21,9 +21,50 @@ class FavouritesService:
         self._product_service = product_service
         self._event_bus = event_bus
 
+    def _build_response_dto(self, favourites: Favourites) -> FavouritesResponseDto:
+        if not favourites.products:
+            return FavouritesResponseDto(
+                user_id=favourites.user_id,
+                products=[],
+                total_count=0,
+            )
+
+        product_ids = [p.product_id for p in favourites.products]
+        products_map = self._product_service.get_by_ids(product_ids)
+
+        items: list[FavouriteItemResponseDto] = []
+        for item in favourites.products:
+            prod_dto = products_map.get(item.product_id)
+            if prod_dto is not None:
+                items.append(
+                    FavouriteItemResponseDto(
+                        product_id=item.product_id,
+                        added_user_id=item.added_user_id,
+                        updated_at=item.updated_at,
+                        product=prod_dto,
+                        is_available=True,
+                    )
+                )
+            else:
+                items.append(
+                    FavouriteItemResponseDto(
+                        product_id=item.product_id,
+                        added_user_id=item.added_user_id,
+                        updated_at=item.updated_at,
+                        product=None,
+                        is_available=False,
+                    )
+                )
+
+        return FavouritesResponseDto(
+            user_id=favourites.user_id,
+            products=items,
+            total_count=len(items),
+        )
+
     def get_by_user_id(self, user_id: UUID) -> FavouritesResponseDto:
         favourites = self._get_or_create(user_id)
-        return FavouritesResponseDto.from_domain(favourites)
+        return self._build_response_dto(favourites)
 
     def is_in_favourites(self, user_id: UUID, product_id: UUID) -> bool:
         favourites = self._favourites_repository.get_by_user_id(user_id)
@@ -58,7 +99,7 @@ class FavouritesService:
             )
         )
 
-        return FavouritesResponseDto.from_domain(favourites)
+        return self._build_response_dto(favourites)
 
     def remove_product(
         self,
@@ -81,7 +122,7 @@ class FavouritesService:
             )
         )
 
-        return FavouritesResponseDto.from_domain(updated_favs)
+        return self._build_response_dto(updated_favs)
 
     def clear(self, user_id: UUID) -> FavouritesResponseDto:
         self._favourites_repository.delete_by_user_id(user_id)
@@ -92,10 +133,11 @@ class FavouritesService:
                 action=OperationType.CLEAR_FAVOURITES,
             )
         )
-        return FavouritesResponseDto.from_domain(Favourites(user_id=user_id))
+        return self._build_response_dto(Favourites(user_id=user_id))
 
     def _get_or_create(self, user_id: UUID) -> Favourites:
         favourites = self._favourites_repository.get_by_user_id(user_id)
         if favourites is None:
             favourites = Favourites(user_id=user_id)
         return favourites
+

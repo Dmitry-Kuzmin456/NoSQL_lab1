@@ -48,6 +48,12 @@ class ProductService:
             raise ProductNotFoundException(product_id)
         return ProductResponseDto.from_domain(product)
 
+    def get_by_ids(self, product_ids: list[UUID]) -> dict[UUID, ProductResponseDto]:
+        if not product_ids:
+            return {}
+        products = self._product_repository.get_by_ids(product_ids)
+        return {p.id: ProductResponseDto.from_domain(p) for p in products}
+
     def exists_by_id(self, product_id: UUID) -> bool:
         return self._product_repository.exists_by_id(product_id)
 

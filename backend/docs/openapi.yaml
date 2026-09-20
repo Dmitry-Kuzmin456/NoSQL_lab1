@@ -548,6 +548,14 @@ paths:
           default: false
           title: In Stock Only
         description: Только товары в наличии
+      - name: sort_by
+        in: query
+        required: false
+        schema:
+          $ref: '#/components/schemas/ProductSortBy'
+          description: Сортировка товаров
+          default: name_asc
+        description: Сортировка товаров
       - name: offset
         in: query
         required: false
@@ -3336,6 +3344,16 @@ components:
       - description
       - price
       title: ProductSnapshotResponse
+    ProductSortBy:
+      type: string
+      enum:
+      - popularity
+      - price_asc
+      - price_desc
+      - name_asc
+      - name_desc
+      - newest
+      title: ProductSortBy
     RecoveryResponse:
       properties:
         token:

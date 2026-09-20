@@ -4,7 +4,7 @@ from uuid import UUID
 
 from fastapi import APIRouter, Query, status
 
-from application.product.dto import ProductFilterDto
+from application.product.dto import ProductFilterDto, ProductSortBy
 from domain.user import UserRole
 from infrastructure.http.auth.dependencies import require_roles
 from infrastructure.http.cart.dependencies import CartServiceDep
@@ -49,6 +49,10 @@ def list_products(
         bool,
         Query(description="Только товары в наличии"),
     ] = False,
+    sort_by: Annotated[
+        ProductSortBy,
+        Query(description="Сортировка товаров"),
+    ] = ProductSortBy.POPULARITY,
     offset: Annotated[
         int,
         Query(ge=0, description="Смещение (offset)"),
@@ -63,6 +67,7 @@ def list_products(
         min_price=min_price,
         max_price=max_price,
         in_stock_only=in_stock_only,
+        sort_by=sort_by,
         offset=offset,
         limit=limit,
     )

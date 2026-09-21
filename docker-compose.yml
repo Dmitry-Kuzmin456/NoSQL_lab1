@@ -19,6 +19,7 @@ services:
   riak:
     image: basho/riak-kv:ubuntu-2.2.3
     platform: linux/amd64
+    hostname: riak
     environment:
       CLUSTER_NAME: riakkv
     labels:
@@ -28,26 +29,14 @@ services:
       - "8098:8098"
     volumes:
       - riak-data:/var/lib/riak
-      - riak-schemas:/etc/riak/schemas
+      - ./backend/scripts/riak-schemas:/etc/riak/schemas:ro
+      - ./backend/scripts/riak-poststart-kv.sh:/etc/riak/poststart.d/10-kv-bucket-type.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 30
-
-  riak-init:
-    image: basho/riak-kv:ubuntu-2.2.3
-    platform: linux/amd64
-    depends_on:
-      riak:
-        condition: service_healthy
-    volumes:
-      - riak-data:/var/lib/riak
-      - ./backend/scripts/init_riak.sh:/etc/riak/init_riak.sh:ro
-    environment:
-      RIAK_NODE: riak@riak
-    entrypoint: ["/bin/bash", "/etc/riak/init_riak.sh"]
-    restart: "no"
+      start_period: 40s
 
   backend:
     build:
@@ -62,10 +51,7 @@ services:
         condition: service_healthy
       riak:
         condition: service_healthy
-      riak-init:
-        condition: service_completed_successfully
 
 volumes:
   postgres-data:
   riak-data:
-  riak-schemas:

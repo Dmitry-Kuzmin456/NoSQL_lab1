@@ -20,6 +20,7 @@ services:
     image: basho/riak-kv:ubuntu-2.2.3
     container_name: nosql_riak_test
     platform: linux/amd64
+    hostname: riak
     environment:
       CLUSTER_NAME: riakkv
     labels:

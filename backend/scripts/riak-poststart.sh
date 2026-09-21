@@ -5,9 +5,16 @@ create_and_activate() {
   local type_name=$1
   local props=$2
 
+  if $RIAK_ADMIN bucket-type status "$type_name" 2>/dev/null | grep -q "is active"; then
+    return 0
+  fi
+
   $RIAK_ADMIN bucket-type create "$type_name" "$props" 2>/dev/null || true
   for _ in $(seq 1 10); do
     if $RIAK_ADMIN bucket-type activate "$type_name" 2>/dev/null; then
+      break
+    fi
+    if $RIAK_ADMIN bucket-type status "$type_name" 2>/dev/null | grep -q "is active"; then
       break
     fi
     sleep 1

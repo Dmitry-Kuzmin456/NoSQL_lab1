@@ -85,6 +85,66 @@ class TestUsersFunctional:
         assert data["id"] == str(student_user.id)
         assert data["email"] == student_user.email
 
+    def test_admin_get_user_by_email_success(
+        self,
+        client: TestClient,
+        student_user: User,
+        admin_auth_headers: dict[str, str],
+    ) -> None:
+        """Основной поток: администратор находит пользователя по email."""
+        response = client.get(
+            "/api/users/by-email",
+            params={"email": student_user.email.upper()},
+            headers=admin_auth_headers,
+        )
+        assert response.status_code == 200
+        data = response.json()
+        assert data["id"] == str(student_user.id)
+        assert data["email"] == student_user.email
+
+    def test_teacher_get_student_by_email_success(
+        self,
+        client: TestClient,
+        student_user: User,
+        teacher_auth_headers: dict[str, str],
+    ) -> None:
+        """Основной поток: преподаватель находит ученика по email."""
+        response = client.get(
+            "/api/users/by-email",
+            params={"email": student_user.email},
+            headers=teacher_auth_headers,
+        )
+        assert response.status_code == 200
+        assert response.json()["id"] == str(student_user.id)
+
+    def test_teacher_cannot_lookup_admin_by_email(
+        self,
+        client: TestClient,
+        admin_user: User,
+        teacher_auth_headers: dict[str, str],
+    ) -> None:
+        """Альтернативный поток: преподаватель не видит админа по email."""
+        response = client.get(
+            "/api/users/by-email",
+            params={"email": admin_user.email},
+            headers=teacher_auth_headers,
+        )
+        assert response.status_code == 404
+
+    def test_student_cannot_lookup_by_email(
+        self,
+        client: TestClient,
+        teacher_user: User,
+        student_auth_headers: dict[str, str],
+    ) -> None:
+        """Альтернативный поток: ученик не может искать пользователей по email."""
+        response = client.get(
+            "/api/users/by-email",
+            params={"email": teacher_user.email},
+            headers=student_auth_headers,
+        )
+        assert response.status_code == 403
+
     def test_update_profile_me_success(
         self,
         client: TestClient,

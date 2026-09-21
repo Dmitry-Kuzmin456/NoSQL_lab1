@@ -75,13 +75,18 @@ class RoleChecker:
     def __init__(self, allowed_roles: tuple[UserRole, ...]) -> None:
         self.allowed_roles = allowed_roles
 
-    def __call__(self, user: CurrentUserDep) -> AuthUser:
-        if self.allowed_roles and user.role not in self.allowed_roles:
+    def __call__(
+        self,
+        user: CurrentUserDep,
+        user_service: UserServiceDep,
+    ) -> AuthUser:
+        db_user = user_service.get_by_id(user.id)
+        if self.allowed_roles and db_user.role not in self.allowed_roles:
             raise HTTPException(
                 status_code=status.HTTP_403_FORBIDDEN,
                 detail="Недостаточно прав доступа для выполнения данной операции.",
             )
-        return user
+        return AuthUser(id=db_user.id, role=db_user.role)
 
 
 def require_roles(*allowed_roles: UserRole):

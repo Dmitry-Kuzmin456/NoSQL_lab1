@@ -3,9 +3,10 @@ from uuid import UUID, uuid4
 
 from fastapi.testclient import TestClient
 
+from application.auth.token import ITokenService
 from domain.favourites import FavouriteProduct
 from domain.product import Product
-from domain.user import User
+from domain.user import User, UserRole
 from tests.conftest import RepositoriesContainer
 
 
@@ -239,6 +240,30 @@ class TestProductsFunctional:
             json={"name": "Хакерский товар", "price": "100.00", "quantity": 1},
         )
         assert response.status_code == 403
+
+    def test_admin_create_product_ignores_stale_jwt_role(
+        self,
+        client: TestClient,
+        admin_user: User,
+        token_service: ITokenService,
+    ) -> None:
+        """Роль в JWT может устареть; создание товара смотрит роль в профиле."""
+        stale_token = token_service.create_access_token(
+            user_id=admin_user.id,
+            role=UserRole.STUDENT,
+        )
+        response = client.post(
+            "/api/products",
+            headers={"Authorization": f"Bearer {stale_token}"},
+            json={
+                "name": "Товар с устаревшим токеном",
+                "description": "Роль берём из профиля",
+                "price": "100.00",
+                "quantity": 3,
+            },
+        )
+        assert response.status_code == 201
+        assert response.json()["name"] == "Товар с устаревшим токеном"
 
     def test_create_product_forbidden_for_teacher(
         self,

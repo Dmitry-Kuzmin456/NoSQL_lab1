@@ -13,10 +13,23 @@ if [ -n "$RIAK_NODE" ]; then
 fi
 
 echo "Waiting for Riak KV..."
-riak-admin "${ADMIN_ARGS[@]}" wait-for-service riak_kv >/dev/null 2>&1 || {
+ready=0
+for _ in $(seq 1 30); do
+    if riak-admin "${ADMIN_ARGS[@]}" wait-for-service riak_kv >/dev/null 2>&1; then
+        ready=1
+        break
+    fi
+    sleep 2
+done
+
+if [ "$ready" -ne 1 ]; then
     echo "Riak KV not ready."
+    if [ -n "$RIAK_NODE" ]; then
+        echo "Tried node: $RIAK_NODE"
+        riak-admin "${ADMIN_ARGS[@]}" status 2>&1 | tail -n 20 || true
+    fi
     exit 1
-}
+fi
 
 echo "Initializing Riak bucket types..."
 

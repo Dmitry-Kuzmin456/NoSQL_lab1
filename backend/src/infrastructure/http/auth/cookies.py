@@ -33,5 +33,12 @@ class CookieManager:
 
     @staticmethod
     def clear_auth_cookies(response: Response) -> None:
-        response.delete_cookie(key="access_token", path="/")
-        response.delete_cookie(key="refresh_token", path="/")
+        for key in ("access_token", "refresh_token"):
+            for secure in (True, False):
+                response.delete_cookie(
+                    key=key,
+                    path="/",
+                    secure=secure,
+                    httponly=settings.auth.cookie_httponly,
+                    samesite=settings.auth.cookie_samesite,
+                )

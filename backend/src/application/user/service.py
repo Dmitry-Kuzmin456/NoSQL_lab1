@@ -84,6 +84,9 @@ class UserService:
             raise UserNotFoundException(normalized_email)
         return UserWithPasswordDto.from_domain(user)
 
+    def find_by_email(self, email: str) -> UserResponseDto:
+        return self.get_by_email(email).to_response_dto()
+
     def update_profile(self, user_id: UUID, dto: UserUpdateDto) -> UserResponseDto:
         user = self._user_repository.get_by_id(user_id)
         if user is None:

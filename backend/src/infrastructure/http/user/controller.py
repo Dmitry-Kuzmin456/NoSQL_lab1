@@ -1,6 +1,8 @@
+from typing import Annotated
 from uuid import UUID
 
-from fastapi import APIRouter, status
+from fastapi import APIRouter, HTTPException, Query, status
+from pydantic import EmailStr
 
 from domain.user import UserRole
 from infrastructure.http.auth.dependencies import require_roles
@@ -43,6 +45,27 @@ def get_me(
     service: UserServiceDep,
 ) -> UserResponse:
     user_dto = service.get_by_id(current_user.id)
+    return UserResponse.from_dto(user_dto)
+
+
+@router.get(
+    "/by-email",
+    dependencies=[require_roles(UserRole.ADMIN, UserRole.TEACHER)],
+    response_model=UserResponse,
+    status_code=status.HTTP_200_OK,
+    summary="Найти пользователя по email (Admin, Teacher)",
+)
+def get_by_email(
+    email: Annotated[EmailStr, Query(description="Email пользователя")],
+    current_user: CurrentUserDep,
+    service: UserServiceDep,
+) -> UserResponse:
+    user_dto = service.find_by_email(str(email))
+    if current_user.role == UserRole.TEACHER and user_dto.role != UserRole.STUDENT:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Пользователь не найден.",
+        )
     return UserResponse.from_dto(user_dto)
 
 

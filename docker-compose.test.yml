@@ -29,11 +29,11 @@ services:
       - "8088:8087"
       - "8099:8098"
     volumes:
-      - ./backend/scripts/riak-schemas:/etc/riak/schemas:ro
-      - ./backend/scripts/riak-prestart.sh:/etc/riak/prestart.d/00-wait-for-erlang.sh:ro
-      - ./backend/scripts/riak-poststart-kv.sh:/etc/riak/poststart.d/10-kv-bucket-type.sh:ro
+      - ./backend/scripts/riak-prestart.sh:/etc/riak/prestart.d/00-prestart.sh:ro
+      - ./backend/scripts/riak-poststart.sh:/etc/riak/poststart.d/00-poststart.sh:ro
     healthcheck:
-      test: [ "CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1" ]
+      test: [ "CMD-SHELL", "riak ping >/dev/null 2>&1 && [ -f /tmp/.riak_initialized ] || exit 1" ]
       interval: 3s
-      timeout: 3s
+      timeout: 5s
       retries: 30
+      start_period: 40s

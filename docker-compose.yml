@@ -30,6 +30,7 @@ services:
     volumes:
       - riak-data:/var/lib/riak
       - ./backend/scripts/riak-schemas:/etc/riak/schemas:ro
+      - ./backend/scripts/riak-prestart.sh:/etc/riak/prestart.d/00-wait-for-erlang.sh:ro
       - ./backend/scripts/riak-poststart-kv.sh:/etc/riak/poststart.d/10-kv-bucket-type.sh:ro
     healthcheck:
       test: ["CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1"]

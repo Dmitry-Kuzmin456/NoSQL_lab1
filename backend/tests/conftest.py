@@ -174,22 +174,6 @@ def setup_docker_test_containers() -> Generator[None]:
                 check=False,
                 capture_output=True,
             )
-            # Init Riak bucket types
-            subprocess.run(
-                [
-                    "docker",
-                    "compose",
-                    "-f",
-                    compose_file,
-                    "exec",
-                    "-T",
-                    "riak-test",
-                    "/bin/bash",
-                    "/etc/riak/init_riak.sh",
-                ],
-                check=False,
-                capture_output=True,
-            )
 
     # Wait for readiness
     for _ in range(30):

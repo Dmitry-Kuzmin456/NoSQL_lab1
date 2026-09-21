@@ -153,7 +153,10 @@ def _is_postgres_ready() -> bool:
 def _is_riak_ready() -> bool:
     try:
         client = get_riak_client()
-        return client.ping()
+        if not client.ping():
+            return False
+        client.get("kv", "healthcheck", "test")
+        return True
     except Exception:  # noqa: BLE001
         return False
 
@@ -174,25 +177,9 @@ def setup_docker_test_containers() -> Generator[None]:
                 check=False,
                 capture_output=True,
             )
-            # Init Riak bucket types
-            subprocess.run(
-                [
-                    "docker",
-                    "compose",
-                    "-f",
-                    compose_file,
-                    "exec",
-                    "-T",
-                    "riak-test",
-                    "/bin/bash",
-                    "/etc/riak/init_riak.sh",
-                ],
-                check=False,
-                capture_output=True,
-            )
 
     # Wait for readiness
-    for _ in range(30):
+    for _ in range(60):
         if _is_postgres_ready() and _is_riak_ready():
             break
         time.sleep(1.0)

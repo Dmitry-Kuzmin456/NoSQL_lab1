@@ -11,7 +11,7 @@ services:
     volumes:
       - ./backend/scripts/init_postgres.sql:/docker-entrypoint-initdb.d/init.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U postgres -d nosql_store_test"]
+      test: [ "CMD-SHELL", "pg_isready -U postgres -d nosql_store_test" ]
       interval: 2s
       timeout: 3s
       retries: 20
@@ -29,9 +29,11 @@ services:
       - "8088:8087"
       - "8099:8098"
     volumes:
-      - ./backend/scripts/init_riak.sh:/etc/riak/init_riak.sh:ro
+      - ./backend/scripts/riak-prestart.sh:/etc/riak/prestart.d/00-prestart.sh:ro
+      - ./backend/scripts/riak-poststart.sh:/etc/riak/poststart.d/00-poststart.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1"]
+      test: [ "CMD-SHELL", "curl -s -f http://127.0.0.1:8098/ping >/dev/null && [ -f /tmp/.riak_initialized ] || exit 1" ]
       interval: 3s
-      timeout: 3s
+      timeout: 5s
       retries: 30
+      start_period: 40s

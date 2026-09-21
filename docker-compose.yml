@@ -29,10 +29,10 @@ services:
       - "8098:8098"
     volumes:
       - riak-data:/var/lib/riak
-      - ./backend/scripts/riak-schemas:/etc/riak/schemas:ro
-      - ./backend/scripts/riak-poststart-kv.sh:/etc/riak/poststart.d/10-kv-bucket-type.sh:ro
+      - ./backend/scripts/riak-prestart.sh:/etc/riak/prestart.d/00-prestart.sh:ro
+      - ./backend/scripts/riak-poststart.sh:/etc/riak/poststart.d/00-poststart.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "riak-admin wait-for-service riak_kv >/dev/null 2>&1 || exit 1"]
+      test: ["CMD-SHELL", "curl -s -f http://127.0.0.1:8098/ping >/dev/null && [ -f /tmp/.riak_initialized ] || exit 1"]
       interval: 5s
       timeout: 5s
       retries: 30

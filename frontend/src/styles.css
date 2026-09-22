@@ -78,6 +78,18 @@ p {
   box-shadow: var(--shadow);
 }
 
+.card--dirty {
+  border-color: #c4a574;
+  background: #fbf3e6;
+  box-shadow: inset 4px 0 0 #a67c52;
+}
+
+.unsaved {
+  color: #8a5a2a;
+  font-size: 13px;
+  font-weight: 650;
+}
+
 .auth-card {
   width: min(420px, 100%);
   padding: 32px 28px;

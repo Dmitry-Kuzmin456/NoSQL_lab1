@@ -11,8 +11,20 @@ import {
 import type { Product } from "../api/types";
 import { formatPrice } from "../lib/format";
 
+type SavedProduct = Pick<Product, "name" | "description" | "price">;
+
+function isDirty(product: Product, saved: SavedProduct | undefined) {
+  if (!saved) return false;
+  return (
+    saved.name !== product.name ||
+    saved.description !== product.description ||
+    saved.price !== product.price
+  );
+}
+
 export function AdminProductsPage() {
   const [items, setItems] = useState<Product[]>([]);
+  const [saved, setSaved] = useState<Record<string, SavedProduct>>({});
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState("");
@@ -25,6 +37,14 @@ export function AdminProductsPage() {
     try {
       const result = await listProducts({ limit: 50, sort_by: "name_asc" });
       setItems(result.items);
+      setSaved(
+        Object.fromEntries(
+          result.items.map((item) => [
+            item.id,
+            { name: item.name, description: item.description, price: item.price },
+          ]),
+        ),
+      );
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Не удалось загрузить товары");
     } finally {
@@ -117,8 +137,10 @@ export function AdminProductsPage() {
       </form>
       {loading ? <div className="skeleton" /> : null}
       <div className="list">
-        {items.map((product) => (
-          <article key={product.id} className="card" style={{ padding: 16 }}>
+        {items.map((product) => {
+          const dirty = isDirty(product, saved[product.id]);
+          return (
+          <article key={product.id} className={dirty ? "card card--dirty" : "card"} style={{ padding: 16 }}>
             <div className="row" style={{ padding: 0 }}>
               <div className="row__main">
                 <input
@@ -128,7 +150,13 @@ export function AdminProductsPage() {
                 <span className="muted">{formatPrice(product.price)} · {product.id}</span>
               </div>
               <div className="row__actions">
-                <button type="button" className="btn btn--ghost" onClick={() => void onSave(product)}>
+                {dirty ? <span className="unsaved">Не сохранено</span> : null}
+                <button
+                  type="button"
+                  className={dirty ? "btn btn--primary" : "btn btn--ghost"}
+                  disabled={!dirty}
+                  onClick={() => void onSave(product)}
+                >
                   Сохранить
                 </button>
                 <button type="button" className="btn btn--danger" onClick={() => void onDelete(product.id)}>
@@ -165,7 +193,8 @@ export function AdminProductsPage() {
               </div>
             </div>
           </article>
-        ))}
+          );
+        })}
       </div>
     </>
   );

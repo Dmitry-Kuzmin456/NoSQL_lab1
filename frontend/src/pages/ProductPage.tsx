@@ -5,6 +5,7 @@ import { getProduct } from "../api/products";
 import { addFavourite, removeFavourite, setCartQuantity } from "../api/shop";
 import type { Product } from "../api/types";
 import { useAuth } from "../auth/AuthContext";
+import { HeartIcon } from "../components/HeartIcon";
 import { formatPrice } from "../lib/format";
 import { usePaths } from "../routing";
 
@@ -86,16 +87,23 @@ export function ProductPage() {
           {current.is_in_stock ? `В наличии: ${current.quantity}` : "Нет в наличии"}
         </div>
         <div className="product-card__actions">
-          <button type="button" className="btn btn--ghost" disabled={busy} onClick={() => void toggleFavourite()}>
-            {inFavourites ? "Убрать из избранного" : "В избранное"}
+          <button
+            type="button"
+            className={inFavourites ? "btn btn--heart is-on" : "btn btn--heart"}
+            disabled={busy}
+            aria-label={inFavourites ? "Убрать из избранного" : "В избранное"}
+            title={inFavourites ? "В избранном" : "В избранное"}
+            onClick={() => void toggleFavourite()}
+          >
+            <HeartIcon filled={inFavourites} />
           </button>
           <button
             type="button"
-            className="btn btn--primary"
+            className={inCart ? "btn btn--primary" : "btn btn--cart"}
             disabled={busy || !current.is_in_stock}
             onClick={() => void addToCart()}
           >
-            {inCart ? "Открыть корзину" : "В корзину"}
+            {inCart ? "В корзине" : "В корзину"}
           </button>
         </div>
       </div>

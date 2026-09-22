@@ -29,7 +29,7 @@ export function ResetPasswordPage() {
   return (
     <div className="page page--auth">
       <form className="card auth-card" onSubmit={onSubmit}>
-        <div className="brand">Витрина</div>
+        <div className="brand">Лавка</div>
         <h1>Новый пароль</h1>
         {error ? <p className="error">{error}</p> : null}
         {message ? <p className="ok">{message}</p> : null}

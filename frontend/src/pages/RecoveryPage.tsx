@@ -27,7 +27,7 @@ export function RecoveryPage() {
   return (
     <div className="page page--auth">
       <form className="card auth-card" onSubmit={onSubmit}>
-        <div className="brand">Витрина</div>
+        <div className="brand">Лавка</div>
         <h1>Восстановление</h1>
         <p className="muted" style={{ marginBottom: 16 }}>
           Почты нет — токен сразу покажем на этой странице (TTL 15 минут).

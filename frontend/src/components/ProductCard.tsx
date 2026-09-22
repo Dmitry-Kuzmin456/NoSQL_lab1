@@ -1,6 +1,7 @@
 import { Link } from "react-router-dom";
 import type { Product } from "../api/types";
 import { formatPrice } from "../lib/format";
+import { HeartIcon } from "./HeartIcon";
 import { usePaths } from "../routing";
 
 type Props = {
@@ -35,15 +36,17 @@ export function ProductCard({
         <div className="product-card__actions">
           <button
             type="button"
-            className={inFavourites ? "btn btn--ghost" : "btn btn--ghost"}
+            className={inFavourites ? "btn btn--heart is-on" : "btn btn--heart"}
             disabled={busy}
+            aria-label={inFavourites ? "Убрать из избранного" : "В избранное"}
+            title={inFavourites ? "В избранном" : "В избранное"}
             onClick={onFavourite}
           >
-            {inFavourites ? "В избранном" : "В избранное"}
+            <HeartIcon filled={inFavourites} />
           </button>
           <button
             type="button"
-            className="btn btn--primary"
+            className={inCart ? "btn btn--primary" : "btn btn--cart"}
             disabled={busy || !product.is_in_stock}
             onClick={onCart}
           >

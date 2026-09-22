@@ -81,7 +81,7 @@ export function FavouritesPage() {
             <div className="row__actions">
               <button
                 type="button"
-                className="btn btn--primary"
+                className={cartIds.has(item.product_id) ? "btn btn--primary" : "btn btn--cart"}
                 disabled={!item.product?.is_in_stock}
                 onClick={() => void toCart(item.product_id)}
               >

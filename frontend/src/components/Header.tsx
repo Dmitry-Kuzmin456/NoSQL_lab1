@@ -12,7 +12,7 @@ export function Header() {
   return (
     <header className="header">
       <NavLink to={paths.catalog} className="header__brand">
-        Витрина
+        Лавка
       </NavLink>
       <nav className="nav">
         <NavLink to={paths.catalog} end>

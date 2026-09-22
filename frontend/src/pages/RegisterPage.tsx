@@ -36,7 +36,7 @@ export function RegisterPage() {
   return (
     <div className="page page--auth">
       <form className="card auth-card" onSubmit={onSubmit}>
-        <div className="brand">Витрина</div>
+        <div className="brand">Лавка</div>
         <h1>Регистрация</h1>
         {error ? <p className="error">{error}</p> : null}
         <label className="field">

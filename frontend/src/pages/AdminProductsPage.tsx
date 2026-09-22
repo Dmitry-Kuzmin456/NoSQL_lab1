@@ -89,8 +89,7 @@ export function AdminProductsPage() {
     <>
       <h1>Товары</h1>
       {error ? <p className="error">{error}</p> : null}
-      <form className="card create-product" onSubmit={onCreate}>
-        <h2>Новый товар</h2>
+      <form className="card filters create-product" onSubmit={onCreate}>
         <label className="field">
           <span>Название</span>
           <input required value={name} onChange={(event) => setName(event.target.value)} />

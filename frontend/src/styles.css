@@ -304,6 +304,10 @@ p {
   align-items: end;
 }
 
+.create-product {
+  grid-template-columns: minmax(0, 1.5fr) minmax(0, 1.4fr) minmax(0, 0.7fr) minmax(0, 0.6fr) auto;
+}
+
 .filters .field {
   margin: 0;
   min-width: 0;
@@ -487,18 +491,6 @@ p {
   padding: 24px;
 }
 
-.create-product {
-  padding: 22px 24px 20px;
-  margin-bottom: 24px;
-  border: 2px solid #a67c52;
-  background: #e8d4b8;
-}
-
-.create-product h2 {
-  margin-bottom: 16px;
-  font-size: 18px;
-}
-
 .page-head {
   display: flex;
   justify-content: space-between;
@@ -519,7 +511,8 @@ p {
 
 @media (max-width: 900px) {
   .grid,
-  .filters {
+  .filters,
+  .create-product {
     grid-template-columns: 1fr;
   }
 

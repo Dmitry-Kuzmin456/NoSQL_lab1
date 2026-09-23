@@ -87,7 +87,10 @@ export type OrderList = {
   items: Order[];
   offset: number;
   limit: number;
+  total_orders_count: number;
 };
+
+
 
 export type CheckoutResult = {
   orders: Order[];

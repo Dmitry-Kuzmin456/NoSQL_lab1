@@ -90,11 +90,20 @@ class OrderListResponse(BaseModel):
     items: list[OrderResponse]
     offset: int
     limit: int
+    total_orders_count: int = Field(
+        default=0,
+        description="Количество созданных заказов (пользователя или общее для админа)",
+    )
 
     @classmethod
-    def from_dto(cls, dto: OrderListResponseDto) -> "OrderListResponse":
+    def from_dto(
+        cls,
+        dto: OrderListResponseDto,
+        total_orders_count: int = 0,
+    ) -> "OrderListResponse":
         return cls(
             items=[OrderResponse.from_dto(o) for o in dto.items],
             offset=dto.offset,
             limit=dto.limit,
+            total_orders_count=total_orders_count,
         )

@@ -71,9 +71,11 @@ class TestOrdersFunctional:
             params={"status": OrderStatus.CREATED.value},
         )
         assert list_resp.status_code == 200
-        items = list_resp.json()["items"]
+        list_data = list_resp.json()
+        items = list_data["items"]
         assert len(items) >= 1
         assert any(o["id"] == order_id for o in items)
+        assert list_data["total_orders_count"] >= 1
 
         # Получаем один заказ
         get_resp = client.get(
@@ -189,9 +191,11 @@ class TestOrdersFunctional:
             },
         )
         assert resp.status_code == 200
-        items = resp.json()["items"]
+        data = resp.json()
+        items = data["items"]
         assert len(items) >= 1
         assert all(o["user_id"] == str(student_user.id) for o in items)
+        assert data["total_orders_count"] >= 1
 
     # -----------------------------------------------------------------------
     # Альтернативные потоки (Alternative Flows & Errors)
@@ -402,3 +406,67 @@ class TestOrdersFunctional:
         assert snapshot["name"] == sample_product.name
         assert snapshot["description"] == sample_product.description
         assert Decimal(str(snapshot["price"])) == sample_product.price
+
+    def test_orders_total_count_in_list_endpoints(
+        self,
+        client: TestClient,
+        student_user: User,
+        student_auth_headers: dict[str, str],
+        teacher_auth_headers: dict[str, str],
+        admin_auth_headers: dict[str, str],
+        sample_product: Product,
+    ) -> None:
+        """Тест наличия total_orders_count в ответах list_my_orders, list_orders_by_user_id и list_orders."""
+        # 1. Изначально счетчики равны 0
+        resp_student = client.get("/api/users/me/orders", headers=student_auth_headers)
+        assert resp_student.status_code == 200
+        assert resp_student.json()["total_orders_count"] == 0
+
+        resp_admin_all = client.get("/api/orders", headers=admin_auth_headers)
+        assert resp_admin_all.status_code == 200
+        assert resp_admin_all.json()["total_orders_count"] == 0
+
+        # 2. Студент создает 2 заказа
+        client.post(
+            "/api/users/me/orders",
+            headers=student_auth_headers,
+            json={"product_id": str(sample_product.id), "quantity": 1},
+        )
+        client.post(
+            "/api/users/me/orders",
+            headers=student_auth_headers,
+            json={"product_id": str(sample_product.id), "quantity": 1},
+        )
+
+        # Проверяем счетчик студента в list_my_orders
+        resp_student = client.get("/api/users/me/orders", headers=student_auth_headers)
+        assert resp_student.status_code == 200
+        assert resp_student.json()["total_orders_count"] == 2
+
+        # Преподаватель проверяет свой счетчик в list_my_orders (должен быть 0)
+        resp_teacher = client.get("/api/users/me/orders", headers=teacher_auth_headers)
+        assert resp_teacher.status_code == 200
+        assert resp_teacher.json()["total_orders_count"] == 0
+
+        # Преподаватель создает 1 заказ
+        client.post(
+            "/api/users/me/orders",
+            headers=teacher_auth_headers,
+            json={"product_id": str(sample_product.id), "quantity": 1},
+        )
+        resp_teacher = client.get("/api/users/me/orders", headers=teacher_auth_headers)
+        assert resp_teacher.status_code == 200
+        assert resp_teacher.json()["total_orders_count"] == 1
+
+        # 3. Администратор запрашивает общий список заказов (2 + 1 = 3)
+        resp_admin_all = client.get("/api/orders", headers=admin_auth_headers)
+        assert resp_admin_all.status_code == 200
+        assert resp_admin_all.json()["total_orders_count"] == 3
+
+        # 4. Администратор запрашивает список заказов конкретного пользователя по ID
+        resp_admin_user = client.get(
+            f"/api/users/{student_user.id}/orders",
+            headers=admin_auth_headers,
+        )
+        assert resp_admin_user.status_code == 200
+        assert resp_admin_user.json()["total_orders_count"] == 2

@@ -26,3 +26,5 @@ export function approveOrder(orderId: string): Promise<Order> {
 export function rejectOrder(orderId: string): Promise<Order> {
   return api<Order>(`/api/orders/${orderId}/reject`, { method: "POST" });
 }
+
+

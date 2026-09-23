@@ -1,3 +1,5 @@
+name: nosql_lab1_test
+
 services:
   postgres-test:
     image: postgres:16-alpine

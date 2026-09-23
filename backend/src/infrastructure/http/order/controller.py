@@ -43,9 +43,7 @@ def list_my_orders(
         limit=limit,
     )
     total_orders_count = service.get_user_orders_count(current_user.id)
-    return OrderListResponse.from_dto(
-        result, total_orders_count=total_orders_count
-    )
+    return OrderListResponse.from_dto(result, total_orders_count=total_orders_count)
 
 
 @router.get(
@@ -72,9 +70,7 @@ def list_orders_by_user_id(
         limit=limit,
     )
     total_orders_count = service.get_user_orders_count(user_id)
-    return OrderListResponse.from_dto(
-        result, total_orders_count=total_orders_count
-    )
+    return OrderListResponse.from_dto(result, total_orders_count=total_orders_count)
 
 
 @router.post(
@@ -180,9 +176,7 @@ def list_orders(
         if filters.user_id is not None
         else service.get_total_orders_count()
     )
-    return OrderListResponse.from_dto(
-        result, total_orders_count=total_orders_count
-    )
+    return OrderListResponse.from_dto(result, total_orders_count=total_orders_count)
 
 
 @router.get(

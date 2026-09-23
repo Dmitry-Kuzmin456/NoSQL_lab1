@@ -418,9 +418,7 @@ class TestOrdersFunctional:
     ) -> None:
         """Тест наличия total_orders_count в ответах list_my_orders, list_orders_by_user_id и list_orders."""
         # 1. Изначально счетчики равны 0
-        resp_student = client.get(
-            "/api/users/me/orders", headers=student_auth_headers
-        )
+        resp_student = client.get("/api/users/me/orders", headers=student_auth_headers)
         assert resp_student.status_code == 200
         assert resp_student.json()["total_orders_count"] == 0
 
@@ -441,16 +439,12 @@ class TestOrdersFunctional:
         )
 
         # Проверяем счетчик студента в list_my_orders
-        resp_student = client.get(
-            "/api/users/me/orders", headers=student_auth_headers
-        )
+        resp_student = client.get("/api/users/me/orders", headers=student_auth_headers)
         assert resp_student.status_code == 200
         assert resp_student.json()["total_orders_count"] == 2
 
         # Преподаватель проверяет свой счетчик в list_my_orders (должен быть 0)
-        resp_teacher = client.get(
-            "/api/users/me/orders", headers=teacher_auth_headers
-        )
+        resp_teacher = client.get("/api/users/me/orders", headers=teacher_auth_headers)
         assert resp_teacher.status_code == 200
         assert resp_teacher.json()["total_orders_count"] == 0
 
@@ -460,9 +454,7 @@ class TestOrdersFunctional:
             headers=teacher_auth_headers,
             json={"product_id": str(sample_product.id), "quantity": 1},
         )
-        resp_teacher = client.get(
-            "/api/users/me/orders", headers=teacher_auth_headers
-        )
+        resp_teacher = client.get("/api/users/me/orders", headers=teacher_auth_headers)
         assert resp_teacher.status_code == 200
         assert resp_teacher.json()["total_orders_count"] == 1
 
@@ -478,5 +470,3 @@ class TestOrdersFunctional:
         )
         assert resp_admin_user.status_code == 200
         assert resp_admin_user.json()["total_orders_count"] == 2
-
-

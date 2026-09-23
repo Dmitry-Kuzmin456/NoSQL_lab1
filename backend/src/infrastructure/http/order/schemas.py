@@ -107,5 +107,3 @@ class OrderListResponse(BaseModel):
             limit=dto.limit,
             total_orders_count=total_orders_count,
         )
-
-

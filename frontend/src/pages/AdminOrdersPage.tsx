@@ -7,6 +7,7 @@ import { formatPrice, ORDER_STATUS_LABEL } from "../lib/format";
 export function AdminOrdersPage() {
   const [status, setStatus] = useState<OrderStatus | "">("");
   const [orders, setOrders] = useState<Order[]>([]);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
 
@@ -15,6 +16,7 @@ export function AdminOrdersPage() {
     try {
       const result = await listAllOrders(nextStatus || undefined);
       setOrders(result.items);
+      setTotalCount(result.total_orders_count);
     } catch (err) {
       setError(err instanceof ApiError ? err.message : "Не удалось загрузить заявки");
     } finally {
@@ -39,7 +41,12 @@ export function AdminOrdersPage() {
   return (
     <>
       <div className="page-head">
-        <h1>Все заявки</h1>
+        <div>
+          <h1>Все заявки</h1>
+          {totalCount !== null ? (
+            <p className="muted">Всего создано заказов: {totalCount}</p>
+          ) : null}
+        </div>
         <select
           value={status}
           onChange={(event) => {

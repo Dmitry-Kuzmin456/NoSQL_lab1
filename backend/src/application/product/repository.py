@@ -1,13 +1,18 @@
+from __future__ import annotations
+
+import builtins
 from abc import ABC, abstractmethod
 from uuid import UUID
 
+from domain.attachment import AttachmentMetadata
+from domain.category import Category
 from domain.product import Product
 
-from .dto import ProductFilterDto
+from .dto import ProductFilterDto, ProductStateChangesDto
 
 
 class IProductRepository(ABC):
-    """Интерфейс репозитория товаров."""
+    """Интерфейс репозитория товаров (корень агрегата)."""
 
     @abstractmethod
     def get_by_id(self, product_id: UUID) -> Product | None:
@@ -33,8 +38,23 @@ class IProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
-    def save(self, product: Product) -> Product:
-        """Сохранить товар."""
+    def create(
+        self,
+        product: Product,
+        categories: builtins.list[Category] | None = None,
+        attachments: builtins.list[AttachmentMetadata] | None = None,
+    ) -> Product:
+        """Создать новый товар."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def update(
+        self,
+        product: Product,
+        categories: builtins.list[Category] | None = None,
+        attachments: builtins.list[AttachmentMetadata] | None = None,
+    ) -> Product | None:
+        """Обновить существующий товар."""
         raise NotImplementedError
 
     @abstractmethod
@@ -48,6 +68,54 @@ class IProductRepository(ABC):
         raise NotImplementedError
 
     @abstractmethod
+    def increment_orders_count(self, product_id: UUID, delta: int = 1) -> bool:
+        """Увеличить счетчик заказов товара."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def decrement_orders_count(self, product_id: UUID, delta: int = 1) -> bool:
+        raise NotImplementedError
+
+    @abstractmethod
     def delete(self, product_id: UUID) -> bool:
         """Удалить товар."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_categories(self, product_id: UUID) -> builtins.list[Category]:
+        """Получить встроенные категории товара."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def get_attachments(self, product_id: UUID) -> builtins.list[AttachmentMetadata]:
+        """Получить встроенные вложения товара."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_category(self, product_id: UUID, category: Category) -> Product | None:
+        """Добавить встроенную категорию к товару."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_category(self, product_id: UUID, category_id: UUID) -> Product | None:
+        """Удалить встроенную категорию из товара."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def add_attachment(
+        self, product_id: UUID, attachment: AttachmentMetadata
+    ) -> Product | None:
+        """Добавить встроенное вложение к товару."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def remove_attachment(
+        self, product_id: UUID, attachment_id: UUID
+    ) -> Product | None:
+        """Удалить встроенное вложение из товара."""
+        raise NotImplementedError
+
+    @abstractmethod
+    def average_changes_by_state(self) -> builtins.list[ProductStateChangesDto]:
+        """Среднее число правок товара по состояниям наличия."""
         raise NotImplementedError

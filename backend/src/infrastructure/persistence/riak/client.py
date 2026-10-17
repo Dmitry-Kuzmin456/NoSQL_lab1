@@ -1,5 +1,6 @@
 import logging
 from dataclasses import dataclass
+from functools import cache
 from typing import Any
 
 import httpx
@@ -19,6 +20,10 @@ class RiakObject:
 
 def _build_kv_url(bucket: str, key: str, bucket_type: str = "default") -> str:
     return f"/types/{bucket_type}/buckets/{bucket}/keys/{key}"
+
+
+def _build_bucket_props_url(bucket: str, bucket_type: str = "default") -> str:
+    return f"/types/{bucket_type}/buckets/{bucket}/props"
 
 
 def _build_datatype_url(bucket: str, key: str, bucket_type: str) -> str:
@@ -79,6 +84,21 @@ class RiakClient:
             key=key,
             data=response.json(),
             bucket_type=bucket_type,
+        )
+
+    def set_bucket_props(
+        self,
+        bucket: str,
+        props: dict[str, Any],
+        bucket_type: str = "default",
+    ) -> None:
+        """Задать свойства бакета, в том числе TTL объектов."""
+        url = _build_bucket_props_url(bucket, bucket_type)
+        self._request(
+            "PUT",
+            url,
+            json={"props": props},
+            headers={"Content-Type": "application/json"},
         )
 
     def put(self, obj: RiakObject) -> RiakObject:
@@ -309,12 +329,12 @@ class RiakClient:
         return response.json().get("value", {})
 
 
-_client = RiakClient()
-
-
+@cache
 def get_riak_client() -> RiakClient:
-    return _client
+    """Синглтон RiakClient."""
+    return RiakClient()
 
 
 def close_riak_client() -> None:
-    _client.close()
+    """Закрыть клиент Riak."""
+    get_riak_client().close()

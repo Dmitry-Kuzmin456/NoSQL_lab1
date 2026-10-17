@@ -27,6 +27,20 @@ os.environ["AUTH__REFRESH_TOKEN_EXPIRE_DAYS"] = "60"
 os.environ["AUTH__COOKIE_SECURE"] = "false"
 os.environ["AUTH__COOKIE_HTTPONLY"] = "true"
 os.environ["AUTH__COOKIE_SAMESITE"] = "lax"
+os.environ["COUCHDB__NODE0_URL"] = os.getenv(
+    "COUCHDB__NODE0_URL", "http://localhost:5984"
+)
+os.environ["COUCHDB__NODE1_URL"] = os.getenv(
+    "COUCHDB__NODE1_URL", "http://localhost:5985"
+)
+os.environ["COUCHDB__USER"] = os.getenv("COUCHDB__USER", "admin")
+os.environ["COUCHDB__PASSWORD"] = os.getenv("COUCHDB__PASSWORD", "password")
+os.environ["COUCHDB__PRODUCTS_DB"] = os.getenv("COUCHDB__PRODUCTS_DB", "products_test")
+os.environ["COUCHDB__CATEGORIES_DB"] = os.getenv(
+    "COUCHDB__CATEGORIES_DB", "categories_test"
+)
+os.environ["COUCHDB__TIMEOUT"] = "5.0"
+
 
 from application.auth.service import AuthService
 from application.auth.token import ITokenService
@@ -93,6 +107,10 @@ from infrastructure.http.user.dependencies import (
 from infrastructure.persistence.composite.history_repository import (
     CompositeHistoryRepository,
 )
+from infrastructure.persistence.couchdb.client import get_couchdb_client
+from infrastructure.persistence.couchdb.product_repository import (
+    CouchDbProductRepository,
+)
 from infrastructure.persistence.postgres.connection import (
     get_postgres_pool,
     init_db,
@@ -102,9 +120,6 @@ from infrastructure.persistence.postgres.history_repository import (
 )
 from infrastructure.persistence.postgres.order_repository import (
     PostgresOrderRepository,
-)
-from infrastructure.persistence.postgres.product_repository import (
-    PostgresProductRepository,
 )
 from infrastructure.persistence.postgres.teacher_repository import (
     PostgresTeacherRepository,
@@ -161,10 +176,18 @@ def _is_riak_ready() -> bool:
         return False
 
 
+def _is_couchdb_ready() -> bool:
+    try:
+        client = get_couchdb_client()
+        return client.ping(node=0)
+    except Exception:  # noqa: BLE001
+        return False
+
+
 @pytest.fixture(scope="session", autouse=True)
 def setup_docker_test_containers() -> Generator[None]:
-    """Гарантирует, что тестовые контейнеры PostgreSQL и Riak KV запущены и готовы к работе."""
-    if not _is_postgres_ready() or not _is_riak_ready():
+    """Гарантирует, что тестовые контейнеры PostgreSQL, Riak KV и CouchDB запущены и готовы к работе."""
+    if not _is_postgres_ready() or not _is_riak_ready() or not _is_couchdb_ready():
         # Start docker-compose.test.yml
         compose_file = os.path.abspath(
             os.path.join(
@@ -180,7 +203,7 @@ def setup_docker_test_containers() -> Generator[None]:
 
     # Wait for readiness
     for _ in range(60):
-        if _is_postgres_ready() and _is_riak_ready():
+        if _is_postgres_ready() and _is_riak_ready() and _is_couchdb_ready():
             break
         time.sleep(1.0)
 
@@ -218,6 +241,7 @@ def _cleanup_riak() -> None:
             ("maps", "favourites"),
             ("counters", "order_counters"),
             ("default", "history_cache"),
+            ("default", "product_analytics"),
         ]
         for btype, bname in buckets_to_clean:
             try:
@@ -234,14 +258,32 @@ def _cleanup_riak() -> None:
         pass
 
 
+def _cleanup_couchdb() -> None:
+    try:
+        client = get_couchdb_client()
+        for db in [settings.couchdb.products_db, settings.couchdb.categories_db]:
+            try:
+                all_docs = client.get_all_docs(db, include_docs=False)
+                for item in all_docs:
+                    doc_id = item["id"]
+                    if not doc_id.startswith("_design/"):
+                        client.delete_doc(db, doc_id, item["value"]["rev"])
+            except Exception:  # noqa: BLE001, S110
+                pass
+    except Exception:  # noqa: BLE001, S110
+        pass
+
+
 @pytest.fixture(autouse=True)
 def clean_db_and_riak_between_tests() -> Generator[None]:
-    """Очищает таблицы PostgreSQL и бакеты Riak KV перед и после каждого теста."""
+    """Очищает таблицы PostgreSQL, бакеты Riak KV и CouchDB перед и после каждого теста."""
     _truncate_postgres()
     _cleanup_riak()
+    _cleanup_couchdb()
     yield
     _truncate_postgres()
     _cleanup_riak()
+    _cleanup_couchdb()
 
 
 # ---------------------------------------------------------------------------
@@ -253,8 +295,8 @@ def clean_db_and_riak_between_tests() -> Generator[None]:
 class RepositoriesContainer:
     user_repo: PostgresUserRepository = field(default_factory=PostgresUserRepository)
     session_repo: RiakSessionRepository = field(default_factory=RiakSessionRepository)
-    product_repo: PostgresProductRepository = field(
-        default_factory=PostgresProductRepository
+    product_repo: CouchDbProductRepository = field(
+        default_factory=lambda: CouchDbProductRepository(client=get_couchdb_client())
     )
     cart_repo: RiakCartRepository = field(default_factory=RiakCartRepository)
     favourites_repo: RiakFavouritesRepository = field(
@@ -525,4 +567,4 @@ def sample_product(repos: RepositoriesContainer) -> Product:
         price=Decimal("1500.00"),
         quantity=10,
     )
-    return repos.product_repo.save(product)
+    return repos.product_repo.create(product)

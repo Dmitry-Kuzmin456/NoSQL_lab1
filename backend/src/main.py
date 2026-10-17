@@ -1,3 +1,5 @@
+import asyncio
+import logging
 from collections.abc import AsyncGenerator
 from contextlib import asynccontextmanager
 from typing import Any
@@ -5,9 +7,13 @@ from typing import Any
 import uvicorn
 from fastapi import FastAPI
 
+from infrastructure.environment.settings import settings
 from infrastructure.http.auth.controller import router as auth_router
 from infrastructure.http.auth.dependencies import get_token_service
 from infrastructure.http.cart.controller import router as cart_router
+from infrastructure.http.category.controller import (
+    router as categories_router,
+)
 from infrastructure.http.checkout.controller import router as checkout_router
 from infrastructure.http.exception_handlers import setup_exception_handlers
 from infrastructure.http.favourites.controller import router as favourites_router
@@ -18,20 +24,81 @@ from infrastructure.http.middleware.authentication_middleware import (
 )
 from infrastructure.http.openapi import generate_openapi_schema
 from infrastructure.http.order.controller import router as order_router
+from infrastructure.http.product.attachment.controller import (
+    router as product_attachments_router,
+)
+from infrastructure.http.product.category.controller import (
+    router as product_categories_router,
+)
 from infrastructure.http.product.controller import router as product_router
+from infrastructure.http.product.dependencies import get_product_analytics_cache
 from infrastructure.http.recovery.controller import router as recovery_router
 from infrastructure.http.teacher.controller import router as teacher_router
 from infrastructure.http.user.controller import router as user_router
+from infrastructure.persistence.couchdb.category_migrator import (
+    CategoryMigrator,
+)
+from infrastructure.persistence.couchdb.client import (
+    CouchDbClient,
+    close_couchdb_client,
+)
+from infrastructure.persistence.couchdb.design_documents import (
+    ensure_category_indexes,
+    ensure_product_analytics_view,
+    ensure_product_indexes,
+    ensure_validation_design_docs,
+)
 from infrastructure.persistence.postgres.connection import close_postgres_pool, init_db
 from infrastructure.persistence.riak.client import close_riak_client
+
+logger = logging.getLogger(__name__)
+
+
+def _run_couchdb_init_and_migration() -> None:
+    try:
+        client = CouchDbClient()
+        client.ensure_system_databases()
+        ensure_validation_design_docs(client)
+        ensure_product_analytics_view(client)
+        ensure_product_indexes(client)
+        ensure_category_indexes(client)
+        client.setup_two_way_replication(settings.couchdb.products_db)
+        client.setup_two_way_replication(settings.couchdb.categories_db)
+        logger.info(
+            "Автоматическая репликация CouchDB между узлами для '%s' и '%s' настроена",
+            settings.couchdb.products_db,
+            settings.couchdb.categories_db,
+        )
+        migrator = CategoryMigrator(client=client)
+        if settings.app_version >= 2:
+            stats = migrator.migrate_all_to_v2()
+            if stats.migrated_products > 0:
+                logger.info(
+                    "Автомиграция CouchDB (v1 -> v2): обновлено %d товаров, перенесено %d категорий",
+                    stats.migrated_products,
+                    stats.migrated_categories,
+                )
+        else:
+            stats = migrator.migrate_all_to_v1()
+            if stats.migrated_products > 0:
+                logger.info(
+                    "Автомиграция CouchDB (v2 -> v1): обновлено %d товаров, возвращено %d категорий",
+                    stats.migrated_products,
+                    stats.migrated_categories,
+                )
+    except Exception as exc:  # noqa: BLE001
+        logger.warning("Ошибка инициализации/миграции CouchDB: %s", exc)
 
 
 @asynccontextmanager
 async def lifespan(_: FastAPI) -> AsyncGenerator[None]:
     init_db()
+    get_product_analytics_cache()
+    asyncio.create_task(asyncio.to_thread(_run_couchdb_init_and_migration))
     yield
     close_postgres_pool()
     close_riak_client()
+    close_couchdb_client()
 
 
 class App(FastAPI):
@@ -49,6 +116,9 @@ app.include_router(health_router, prefix="/api")
 app.include_router(user_router, prefix="/api")
 app.include_router(auth_router, prefix="/api")
 app.include_router(product_router, prefix="/api")
+app.include_router(product_attachments_router, prefix="/api")
+app.include_router(product_categories_router, prefix="/api")
+app.include_router(categories_router, prefix="/api")
 app.include_router(favourites_router, prefix="/api")
 app.include_router(cart_router, prefix="/api")
 app.include_router(checkout_router, prefix="/api")
